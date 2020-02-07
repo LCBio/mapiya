@@ -1,0 +1,115 @@
+{% extends "gentella/base_site.html" %}
+{% load static %}
+
+{% block title %} Login {% endblock title %}
+
+{% block stylesheets %}
+    {{ block.super }}
+    <!-- Animate.css -->
+    <link href="{% static 'vendors/animate.css/animate.min.css' %}" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block body_class %}login{% endblock body_class %}
+
+{% block body %}
+    <div>
+        <a class="hiddenanchor" id="signup"></a>
+        <a class="hiddenanchor" id="signin"></a>
+
+        <div class="login_wrapper">
+            <div class="animate form login_form">
+                <section class="login_content">
+                    <form method="post" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        <h1>Login Form</h1>
+                        <div>
+                            <input type="email" name="email" class="form-control" placeholder="Email" required=""/>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" name="password" class="form-control" placeholder="Password"
+                                   required=""/>
+                            {% for error in form.errors.password %}
+                                <p class="text-danger">
+                                    {{ error }}
+                                    <a href="#" class="small text-primary">Reset?</a>
+                                </p>
+                            {% endfor %}
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-default submit">
+                                Log in to your account
+                            </button>
+                        </div>
+
+                        <div class="clearfix"></div>
+
+                        <div class="separator">
+                            <p class="change_link">New to site?
+                                <a href="#signup" class="to_register"> Create Account </a>
+                            </p>
+
+                            <div class="clearfix"></div>
+                            <br/>
+
+                            <div>
+                                <a href="{% url 'home' %}"><h1><i class="fa fa-map"></i> Mapserver</h1></a>
+                                <p>Copyright &copy; 2020 <a href="http://lcbio.pl">LCBio</a></p>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+            </div>
+
+            <div id="register" class="animate form registration_form">
+                <section class="login_content">
+                    <form action="{% url 'signup' %}" method="post">
+                        {% csrf_token %}
+                        <h1>Create account</h1>
+                        <div class="form-group">
+                            <input type="email" name="email" class="form-control" placeholder="Email" required=""/>
+                            {% for error in form.errors.email %}
+                                <p class="text-danger">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        <div class="form-group">
+                            <input type="password" name="password1" class="form-control" placeholder="Password"
+                                   required=""/>
+                            {% for error in form.errors.password1 %}
+                                <p class="text-danger">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        <div class="form-group">
+                            <input type="password" name="password2" class="form-control" placeholder="Confirm password"
+                                   required=""/>
+                            {% for error in form.errors.password2 %}
+                                <p class="text-danger">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-default submit">
+                                Create new account
+                            </button>
+                        </div>
+
+                        <div class="clearfix"></div>
+
+                        <div class="separator">
+                            <p class="change_link">Already a member ?
+                                <a href="#signin" class="to_register"> Log in </a>
+                            </p>
+
+                            <div class="clearfix"></div>
+                            <br/>
+
+                            <div>
+                                <a href="{% url 'home' %}"><h1><i class="fa fa-map"></i> Mapserver</h1></a>
+                                <p>Copyright &copy; 2020 <a href="http://lcbio.pl">LCBio</a></p>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+{% endblock body %}
+

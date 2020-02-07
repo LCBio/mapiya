@@ -1,13 +1,12 @@
 {% extends "mapserver/base_site.html" %}
 {% load static %}
-{% load django_tables2 %}
 
-{% block title %} Home {% endblock title %}
+{% block title %} Project Details {% endblock title %}
+
+{% block sidebar_class %}menu_fixed{% endblock sidebar_class %}
 
 {% block stylesheets %}
     {{ block.super }}
-    <!-- Dropzone.js -->
-    <link href="{% static 'vendors/dropzone/dist/min/dropzone.min.css' %}" rel="stylesheet">
 {% endblock stylesheets %}
 
 {% block content %}
@@ -15,7 +14,7 @@
         <div class="">
             <div class="page-title">
                 <div class="title_left">
-                    <h3>Form Upload </h3>
+                    <h3>Map for: <small> {{ object }}</small></h3>
                 </div>
 
                 <div class="title_right">
@@ -23,8 +22,8 @@
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="Search for...">
                             <span class="input-group-btn">
-                                <button class="btn btn-default" type="button">Go!</button>
-                            </span>
+                <button class="btn btn-default" type="button">Go!</button>
+              </span>
                         </div>
                     </div>
                 </div>
@@ -33,55 +32,62 @@
             <div class="clearfix"></div>
 
             <div class="row">
-                <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="col-lg-6 col-md-4 col-xs-12">
                     <div class="x_panel">
                         <div class="x_title">
-                            <h2>Dropzone multiple file uploader</h2>
+                            <h2>Map</h2>
                             <ul class="nav navbar-right panel_toolbox">
-                                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                </li>
                                 <li class="dropdown">
                                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
                                        aria-expanded="false"><i class="fa fa-wrench"></i></a>
                                     <ul class="dropdown-menu" role="menu">
-                                        <li><a href="#">Settings 1</a></li>
-                                        <li><a href="#">Settings 2</a></li>
+                                        <li><a href="#">Settings 1</a>
+                                        </li>
+                                        <li><a href="#">Settings 2</a>
+                                        </li>
                                     </ul>
                                 </li>
-                                <li><a class="close-link"><i class="fa fa-close"></i></a></li>
+                                <li><a class="close-link"><i class="fa fa-close"></i></a>
+                                </li>
                             </ul>
                             <div class="clearfix"></div>
                         </div>
+
                         <div class="x_content">
-                            <p>Drag multiple files to the box below for multi upload or click to select files.</p>
-                            <form action="{% url 'home' %}" method="post" class="dropzone"
-                                  enctype="multipart/form-data">{% csrf_token %}</form>
-                            <br/>
+                            <h4>Pod spodem  object.matrix - kwadratowa macierz numpy</h4>
+                            {{ object.matrix }}
+                            <h4>Pod spodem  object.labels</h4>
+                            {{ object.labels }}
                         </div>
                     </div>
                 </div>
-
-
-                <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="col-lg-6 col-md-8 col-xs-12">
                     <div class="x_panel">
                         <div class="x_title">
-                            <h2>Uploaded files</h2>
+                            <h2>Viewer</h2>
                             <ul class="nav navbar-right panel_toolbox">
-                                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+                                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                                </li>
                                 <li class="dropdown">
                                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
                                        aria-expanded="false"><i class="fa fa-wrench"></i></a>
                                     <ul class="dropdown-menu" role="menu">
-                                        <li><a href="#">Settings 1</a></li>
-                                        <li><a href="#">Settings 2</a></li>
+                                        <li><a href="#">Settings 1</a>
+                                        </li>
+                                        <li><a href="#">Settings 2</a>
+                                        </li>
                                     </ul>
                                 </li>
-                                <li><a class="close-link"><i class="fa fa-close"></i></a></li>
+                                <li><a class="close-link"><i class="fa fa-close"></i></a>
+                                </li>
                             </ul>
                             <div class="clearfix"></div>
                         </div>
+
                         <div class="x_content">
-                            {% render_table table %}
-                            <br/>
+
                         </div>
                     </div>
                 </div>
@@ -92,13 +98,6 @@
 
 {% block javascripts %}
     {{ block.super }}
-    <!-- Dropzone.js -->
-    <script src="{% static 'vendors/dropzone/dist/min/dropzone.min.js' %}"></script>
-    <script>
-        $(document).ready(function () {
-            $('.dropzone').dropzone({
-                uploadMultiple: true
-            });
-        })
-    </script>
+    <!-- ECharts -->
+    <script src="{% static 'vendors/echarts/dist/echarts.min.js' %}"></script>
 {% endblock javascripts %}

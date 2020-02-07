@@ -1,0 +1,6 @@
+django
+requests
+numpy
+cached_property
+bitarray
+django-tables2

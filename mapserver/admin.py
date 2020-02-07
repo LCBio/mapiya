@@ -1,16 +1,10 @@
 from django.contrib import admin
 from django.contrib.sessions.models import Session
-from mapserver import models
+from .models import User, Identity, Map
 
 admin.site.register([
     Session,
-    models.UserSession,
-    models.Identity,
-    models.Project,
-    models.DataType,
-    models.Upload,
-    models.JobType,
-    models.JobRecipe,
-    models.Job,
-    models.JobData,
+    User,
+    Identity,
+    Map
 ])
