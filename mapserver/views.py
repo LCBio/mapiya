@@ -1,5 +1,5 @@
 from django.template import loader
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.urls import reverse_lazy
 from django.contrib import auth
 from django.contrib.auth.password_validation import validate_password
@@ -8,7 +8,6 @@ from django.views import generic
 from django.core.files import File
 from django.shortcuts import redirect
 from mapserver import models, forms, tables
-from time import sleep
 
 
 def gentella_html(request):
@@ -58,6 +57,23 @@ class MapDetail(generic.DetailView):
 
     model = models.Map
     template_name = 'mapserver/map-detail.html'
+
+
+def map_data(request, pk):
+    try:
+        map_obj = models.Map.objects.get(pk=pk)
+        matrix = map_obj.matrix
+        data = {
+            'success': True,
+            'distances':
+                [[i, j, matrix[i][j]] for i in range(matrix.shape[0]) for j in range(matrix.shape[1])],
+            'labels': map_obj.labels
+        }
+    except models.Map.DoesNotExist:
+        data = {
+            'success': False
+        }
+    return JsonResponse(data=data)
 
 
 class AlreadyLoggedInMixin:
