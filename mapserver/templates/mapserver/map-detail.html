@@ -1,103 +1,730 @@
-{% extends "mapserver/base_site.html" %}
-{% load static %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Contact map</title>
+</head>
 
-{% block title %} Project Details {% endblock title %}
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/maps/modules/map.js"></script>
+<script src="https://code.highcharts.com/maps/modules/data.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
+<script src="https://code.highcharts.com/modules/heatmap.js"></script>
+    <script src="https://unpkg.com/ngl"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var stage = new NGL.Stage("viewport");
 
-{% block sidebar_class %}menu_fixed{% endblock sidebar_class %}
 
-{% block stylesheets %}
-    {{ block.super }}
-{% endblock stylesheets %}
+var defaultCutoff = 3;
 
-{% block content %}
+     $('#slider').bind('input', function() {
+        isContact = true;
+        chart.colorAxis[0].update({
+           dataClassColor: 'category',
+           dataClasses: [{
+               to: this.value
+           }, {
+               from: this.value}]
+        });
+        chart.legend.update({
+        title: {
+            text: ''
+        },
+        align: 'right',
+        verticalAlign: 'top',
+        floating: false,
+        y: 50,
+        layout: 'vertical',
+        valueDecimals: 0,
+        backgroundColor: 'rgba(255,255,255,0.9)',
+        symbolRadius: 0,
+        symbolHeight: 14
+        });
+     });
+
+var options = {
+    chart: {
+        zoomType: 'xy',
+        panning: true,
+        panKey: 'shift',
+        defaultSeriesType: 'heatmap'
+    },
+    title: {
+        text: 'Click and drag to zoom in. Hold down shift key to pan.'
+    },
+
+
+    xAxis: {
+        gridLineWidth: 1,
+        categories: ['', 't', 'r', 'N', 'Q', 'B', 'l', 'R', 'U', 's', 'K', 'o', 'g', 'W', 'r', 'M', 'C', 'N', 'F', 'j', 'H', 'H2', 'H3']
+    },
+    yAxis: {
+        title: {
+            text: null
+        },
+        categories: ['', 'T', 'J', 'd', 'T', 'b', 'S', 'K', 'c', 'A', 'S', 'z', 'r', 'm', 'Q', 'O', 'm', 'Y', 'h', 's', 'H', 'O', 'e', 'S', 'S', 'Q', 'C', 'R', 'G', 'D', 'J', 'B', 'U', 'q', 'u', 'T', 'd', 's', 'F', 'f', 'p', 'V', 'V1', 'V2', 'V3']
+
+    },
+
+
+    colorAxis: {
+        dataClassColor: 'category',
+        dataClasses: [{
+            to: defaultCutoff
+        }, {
+            from: defaultCutoff}]
+    },
+
+
+    tooltip: {
+        formatter: function () {
+            return '<b>' + parseFloat(this.point.x) + '</b>  <br><b>' +
+                parseFloat(this.point.y) + '</b> <br><b>' + this.point.value + '</b>';
+        }
+    },
+
+
+
+    plotOptions: {
+        series: {
+            states: {
+                hover: {
+                    enabled: false
+                }
+            },
+            cursor: 'pointer',
+            events: {
+                click: function (event) {
+            if (event.ctrlKey) {
+            kopytka=kopytka.concat(event.point.xNgl.toString(), ' or ', event.point.yNgl.toString(), ' or ');
+            event.point.select(false, true);
+            if (wasSolo){ 
+                chart.getSelectedPoints()[0].select(false);
+            };
+            if( !isRepStyle3 ){           
+                repstyle3=struct1.addRepresentation( "licorice", {colorScheme: "atomindex"} );
+                repstyle3.setSelection(event.point.xNgl.toString()+' or '+event.point.yNgl.toString()); 
+                isRepStyle3 = true;
+                wasSolo = false;
+            }else{
+                struct1.removeRepresentation(repstyle3);
+                repstyle3=struct1.addRepresentation( "licorice",{colorScheme: "atomindex"} );
+                repstyle3.setSelection(kopytka.toString()); 
+                isRepStyle3 = true;
+                wasSolo = false;
+
+            };
+            }else {
+            kopytka='';
+            if( !isRepStyle3 ){                   
+                repstyle3=struct1.addRepresentation( "licorice", {colorScheme: "atomindex"} );
+                repstyle3.setSelection(event.point.xNgl.toString()+' or '+event.point.yNgl.toString()); 
+                isRepStyle3 = true;
+                wasSolo = true;
+            }else{
+                struct1.removeRepresentation(repstyle3);
+                repstyle3=struct1.addRepresentation( "licorice",{colorScheme: "atomindex"} );
+                repstyle3.setSelection(event.point.xNgl.toString()+' or '+event.point.yNgl.toString()); 
+                isRepStyle3 = true;
+                wasSolo = true;}
+
+            };
+
+
+    },
+            
+            },
+        }
+    },
+
+
+    mapNavigation: {
+        enableMouseWheelZoom: true
+    },
+
+    legend: {
+        title: {
+            text: ''
+        },
+        align: 'right',
+        verticalAlign: 'top',
+        floating: false,
+        y: 50,
+        layout: 'vertical',
+        valueDecimals: 0,
+        backgroundColor: 'rgba(255,255,255,0.9)',
+        symbolRadius: 0,
+        symbolHeight: 14
+    },
+    series: []
+};
+
+
+
+
+
+
+Highcharts.ajax({
+    url:  "{% url 'map-data' object.pk %}",
+    success: function(data) {
+       if (data.success) {
+           console.log(data.points),
+           options.series.push({   
+                    data: data.points,
+                    allowPointSelect: true,
+                    states: {
+                        select: {
+                            color: 'red',
+                            borderWidth:5,
+                            borderColor:'Blue'
+                        },
+                    }    
+           });
+           window.chart = Highcharts.chart('container', options);
+       } else {
+       }    
+    },
+    error: function (e, t) {
+       console.error(e, t);
+    }
+});
+
+
+
+
+        stage.loadFile("rcsb://4pep").then( function( o ){
+      struct1=o;
+      basicRep = o.addRepresentation( "cartoon", {colorScheme: "element" } );
+      o.autoView();
+      });
+
+        var resetView = document.getElementById( "resetView" );
+        resetView.addEventListener( "click", function(){
+            stage.autoView();
+        } );
+
+        var toggleTheme = document.getElementById( "toggleTheme" );
+        var isWhite = false;
+        var isBlue = false;
+        var isBlack = true;
+        toggleTheme.addEventListener( "click", function(){
+	        if ( isBlue ){
+                stage.setParameters( { backgroundColor: "black" } );
+                isBlue = false;
+                isBlack = true;
+            }else if ( isBlack ){
+                stage.setParameters( { backgroundColor: "white" } );
+                isBlack = false;
+                isWhite = true; 
+            }else{
+                stage.setParameters( { backgroundColor: "blue" } );
+                isWhite = false;
+                isBlue = true;
+            }
+        } );
+
+        var toggleSpin = document.getElementById( "toggleSpin" );
+        var isSpinning = false;
+        toggleSpin.addEventListener( "click", function(){
+            if( !isSpinning ){
+                stage.setSpin( [ 0, 1, 0 ], 0.01 );
+                isSpinning = true;
+            }else{
+                stage.setSpin( null, null );
+                isSpinning = false;
+            }
+        } );
+
+        var fullscreen = document.getElementById( "fullscreen" );
+        fullscreen.addEventListener( "click", function(){
+            stage.toggleFullscreen();
+        } );
+
+
+        var selectLabelStyle = document.getElementById( "selectLabelStyle" );
+        var isLabelStyle = false;
+        selectLabelStyle.addEventListener( "click", function(){
+            if( !isLabelStyle ){           
+                labstyle=struct1.addRepresentation( "label", {labelType: selectLabelStyle.value });
+                labstyle.setSelection(inputLabelSelection.value);
+                isLabelStyle = true;
+            }else{
+                struct1.removeRepresentation(labstyle);
+                labstyle=struct1.addRepresentation( "label", {labelType: selectLabelStyle.value });
+                labstyle.setSelection(inputLabelSelection.value);
+                isLabelStyle = true;
+            }
+        } );
+
+        var inputLabelSelection = document.getElementById( "inputLabelSelection" );
+        inputLabelSelection.addEventListener( "keyup", function(event){
+            if (event.keyCode === 13) {
+            if( !isLabelStyle ){           
+                labstyle=struct1.addRepresentation( "label", {labelType: selectLabelStyle.value });
+                labstyle.setSelection(inputLabelSelection.value);
+                isLabelStyle = true;
+            }else{
+                struct1.removeRepresentation(labstyle);
+                labstyle=struct1.addRepresentation( "label", {labelType: selectLabelStyle.value });
+                labstyle.setSelection(inputLabelSelection.value);
+                isLabelStyle = true;
+            }
+            }
+        } );
+
+        var closeLabels = document.getElementById( "closeLabels" );
+        closeLabels.addEventListener( "click", function(){
+                struct1.removeRepresentation(labstyle);
+        } );
+
+
+        var wasSolo = false;
+
+        var selectRepStyle1 = document.getElementById( "selectRepStyle1" );
+        var isRepStyle1 = false;
+        selectRepStyle1.addEventListener( "click", function(){
+            if( !isRepStyle1 ){ 
+                struct1.removeRepresentation(basicRep);          
+                repstyle1=struct1.addRepresentation( selectRepStyle1.value, {colorScheme: coloringMethod1.value} );
+                repstyle1.setSelection(inputRepStyle1.value); 
+                isRepStyle1 = true;
+            }else{
+                struct1.removeRepresentation(repstyle1);
+                repstyle1=struct1.addRepresentation( selectRepStyle1.value,{colorScheme: coloringMethod1.value} );
+                repstyle1.setSelection(inputRepStyle1.value); 
+                isRepStyle1 = true;
+            }
+        } );
+
+
+        var kopytka = '';
+
+        var inputRepStyle1 = document.getElementById( "inputRepStyle1" );
+        inputRepStyle1.addEventListener( "keyup", function(event){
+            if (event.keyCode === 13) {
+            if( !isRepStyle1 ){ 
+                struct1.removeRepresentation(basicRep);          
+                repstyle1=struct1.addRepresentation( selectRepStyle1.value, {colorScheme: coloringMethod1.value} );
+                repstyle1.setSelection(inputRepStyle1.value); 
+                isRepStyle1 = true;
+            }else{
+                struct1.removeRepresentation(repstyle1);
+                repstyle1=struct1.addRepresentation( selectRepStyle1.value,{colorScheme: coloringMethod1.value} );
+                repstyle1.setSelection(inputRepStyle1.value); 
+                isRepStyle1 = true;
+            }  
+            }
+        } );
+
+
+        var coloringMethod1 = document.getElementById( "coloringMethod1" );
+        coloringMethod1.addEventListener( "click", function(){
+            if( !isRepStyle1 ){ 
+                struct1.removeRepresentation(basicRep);          
+                repstyle1=struct1.addRepresentation( selectRepStyle1.value, {colorScheme: coloringMethod1.value} );
+                repstyle1.setSelection(inputRepStyle1.value); 
+                isRepStyle1 = true;
+            }else{
+                struct1.removeRepresentation(repstyle1);
+                repstyle1=struct1.addRepresentation( selectRepStyle1.value,{colorScheme: coloringMethod1.value} );
+                repstyle1.setSelection(inputRepStyle1.value); 
+                isRepStyle1 = true;
+            }
+        } );
+
+        var closeRep1 = document.getElementById( "closeRep1" );
+        closeRep1.addEventListener( "click", function(){
+                struct1.removeRepresentation(basicRep);
+                struct1.removeRepresentation(repstyle1);
+ 
+        } );
+
+
+        var lenMap = document.getElementById( "lenMap" );
+        var isContact = true;
+        lenMap.addEventListener( "click", function(){
+            if( isContact ){ 
+                isContact = false;
+                chart.colorAxis[0].update({
+                    dataClassColor: '',
+                    dataClasses: '',
+                    min: 0,
+                    minColor: '#FFFFFF',
+                    maxColor: Highcharts.getOptions().colors[0]
+                });
+                chart.legend.update({
+                    align: 'right',
+                    layout: 'vertical',
+                    margin: 0,
+                    verticalAlign: 'top',
+                    y: 25,
+                    symbolHeight: 280
+                });
+            }else{
+               isContact = true;
+               chart.colorAxis[0].update({
+               dataClassColor: 'category',
+               dataClasses: [{
+                   to: defaultCutoff
+               }, {
+                   from: defaultCutoff}]
+               });
+            chart.legend.update({
+                title: {
+                text: ''
+            },
+            align: 'right',
+            verticalAlign: 'top',
+            floating: false,
+            y: 50,
+            layout: 'vertical',
+            valueDecimals: 0,
+            backgroundColor: 'rgba(255,255,255,0.9)',
+            symbolRadius: 0,
+            symbolHeight: 14
+            });
+            }
+        } );
+
+
+        var closeRep3 = document.getElementById( "closeRep3" );
+        closeRep3.addEventListener( "click", function(){
+                struct1.removeRepresentation(repstyle3); 
+                kopytka = '';
+                chart.getSelectedPoints()[0].select(false);
+        } );
+
+
+        var selectRepStyle2 = document.getElementById( "selectRepStyle2" );
+        var isRepStyle2 = false;
+        selectRepStyle2.addEventListener( "click", function(){
+            if( !isRepStyle2 ){ 
+                repstyle2=struct1.addRepresentation( selectRepStyle2.value, {colorScheme: coloringMethod2.value} );
+                repstyle2.setSelection(inputRepStyle2.value); 
+                isRepStyle2 = true;
+            }else{
+                struct1.removeRepresentation(repstyle2);
+                repstyle2=struct1.addRepresentation( selectRepStyle2.value,{colorScheme: coloringMethod2.value} );
+                repstyle2.setSelection(inputRepStyle2.value); 
+                isRepStyle2 = true;
+            }
+        } );
+
+
+
+
+        var inputRepStyle2 = document.getElementById( "inputRepStyle2" );
+        inputRepStyle2.addEventListener( "keyup", function(event){
+            if (event.keyCode === 13) {
+            if( !isRepStyle2 ){          
+                repstyle2=struct1.addRepresentation( selectRepStyle2.value, {colorScheme: coloringMethod2.value} );
+                repstyle2.setSelection(inputRepStyle2.value); 
+                isRepStyle2 = true;
+            }else{
+                struct1.removeRepresentation(repstyle2);
+                repstyle2=struct1.addRepresentation( selectRepStyle2.value,{colorScheme: coloringMethod2.value} );
+                repstyle2.setSelection(inputRepStyle2.value); 
+                isRepStyle2 = true;
+            }  
+            }
+        } );
+
+
+        var coloringMethod2 = document.getElementById( "coloringMethod2" );
+        coloringMethod2.addEventListener( "click", function(){
+            if( !isRepStyle2 ){ 
+                struct1.removeRepresentation(basicRep);          
+                repstyle2=struct1.addRepresentation( selectRepStyle2.value, {colorScheme: coloringMethod2.value} );
+                repstyle2.setSelection(inputRepStyle2.value); 
+                isRepStyle2 = true;
+            }else{
+                struct1.removeRepresentation(repstyle2);
+                repstyle2=struct1.addRepresentation( selectRepStyle2.value,{colorScheme: coloringMethod2.value} );
+                repstyle2.setSelection(inputRepStyle2.value); 
+                isRepStyle2 = true;
+            }
+        } );
+
+        var closeRep2 = document.getElementById( "closeRep2" );
+        closeRep2.addEventListener( "click", function(){
+                struct1.removeRepresentation(repstyle2);
+ 
+        } );
+
+
+
+
+        var selectRepStyle3 = document.getElementById( "selectRepStyle3" );
+        var isRepStyle3 = false;
+        selectRepStyle3.addEventListener( "click", function(){
+            if( !isRepStyle3 ){ 
+                struct1.removeRepresentation(basicRep);          
+                repstyle3=struct1.addRepresentation( selectRepStyle3.value, {colorScheme: coloringMethod3.value} );
+                repstyle3.setSelection(inputRepStyle3.value); 
+                isRepStyle3 = true;
+            }else{
+                struct1.removeRepresentation(repstyle3);
+                repstyle3=struct1.addRepresentation( selectRepStyle3.value,{colorScheme: coloringMethod3.value} );
+                repstyle3.setSelection(inputRepStyle3.value); 
+                isRepStyle3 = true;
+            }
+        } );
+
+
+
+
+        var inputRepStyle3 = document.getElementById( "inputRepStyle3" );
+        inputRepStyle3.addEventListener( "keyup", function(event){
+            if (event.keyCode === 13) {
+                repstyle3.setSelection(inputRepStyle3.value);  
+            }
+        } );
+
+
+        var coloringMethod3 = document.getElementById( "coloringMethod3" );
+        coloringMethod3.addEventListener( "click", function(){
+            if( !isRepStyle3 ){ 
+                struct1.removeRepresentation(basicRep);          
+                repstyle3=struct3.addRepresentation( selectRepStyle3.value, {colorScheme: coloringMethod3.value} );
+                repstyle3.setSelection(inputRepStyle3.value); 
+                isRepStyle3 = true;
+            }else{
+                struct1.removeRepresentation(repstyle3);
+                repstyle3=struct1.addRepresentation( selectRepStyle3.value,{colorScheme: coloringMethod3.value} );
+                repstyle3.setSelection(inputRepStyle3.value); 
+                isRepStyle3 = true;
+            }
+        } );
+
+        var closeRep3 = document.getElementById( "closeRep3" );
+        closeRep3.addEventListener( "click", function(){
+                struct1.removeRepresentation(basicRep);
+                struct1.removeRepresentation(repstyle3);
+ 
+        } );
+
+
+
+
+
+
+      });
+
+
+
+    </script>
+<body>
     <div class="right_col" role="main">
         <div class="">
-            <div class="page-title">
-                <div class="title_left">
-                    <h3>Map for: <small> {{ object }}</small></h3>
-                </div>
-
-                <div class="title_right">
-                    <div class="col-md-5 col-sm-5 col-xs-12 form-group pull-right top_search">
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Search for...">
-                            <span class="input-group-btn">
-                <button class="btn btn-default" type="button">Go!</button>
-              </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            
             <div class="clearfix"></div>
 
             <div class="row">
-                <div class="col-lg-6 col-md-4 col-xs-12">
-                    <div class="x_panel">
-                        <div class="x_title">
-                            <h2>Map</h2>
-                            <ul class="nav navbar-right panel_toolbox">
-                                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                                </li>
-                                <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                                       aria-expanded="false"><i class="fa fa-wrench"></i></a>
-                                    <ul class="dropdown-menu" role="menu">
-                                        <li><a href="#">Settings 1</a>
-                                        </li>
-                                        <li><a href="#">Settings 2</a>
-                                        </li>
-                                    </ul>
-                                </li>
-                                <li><a class="close-link"><i class="fa fa-close"></i></a>
-                                </li>
-                            </ul>
-                            <div class="clearfix"></div>
+                <div class="col-md-12">
+                    <div class="x_panel">                     
+                       <div class="x_content">
+
+
+
+                            <div class="col-md-9 col-sm-9 col-xs-12 d-flex">
+                                <div id="container" style="height: 600px; max-width: 600px; margin: 0; float: left"></div>
+                                <div id="viewport" style="height: 600px; width: 550px;margin: 0; float: right"></div>
+                            </div>
+
+                            <!-- start project-detail sidebar -->
+                            <div class="col-md-3 col-sm-3 col-xs-12">
+
+                                <section class="panel">
+
+                                    <div class="panel-body">
+                                        <br/>
+
+                                        <div class="project_detail">
+
+
+                                            <div class = "x_panel">
+
+                                            <button class="glyphicon glyphicon-fullscreen" id="lenMap"> Contact/Distance</button>
+                                            <button class="glyphicon glyphicon-eye-close" id="closeRep3"></button>
+                                            <input id="slider" type="range" min="1" max="15" value=defaultCutoff step="1" />
+                                            <div class = "x_title"> <h2> Labels </h2> </div>
+
+
+
+
+                                            <select id="selectLabelStyle">
+                                              <option value="atomname">Atomname</option>
+                                              <option value="atomindex" selected>Atomindex</option>
+                                              <option value="occupancy">Occupancy</option>
+                                              <option value="bfactor">Bfactor</option>
+                                              <option value="serial">Serial</option>
+                                              <option value="element">Element</option>
+                                              <option value="atom">Atom</option>
+                                              <option value="resname">Resname</option>
+                                              <option value="resno">Resno</option>
+                                              <option value="res">Res</option>
+                                              <option value="qualified">Qualified</option>
+                                            </select>
+                                            <button class="glyphicon glyphicon-eye-close" id="closeLabels"></button>
+                                            <input id="inputLabelSelection" name="name" value="all"><br>
+
+                                           </div>
+
+
+
+
+
+
+                                           </div>
+
+
+                                            <div class = "x_panel">
+
+                                            <div class = "x_title"> <h2> Repr 1 </h2> </div>
+
+
+
+
+                                            <select id="selectRepStyle1">
+                                              <option value="axes">Axes</option>
+                                              <option value="backbone">Backbone</option>
+                                              <option value="ball+stick">ball+stick</option>
+                                              <option value="base">Base</option>
+                                              <option value="cartoon" selected>Cartoon</option>
+                                              <option value="contact">Contact</option>
+                                              <option value="distance">Distance</option>
+                                              <option value="helixorient">Helixorient</option>
+                                              <option value="hyperball">Hyperball</option>
+                                              <option value="licorice">Licorice</option>
+                                              <option value="line">Line</option>
+                                              <option value="point">Point</option>
+                                              <option value="ribbon">Ribbon</option>
+                                              <option value="rocket">Rocket</option>
+                                              <option value="rope">Rope</option>
+                                              <option value="spacefill">Spacefill</option>
+                                              <option value="surface">Surface</option>
+                                              <option value="trace">Trace</option>
+                                              <option value="tube">Tube</option>
+                                              <option value="unitcell">Unitcell</option>
+                                              <option value="validation">Validation</option>
+                                            </select>
+                                            <button class="glyphicon glyphicon-eye-close" id="closeRep1"></button>
+                                            <input id="inputRepStyle1" name="name" value="all"><br>
+                                            <select id="coloringMethod1">
+                                              <option value="atomname">Atomname</option>
+                                              <option value="atomindex">Atomindex</option>
+                                              <option value="occupancy">Occupancy</option>
+                                              <option value="bfactor">Bfactor</option>
+                                              <option value="serial">Serial</option>
+                                              <option value="element" selected>Element</option>
+                                              <option value="atom">Atom</option>
+                                              <option value="resname">Resname</option>
+                                              <option value="resno">Resno</option>
+                                              <option value="res">Res</option>
+                                              <option value="qualified">Qualified</option>
+                                            </select>
+
+
+                                       </div>
+
+
+
+                                            <div class = "x_panel">
+
+                                            <div class = "x_title"> <h2> Repr 2 </h2> </div>
+
+
+
+
+                                            <select id="selectRepStyle2">
+                                              <option value="axes">Axes</option>
+                                              <option value="backbone">Backbone</option>
+                                              <option value="ball+stick">ball+stick</option>
+                                              <option value="base">Base</option>
+                                              <option value="cartoon">Cartoon</option>
+                                              <option value="contact">Contact</option>
+                                              <option value="distance">Distance</option>
+                                              <option value="helixorient">Helixorient</option>
+                                              <option value="hyperball">Hyperball</option>
+                                              <option value="licorice" selected>Licorice</option>
+                                              <option value="line">Line</option>
+                                              <option value="point">Point</option>
+                                              <option value="ribbon">Ribbon</option>
+                                              <option value="rocket">Rocket</option>
+                                              <option value="rope">Rope</option>
+                                              <option value="spacefill">Spacefill</option>
+                                              <option value="surface">Surface</option>
+                                              <option value="trace">Trace</option>
+                                              <option value="tube">Tube</option>
+                                              <option value="unitcell">Unitcell</option>
+                                              <option value="validation">Validation</option>
+                                            </select>
+                                            <button class="glyphicon glyphicon-eye-close" id="closeRep2"></button>
+                                            <input id="inputRepStyle2" name="name" value="ligand">
+                                            <select id="coloringMethod2">
+                                              <option value="atomname">Atomname</option>
+                                              <option value="atomindex">Atomindex</option>
+                                              <option value="occupancy">Occupancy</option>
+                                              <option value="bfactor">Bfactor</option>
+                                              <option value="serial">Serial</option>
+                                              <option value="element" selected>Element</option>
+                                              <option value="atom">Atom</option>
+                                              <option value="resname">Resname</option>
+                                              <option value="resno">Resno</option>
+                                              <option value="res">Res</option>
+                                              <option value="qualified">Qualified</option>
+                                            </select><br>
+
+
+                                       </div>
+
+                            
+
+
+
+
+
+                                        </div>
+
+                                    </div>
+<br>
+<div class="x_panel">
+
+                                            <button class="glyphicon glyphicon-fullscreen" id="fullscreen"> Fullscreen</button> 
+                                            <button class="fa fa-circle-o-notch" id="toggleSpin"> spin on/off</button>
+                                            <button id="toggleTheme">White/Blue/Black</button>
+                                            <button class="fa fa-dot-circle-o" id="resetView"> Center</button>
+</div>
+                                </section>
+                            </div>
+                            <!-- end project-detail sidebar -->
+
                         </div>
 
-                        <div class="x_content">
-                            <h4>Pod spodem  object.matrix - kwadratowa macierz numpy</h4>
-                            {{ object.matrix }}
-                            <h4>Pod spodem  object.labels</h4>
-                            {{ object.labels }}
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6 col-md-8 col-xs-12">
-                    <div class="x_panel">
-                        <div class="x_title">
-                            <h2>Viewer</h2>
-                            <ul class="nav navbar-right panel_toolbox">
-                                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                                </li>
-                                <li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                                       aria-expanded="false"><i class="fa fa-wrench"></i></a>
-                                    <ul class="dropdown-menu" role="menu">
-                                        <li><a href="#">Settings 1</a>
-                                        </li>
-                                        <li><a href="#">Settings 2</a>
-                                        </li>
-                                    </ul>
-                                </li>
-                                <li><a class="close-link"><i class="fa fa-close"></i></a>
-                                </li>
-                            </ul>
-                            <div class="clearfix"></div>
-                        </div>
-
-                        <div class="x_content">
-                            <a href="{% url 'map-data' object.pk %}">Show json data</a>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-{% endblock content %}
 
-{% block javascripts %}
-    {{ block.super }}
-    <!-- ECharts -->
-    <script src="{% static 'vendors/echarts/dist/echarts.min.js' %}"></script>
-{% endblock javascripts %}
+
+
+
+
+
+
+
+<script>
+
+
+
+</script>
+
+</body>
+
+
+
+
+</html>
