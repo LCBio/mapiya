@@ -63,11 +63,20 @@ def map_data(request, pk):
     try:
         map_obj = models.Map.objects.get(pk=pk)
         matrix = map_obj.matrix
+        labels = map_obj.labels
+        points = [
+            {
+                'x': i,
+                'y': j,
+                'xNgl': labels[i],
+                'yNgl': labels[j],
+                'value': matrix[i][j]
+            } for i in range(len(labels)) for j in range(len(labels))
+        ]
         data = {
             'success': True,
-            'distances':
-                [[i, j, matrix[i][j]] for i in range(matrix.shape[0]) for j in range(matrix.shape[1])],
-            'labels': map_obj.labels
+            'labels': labels + [''],
+            'points': points,
         }
     except models.Map.DoesNotExist:
         data = {

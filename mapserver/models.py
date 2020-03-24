@@ -111,7 +111,7 @@ class Map(models.Model):
 
     @cached_property
     def labels(self):
-        return [atom.resid_id for atom in self.calphas]
+        return [f'{atom.resid}:{atom.chain}' for atom in self.calphas]
 
     @cached_property
     def chains(self):
