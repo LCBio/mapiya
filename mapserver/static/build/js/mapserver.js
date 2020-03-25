@@ -1,11 +1,11 @@
 // js for map-detail view
 var init_map_detail = function (pdburl, dataurl) {
 
-    var stage = new NGL.Stage("viewport");
+    var stage = new NGL.Stage("viewport", {backgroundColor:'white'});
 
     var defaultCutoff = 10;
 
-    $('#slider').bind('input', function () {
+    $('#slider').bind('click', function () {
         isContact = true;
         chart.colorAxis[0].update({
             dataClassColor: 'category',
@@ -39,19 +39,20 @@ var init_map_detail = function (pdburl, dataurl) {
             defaultSeriesType: 'heatmap'
         },
         title: {
-            text: 'Click and drag to zoom in. Hold down shift key to pan.'
+            text: 'Click and drag to zoom in. Hold down ctrl key to select multiple.'
         },
 
 
         xAxis: {
-            gridLineWidth: 1,
-            categories: ['', 't', 'r', 'N', 'Q', 'B', 'l', 'R', 'U', 's', 'K', 'o', 'g', 'W', 'r', 'M', 'C', 'N', 'F', 'j', 'H', 'H2', 'H3']
+            gridLineWidth: 0,
+            categories: []
         },
         yAxis: {
+            gridLineWidth: 0,
             title: {
                 text: null
             },
-            categories: ['', 'T', 'J', 'd', 'T', 'b', 'S', 'K', 'c', 'A', 'S', 'z', 'r', 'm', 'Q', 'O', 'm', 'Y', 'h', 's', 'H', 'O', 'e', 'S', 'S', 'Q', 'C', 'R', 'G', 'D', 'J', 'B', 'U', 'q', 'u', 'T', 'd', 's', 'F', 'f', 'p', 'V', 'V1', 'V2', 'V3']
+            categories: []
 
         },
 
@@ -68,14 +69,18 @@ var init_map_detail = function (pdburl, dataurl) {
 
         tooltip: {
             formatter: function () {
-                return '<b>' + parseFloat(this.point.x) + '</b>  <br><b>' +
-                    parseFloat(this.point.y) + '</b> <br><b>' + this.point.value + '</b>';
+            return '<b>' + this.point.xNgl + '</b>  <br><b>' +
+                this.point.yNgl + '</b> <br><b>Disctance: ' + this.point.value + '	\u212B</b>';
             }
         },
 
 
         plotOptions: {
             series: {
+                marker: {
+                    enabled: false
+                },
+                animation:false,
                 states: {
                     hover: {
                         enabled: false
@@ -160,15 +165,17 @@ var init_map_detail = function (pdburl, dataurl) {
                 options.series.push({
                     data: data.points,
                     allowPointSelect: true,
-                    turboThreshold: 1000000,
+                    turboThreshold: 100000,
                     states: {
                         select: {
                             color: 'red',
                             borderWidth: 5,
-                            borderColor: 'Blue'
+                            borderColor: 'Black'
                         },
                     }
                 });
+                options.xAxis.categories=data.labels;
+                options.yAxis.categories=data.labels;
                 window.chart = Highcharts.chart('chartViewport', options);
             } else {
                 console.log('View returned no data');
@@ -191,25 +198,10 @@ var init_map_detail = function (pdburl, dataurl) {
         stage.autoView();
     });
 
-    var toggleTheme = document.getElementById("toggleTheme");
-    var isWhite = false;
-    var isBlue = false;
-    var isBlack = true;
-    toggleTheme.addEventListener("click", function () {
-        if (isBlue) {
-            stage.setParameters({backgroundColor: "black"});
-            isBlue = false;
-            isBlack = true;
-        } else if (isBlack) {
-            stage.setParameters({backgroundColor: "white"});
-            isBlack = false;
-            isWhite = true;
-        } else {
-            stage.setParameters({backgroundColor: "blue"});
-            isWhite = false;
-            isBlue = true;
-        }
-    });
+    var toggleTheme = document.getElementById( "toggleTheme" );
+    toggleTheme.addEventListener( "mouseout", function(){
+        stage.setParameters( { backgroundColor: toggleTheme.value } );
+    } );
 
     var toggleSpin = document.getElementById("toggleSpin");
     var isSpinning = false;
