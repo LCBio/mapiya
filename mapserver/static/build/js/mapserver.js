@@ -1,4 +1,5 @@
 // js for map-detail view
+
 var init_map_detail = function (pdburl, dataurl) {
 
     var stage = new NGL.Stage("viewport", {backgroundColor:'white'});
@@ -45,7 +46,17 @@ var init_map_detail = function (pdburl, dataurl) {
 
         xAxis: {
             gridLineWidth: 0,
-            categories: []
+            categories: [],
+            events:{
+                'afterSetExtremes': function () {
+                    var min, max;
+                    ({min, max} = chart.axes[0].getExtremes());
+                    var diff = max - min;
+                    if (diff < 30) {
+                        chart.series[0].update({'boostThreshold': 0});
+                    }
+                }
+            }
         },
         yAxis: {
             gridLineWidth: 0,
@@ -78,7 +89,7 @@ var init_map_detail = function (pdburl, dataurl) {
         plotOptions: {
             series: {
                 marker: {
-                    enabled: false
+                    enabled: true
                 },
                 animation:false,
                 states: {
@@ -161,11 +172,13 @@ var init_map_detail = function (pdburl, dataurl) {
     Highcharts.ajax({
         url: dataurl,
         success: function (data) {
+            console.log(data.points.length)
             if (data.success) {
                 options.series.push({
                     data: data.points,
                     allowPointSelect: true,
-                    turboThreshold: 100000,
+                    turboThreshold: [data.points.length ],
+                    boostThreshold: 900,
                     states: {
                         select: {
                             color: 'red',
@@ -391,6 +404,11 @@ var init_map_detail = function (pdburl, dataurl) {
         }
     });
 
+    $('#someButton').on('click', function () {
+        chart.series[0].update({
+            'boostThreshold': 1
+        });
+    });
 
     var inputRepStyle2 = document.getElementById("inputRepStyle2");
     inputRepStyle2.addEventListener("keyup", function (event) {
@@ -433,48 +451,49 @@ var init_map_detail = function (pdburl, dataurl) {
 
     var selectRepStyle3 = document.getElementById("selectRepStyle3");
     var isRepStyle3 = false;
-    selectRepStyle3.addEventListener("click", function () {
-        if (!isRepStyle3) {
-            struct1.removeRepresentation(basicRep);
-            repstyle3 = struct1.addRepresentation(selectRepStyle3.value, {colorScheme: coloringMethod3.value});
-            repstyle3.setSelection(inputRepStyle3.value);
-            isRepStyle3 = true;
-        } else {
-            struct1.removeRepresentation(repstyle3);
-            repstyle3 = struct1.addRepresentation(selectRepStyle3.value, {colorScheme: coloringMethod3.value});
-            repstyle3.setSelection(inputRepStyle3.value);
-            isRepStyle3 = true;
-        }
-    });
-
-
-    var inputRepStyle3 = document.getElementById("inputRepStyle3");
-    inputRepStyle3.addEventListener("keyup", function (event) {
-        if (event.keyCode === 13) {
-            repstyle3.setSelection(inputRepStyle3.value);
-        }
-    });
-
-
-    var coloringMethod3 = document.getElementById("coloringMethod3");
-    coloringMethod3.addEventListener("click", function () {
-        if (!isRepStyle3) {
-            struct1.removeRepresentation(basicRep);
-            repstyle3 = struct3.addRepresentation(selectRepStyle3.value, {colorScheme: coloringMethod3.value});
-            repstyle3.setSelection(inputRepStyle3.value);
-            isRepStyle3 = true;
-        } else {
-            struct1.removeRepresentation(repstyle3);
-            repstyle3 = struct1.addRepresentation(selectRepStyle3.value, {colorScheme: coloringMethod3.value});
-            repstyle3.setSelection(inputRepStyle3.value);
-            isRepStyle3 = true;
-        }
-    });
-
-    closeRep3 = document.getElementById("closeRep3");
-    closeRep3.addEventListener("click", function () {
-        struct1.removeRepresentation(basicRep);
-        struct1.removeRepresentation(repstyle3);
-
-    });
+//     selectRepStyle3.addEventListener("click", function () {
+//         if (!isRepStyle3) {
+//             struct1.removeRepresentation(basicRep);
+//             repstyle3 = struct1.addRepresentation(selectRepStyle3.value, {colorScheme: coloringMethod3.value});
+//             repstyle3.setSelection(inputRepStyle3.value);
+//             isRepStyle3 = true;
+//         } else {
+//             struct1.removeRepresentation(repstyle3);
+//             repstyle3 = struct1.addRepresentation(selectRepStyle3.value, {colorScheme: coloringMethod3.value});
+//             repstyle3.setSelection(inputRepStyle3.value);
+//             isRepStyle3 = true;
+//         }
+//     });
+//
+//
+//     var inputRepStyle3 = document.getElementById("inputRepStyle3");
+//     inputRepStyle3.addEventListener("keyup", function (event) {
+//         if (event.keyCode === 13) {
+//             repstyle3.setSelection(inputRepStyle3.value);
+//         }
+//     });
+//
+//
+//     var coloringMethod3 = document.getElementById("coloringMethod3");
+//     coloringMethod3.addEventListener("click", function () {
+//         if (!isRepStyle3) {
+//             struct1.removeRepresentation(basicRep);
+//             repstyle3 = struct3.addRepresentation(selectRepStyle3.value, {colorScheme: coloringMethod3.value});
+//             repstyle3.setSelection(inputRepStyle3.value);
+//             isRepStyle3 = true;
+//         } else {
+//             struct1.removeRepresentation(repstyle3);
+//             repstyle3 = struct1.addRepresentation(selectRepStyle3.value, {colorScheme: coloringMethod3.value});
+//             repstyle3.setSelection(inputRepStyle3.value);
+//             isRepStyle3 = true;
+//         }
+//     });
+//
+//     closeRep3 = document.getElementById("closeRep3");
+//     closeRep3.addEventListener("click", function () {
+//         struct1.removeRepresentation(basicRep);
+//         struct1.removeRepresentation(repstyle3);
+//
+//     });
 };
+

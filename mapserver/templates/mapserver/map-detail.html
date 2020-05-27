@@ -63,6 +63,7 @@
                             </select>
                             <button class="glyphicon glyphicon-eye-close" id="closeLabels"></button>
                             <input id="inputLabelSelection" name="name" value="all"><br>
+                            <button id="someButton">Click me</button>
                         </div>
                     </div>
                 </div>
@@ -178,6 +179,8 @@
             </div>
         </div>
     </div>
+
+
 {% endblock content %}
 
 {% block javascripts %}
@@ -193,6 +196,8 @@
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
     <script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
     <script src="https://code.highcharts.com/modules/heatmap.js"></script>
+    <script src="https://code.highcharts.com/modules/boost.js"></script>
+
 
     <script>
         $(document).ready(function () {
