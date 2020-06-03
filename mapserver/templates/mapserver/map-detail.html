@@ -45,9 +45,12 @@
                         <div class="x_content">
                             <div id="chartViewport" style="height: 600px"></div>
                             <hr/>
+                            <div class="x_panel">
                             <button class="glyphicon glyphicon-fullscreen" id="lenMap"> Contact/Distance</button>
                             <button class="glyphicon glyphicon-eye-close" id="closeRep3"></button>
                             <input id="slider" type="range" min="1" max="15" value=defaultCutoff step="1"/>
+                            </div>
+                        <div class="x_panel">
                             <select id="selectLabelStyle">
                                 <option value="atomname">Atomname</option>
                                 <option value="atomindex" selected>Atomindex</option>
@@ -63,7 +66,7 @@
                             </select>
                             <button class="glyphicon glyphicon-eye-close" id="closeLabels"></button>
                             <input id="inputLabelSelection" name="name" value="all"><br>
-                            <button id="someButton">Click me</button>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -93,6 +96,7 @@
                         <div class="x_content">
                             <div id="viewport" style="height: 600px"></div>
                             <hr/>
+                            <div class="x_panel">
                             <select id="selectRepStyle1">
                                 <option value="axes">Axes</option>
                                 <option value="backbone">Backbone</option>
@@ -117,7 +121,7 @@
                                 <option value="validation">Validation</option>
                             </select>
                             <button class="glyphicon glyphicon-eye-close" id="closeRep1"></button>
-                            <input id="inputRepStyle1" name="name" value="all"><br>
+                            <input id="inputRepStyle1" name="name" value="all">
                             <select id="coloringMethod1">
                                 <option value="atomname">Atomname</option>
                                 <option value="atomindex">Atomindex</option>
@@ -131,6 +135,8 @@
                                 <option value="res">Res</option>
                                 <option value="qualified">Qualified</option>
                             </select>
+                            </div>
+                            <div class="x_panel">
                             <select id="selectRepStyle2">
                                 <option value="axes">Axes</option>
                                 <option value="backbone">Backbone</option>
@@ -169,10 +175,13 @@
                                 <option value="res">Res</option>
                                 <option value="qualified">Qualified</option>
                             </select>
+                            </div>
+                            <div class="x_panel">
                             <button class="glyphicon glyphicon-fullscreen" id="fullscreen"> Fullscreen</button>
                             <button class="fa fa-circle-o-notch" id="toggleSpin"> spin on/off</button>
-                            <input type="color" id="toggleTheme" name="toggleColor" value="#ffffff"><br>
+                            <input type="color" id="toggleTheme" name="toggleColor" value="#ffffff">
                             <button class="fa fa-dot-circle-o" id="resetView"> Center</button>
+                            </div>
                         </div>
                     </div>
                 </div>

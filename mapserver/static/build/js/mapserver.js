@@ -26,7 +26,7 @@ var init_map_detail = function (pdburl, dataurl) {
             y: 50,
             layout: 'vertical',
             valueDecimals: 0,
-            backgroundColor: 'rgba(255,255,255,0.9)',
+            backgroundColor: 'rgba(222,227,197,0.9)',
             symbolRadius: 0,
             symbolHeight: 14
         });
@@ -42,7 +42,7 @@ var init_map_detail = function (pdburl, dataurl) {
         title: {
             text: 'Click and drag to zoom in. Hold down ctrl key to select multiple.'
         },
-
+        colors: ['Black', 'White'],
 
         xAxis: {
             gridLineWidth: 0,
@@ -54,6 +54,8 @@ var init_map_detail = function (pdburl, dataurl) {
                     var diff = max - min;
                     if (diff < 30) {
                         chart.series[0].update({'boostThreshold': 0});
+                    }else{
+                        chart.series[0].update({'boostThreshold': 900});
                     }
                 }
             }
@@ -63,7 +65,19 @@ var init_map_detail = function (pdburl, dataurl) {
             title: {
                 text: null
             },
-            categories: []
+            categories: [],
+            events:{
+                'afterSetExtremes': function () {
+                    var min, max;
+                    ({min, max} = chart.axes[0].getExtremes());
+                    var diff = max - min;
+                    if (diff < 30) {
+                        chart.series[0].update({'boostThreshold': 0});
+                    }else{
+                        chart.series[0].update({'boostThreshold': 900});
+                    }
+                }
+            }
 
         },
 
@@ -161,7 +175,7 @@ var init_map_detail = function (pdburl, dataurl) {
             y: 50,
             layout: 'vertical',
             valueDecimals: 0,
-            backgroundColor: 'rgba(255,255,255,0.9)',
+            backgroundColor: 'rgba(222,227,197,0.9)',
             symbolRadius: 0,
             symbolHeight: 14
         },
@@ -358,7 +372,7 @@ var init_map_detail = function (pdburl, dataurl) {
             chart.colorAxis[0].update({
                 dataClassColor: 'category',
                 dataClasses: [{
-                    to: defaultCutoff
+                    to: defaultCutoff, color:'#FFFFFF'
                 }, {
                     from: defaultCutoff
                 }]
@@ -373,7 +387,7 @@ var init_map_detail = function (pdburl, dataurl) {
                 y: 50,
                 layout: 'vertical',
                 valueDecimals: 0,
-                backgroundColor: 'rgba(255,255,255,0.9)',
+                backgroundColor: 'rgba(222,227,197,0.9)',
                 symbolRadius: 0,
                 symbolHeight: 14
             });
@@ -402,12 +416,6 @@ var init_map_detail = function (pdburl, dataurl) {
             repstyle2.setSelection(inputRepStyle2.value);
             isRepStyle2 = true;
         }
-    });
-
-    $('#someButton').on('click', function () {
-        chart.series[0].update({
-            'boostThreshold': 1
-        });
     });
 
     var inputRepStyle2 = document.getElementById("inputRepStyle2");
@@ -451,49 +459,6 @@ var init_map_detail = function (pdburl, dataurl) {
 
     var selectRepStyle3 = document.getElementById("selectRepStyle3");
     var isRepStyle3 = false;
-//     selectRepStyle3.addEventListener("click", function () {
-//         if (!isRepStyle3) {
-//             struct1.removeRepresentation(basicRep);
-//             repstyle3 = struct1.addRepresentation(selectRepStyle3.value, {colorScheme: coloringMethod3.value});
-//             repstyle3.setSelection(inputRepStyle3.value);
-//             isRepStyle3 = true;
-//         } else {
-//             struct1.removeRepresentation(repstyle3);
-//             repstyle3 = struct1.addRepresentation(selectRepStyle3.value, {colorScheme: coloringMethod3.value});
-//             repstyle3.setSelection(inputRepStyle3.value);
-//             isRepStyle3 = true;
-//         }
-//     });
-//
-//
-//     var inputRepStyle3 = document.getElementById("inputRepStyle3");
-//     inputRepStyle3.addEventListener("keyup", function (event) {
-//         if (event.keyCode === 13) {
-//             repstyle3.setSelection(inputRepStyle3.value);
-//         }
-//     });
-//
-//
-//     var coloringMethod3 = document.getElementById("coloringMethod3");
-//     coloringMethod3.addEventListener("click", function () {
-//         if (!isRepStyle3) {
-//             struct1.removeRepresentation(basicRep);
-//             repstyle3 = struct3.addRepresentation(selectRepStyle3.value, {colorScheme: coloringMethod3.value});
-//             repstyle3.setSelection(inputRepStyle3.value);
-//             isRepStyle3 = true;
-//         } else {
-//             struct1.removeRepresentation(repstyle3);
-//             repstyle3 = struct1.addRepresentation(selectRepStyle3.value, {colorScheme: coloringMethod3.value});
-//             repstyle3.setSelection(inputRepStyle3.value);
-//             isRepStyle3 = true;
-//         }
-//     });
-//
-//     closeRep3 = document.getElementById("closeRep3");
-//     closeRep3.addEventListener("click", function () {
-//         struct1.removeRepresentation(basicRep);
-//         struct1.removeRepresentation(repstyle3);
-//
-//     });
+
 };
 
