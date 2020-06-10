@@ -8,14 +8,26 @@ var init_map_detail = function (pdburl, dataurl) {
 
     $('#slider').bind('click', function () {
         isContact = true;
-        chart.colorAxis[0].update({
-            dataClassColor: 'category',
-            dataClasses: [{
-                to: this.value
-            }, {
-                from: this.value
-            }]
-        });
+        var currentCutoff = this.value
+            $.ajax({
+            url: dataurl,
+            success: function (data) {
+                if (data.success) {
+                 data.points.forEach(function(element, index) {
+                 if (element.value > currentCutoff) {
+                 data.points[index] = null;
+                 }
+                 });
+                 chart.series[0].update({data: data.points})
+                 chart.redraw();
+            } else {
+                console.log('View returned no data');
+            }
+        },
+        error: function (e, t) {
+            console.error(e, t);
+        }
+    });
         chart.legend.update({
             title: {
                 text: ''
@@ -193,6 +205,7 @@ var init_map_detail = function (pdburl, dataurl) {
                     allowPointSelect: true,
                     turboThreshold: [data.points.length ],
                     boostThreshold: 900,
+                    connectNulls: true,
                     states: {
                         select: {
                             color: 'red',
