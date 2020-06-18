@@ -7,6 +7,7 @@ var init_map_detail = function (pdburl, dataurl) {
     var defaultCutoff = 10;
 
     $('#slider').bind('click', function () {
+        chart.zoomOut();
         isContact = true;
         var currentCutoff = this.value
             $.ajax({
@@ -15,7 +16,7 @@ var init_map_detail = function (pdburl, dataurl) {
                 if (data.success) {
                  data.points.forEach(function(element, index) {
                  if (element.value > currentCutoff) {
-                 data.points[index] = null;
+                 delete data.points[index]
                  }
                  });
                  chart.series[0].update({data: data.points})
@@ -28,20 +29,28 @@ var init_map_detail = function (pdburl, dataurl) {
             console.error(e, t);
         }
     });
-        chart.legend.update({
-            title: {
-                text: ''
-            },
-            align: 'right',
-            verticalAlign: 'top',
-            floating: false,
-            y: 50,
-            layout: 'vertical',
-            valueDecimals: 0,
-            backgroundColor: 'rgba(222,227,197,0.9)',
-            symbolRadius: 0,
-            symbolHeight: 14
-        });
+            chart.colorAxis[0].update({
+                dataClassColor: 'category',
+                dataClasses: [{
+                    to: currentCutoff, color: 'Black'
+                }, {
+                    from: currentCutoff, color: 'White'
+                }]
+            });
+            chart.legend.update({
+                title: {
+                    text: ''
+                },
+                align: 'right',
+                verticalAlign: 'top',
+                floating: false,
+                y: 50,
+                layout: 'vertical',
+                valueDecimals: 0,
+                backgroundColor: 'rgba(222,227,197,0.9)',
+                symbolRadius: 0,
+                symbolHeight: 14
+            });
     });
 
     var options = {
@@ -58,6 +67,7 @@ var init_map_detail = function (pdburl, dataurl) {
 
         xAxis: {
             gridLineWidth: 0,
+            showEmpty: false, 
             categories: [],
             events:{
                 'afterSetExtremes': function () {
@@ -74,6 +84,7 @@ var init_map_detail = function (pdburl, dataurl) {
         },
         yAxis: {
             gridLineWidth: 0,
+            showEmpty: false,
             title: {
                 text: null
             },
@@ -200,6 +211,11 @@ var init_map_detail = function (pdburl, dataurl) {
         success: function (data) {
             console.log(data.points.length)
             if (data.success) {
+                 data.points.forEach(function(element, index) {
+                 if (element.value > defaultCutoff) {
+                 delete data.points[index]
+                 }
+                 });
                 options.series.push({
                     data: data.points,
                     allowPointSelect: true,
@@ -364,13 +380,28 @@ var init_map_detail = function (pdburl, dataurl) {
     var isContact = true;
     lenMap.addEventListener("click", function () {
         if (isContact) {
+            chart.zoomOut();
             isContact = false;
+            $.ajax({
+            url: dataurl,
+            success: function (data) {
+                if (data.success) {
+                 chart.series[0].update({data: data.points})
+                 chart.redraw();
+            } else {
+                console.log('View returned no data');
+            }
+        },
+        error: function (e, t) {
+            console.error(e, t);
+        }
+    });
             chart.colorAxis[0].update({
                 dataClassColor: '',
                 dataClasses: '',
                 min: 0,
-                minColor: '#FFFFFF',
-                maxColor: Highcharts.getOptions().colors[0]
+                minColor: Highcharts.getOptions().colors[0],
+                maxColor: Highcharts.getOptions().colors[1]
             });
             chart.legend.update({
                 align: 'right',
@@ -381,13 +412,34 @@ var init_map_detail = function (pdburl, dataurl) {
                 symbolHeight: 280
             });
         } else {
+            chart.zoomOut();
             isContact = true;
+            $("#slider").val(defaultCutoff); 
+            $.ajax({
+            url: dataurl,
+            success: function (data) {
+                if (data.success) {
+                 data.points.forEach(function(element, index) {
+                 if (element.value > defaultCutoff) {
+                 delete data.points[index]
+                 }
+                 });
+                 chart.series[0].update({data: data.points})
+                 chart.redraw();
+            } else {
+                console.log('View returned no data');
+            }
+        },
+        error: function (e, t) {
+            console.error(e, t);
+        }
+    });
             chart.colorAxis[0].update({
                 dataClassColor: 'category',
                 dataClasses: [{
-                    to: defaultCutoff, color:'#FFFFFF'
+                    to: defaultCutoff, color: "Black"
                 }, {
-                    from: defaultCutoff
+                    from: defaultCutoff, color: "White"
                 }]
             });
             chart.legend.update({
