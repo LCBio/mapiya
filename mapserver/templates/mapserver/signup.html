@@ -1,0 +1,44 @@
+{% extends 'mapserver/base.html' %}
+
+{% block topnav %}{% endblock %}
+{% block content %}
+    <div class="col-sm-10 offset-sm-1 col-md-8 offset-md-2 col-lg-6 offset-lg-3 col-xl-4 offset-xl-4">
+        <div class="card shadow">
+            <div class="card-header text-center bg-primary text-white font-weight-bold">
+                <span>Signup to</span>
+                <a href="{% url 'home' %}" class="text-white">Mapserver</a>
+            </div>
+            <div class="card-body text-center px-5 pt-4 pb-3">
+                <form method="post" action="{% url 'signup' %}" novalidate>
+                    {% csrf_token %}
+
+                    <input type="email" name="email" placeholder="Enter email" required
+                           class="form-control my-1 {% if form.errors.email %}is-invalid{% endif %}"/>
+                    {% for error in form.errors.email %}
+                        <small class="invalid-feedback">{{ error }}</small>
+                    {% endfor %}
+
+                    <input type="password" name="password1" placeholder="Enter password" required
+                           class="form-control my-1 {% if form.errors.password1 %}is-invalid{% endif %}"/>
+                    {% for error in form.errors.password1 %}
+                        <small class="invalid-feedback">{{ error }}</small>
+                    {% endfor %}
+
+                    <input type="password" name="password2" placeholder="Confirm password" required
+                           class="form-control my-1 {% if form.errors.password2 %}is-invalid{% endif %}"/>
+                    {% for error in form.errors.password2 %}
+                        <small class="invalid-feedback">{{ error }}</small>
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-primary btn-block my-3">Signup</button>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <small>
+                    <span>Already a member?</span>
+                    <a href="{% url 'login' %}" class="card-switch">Login</a>
+                </small>
+            </div>
+        </div>
+    </div>
+{% endblock %}

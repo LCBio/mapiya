@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.contrib.sessions.models import Session
 from django.db import models
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse
 import numpy as np
 from mollib.atom import Atoms
 from mollib.utils import DistanceMatrix

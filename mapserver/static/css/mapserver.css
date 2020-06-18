@@ -1,0 +1,16 @@
+@font-face {
+  font-family: Ubuntu;
+  src: url('../fonts/Ubuntu/Ubuntu-Regular.ttf');
+}
+
+body {
+    font-family: Ubuntu, sans-serif;
+}
+
+li.nav-item.active {
+    font-weight: bold;
+}
+
+.asteriskField {
+    display: none;
+}

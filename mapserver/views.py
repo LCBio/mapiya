@@ -10,14 +10,6 @@ from django.shortcuts import redirect
 from mapserver import models, forms, tables
 
 
-def gentella_html(request):
-
-    context = {}
-    load_template = request.path.split('/')[-1]
-    template = loader.get_template('gentella/' + load_template)
-    return HttpResponse(template.render(context, request))
-
-
 def get_identity(request):
 
     if request.user.is_authenticated:
@@ -114,7 +106,7 @@ class LoginView(AlreadyLoggedInMixin, generic.FormView):
 
 class SignupView(AlreadyLoggedInMixin, generic.FormView):
 
-    template_name = 'mapserver/login.html'
+    template_name = 'mapserver/signup.html'
     form_class = forms.SignupForm
     success_url = reverse_lazy('home')
 
@@ -146,6 +138,22 @@ class SignupView(AlreadyLoggedInMixin, generic.FormView):
 
     def render_to_response(self, context, **response_kwargs):
         return super().render_to_response(context, **response_kwargs)
+
+
+class PasswordReset(generic.FormView):
+
+    template_name = 'mapserver/reset-password.html'
+    form_class = forms.PasswordForm
+
+    def form_valid(self, form):
+        email = form.cleaned_data['email']
+        try:
+            user = models.User.objects.get(email=email)
+            # TODO: here password reset logic
+            return self.render_to_response(context={'email': email})
+        except models.User.DoesNotExist:
+            form.add_error('email', 'Email address not found.')
+            return self.form_invalid(form)
 
 
 def logout(request):
