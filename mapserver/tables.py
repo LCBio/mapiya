@@ -26,7 +26,6 @@ class MapTable(RowNumberTable):
     class Meta:
         model = Map
         fields = ('row_number', 'filename', 'chains')
-        template_name = 'mapserver/table.html'
         attrs = {'class': 'table table-hover'}
 
     filename = tables.Column(

@@ -1,39 +1,18 @@
 {% extends 'mapserver/base.html' %}
+{% load crispy_forms_tags %}
 
 {% block topnav %}{% endblock %}
 {% block content %}
     <div class="col-sm-10 offset-sm-1 col-md-8 offset-md-2 col-lg-6 offset-lg-3 col-xl-4 offset-xl-4">
         <div class="card shadow">
-            <div class="card-header text-center bg-primary text-white font-weight-bold">
-                <span>Login to</span>
-                <a href="{% url 'home' %}" class="text-white">Mapserver</a>
-            </div>
-            <div class="card-body text-center px-5 pt-4 pb-3">
-                <form method="post" action="{% url 'login' %}" novalidate>
-                    {% csrf_token %}
-
-                    <input type="email" name="email" placeholder="Enter email" required
-                           class="form-control my-1 {% if form.errors.email %}is-invalid{% endif %}"/>
-                    {% for error in form.errors.email %}
-                        <small class="invalid-feedback">{{ error }}</small>
-                    {% endfor %}
-
-                    <input type="password" name="password" placeholder="Enter password" required
-                           class="form-control my-1 {% if form.errors.password %}is-invalid{% endif %}"/>
-                    {% for error in form.errors.password %}
-                        <small class="invalid-feedback">{{ error }}</small>
-                    {% endfor %}
-
-                    <button type="submit" class="btn btn-primary btn-block my-3">Login</button>
-                    <a href="{% url 'password-reset' %}" class="text-muted small">Reset Password</a>
-                </form>
-            </div>
-            <div class="card-footer text-center">
-                <small>
-                    <span>No account?</span>
-                    <a href="{% url 'signup' %}" class="card-switch">Signup</a>
-                </small>
-            </div>
+            {% if form %}
+                {% crispy form %}
+            {% else %}
+                <div class="card-body bg-light text-center">
+                    <p>{{ message }}</p>
+                    <a href="{% url 'login' %}">Back to login</a>
+                </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

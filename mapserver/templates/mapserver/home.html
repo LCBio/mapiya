@@ -1,5 +1,22 @@
 {% extends 'mapserver/base.html' %}
+{% load static %}
+{% load django_tables2 %}
+
+{% block css %}
+    {{  block.super }}
+    <link rel="stylesheet" href="{% static 'vendors/dropzone-5.7.0/dist/dropzone.css' %}">
+{% endblock css %}
 
 {% block content %}
-    Tu coś będzie
+    <div class="card shadow p-5">
+        <div class="card-body">
+            <form method="post" action="{% url 'home' %}" id="dropzone" class="dropzone"></form>
+        </div>
+    </div>
 {% endblock content %}
+
+{% block js %}
+    {{ block.super }}
+    <!-- Dropzone.js -->
+    <script src="{% static 'vendors/dropzone-5.7.0/dist/dropzone.js' %}"></script>
+{% endblock %}

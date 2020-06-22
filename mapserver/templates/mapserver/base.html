@@ -11,12 +11,15 @@
 
     <!-- Favicon -->
     <link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.ico' %}"/>
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="{% static 'vendors/bootstrap-4.4.1-dist/css/bootstrap.min.css' %}">
-    <!-- Fontawesome -->
-    <link rel="stylesheet" href="{% static 'vendors/fontawesome-free-5.13.0-web/css/all.min.css' %}">
-    <!-- Mapserver CSS -->
-    <link rel="stylesheet" href="{% static 'css/mapserver.css' %}">
+
+    {% block css %}
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="{% static 'vendors/bootstrap-4.4.1-dist/css/bootstrap.min.css' %}">
+        <!-- Fontawesome -->
+        <link rel="stylesheet" href="{% static 'vendors/fontawesome-free-5.13.0-web/css/all.min.css' %}">
+        <!-- Mapserver CSS -->
+        <link rel="stylesheet" href="{% static 'css/mapserver.css' %}">
+    {% endblock css %}
 
 </head>
 

@@ -100,13 +100,17 @@ class LoginView(AlreadyLoggedInMixin, generic.FormView):
             auth.login(self.request, user)
             return super().form_valid(form)
         else:
-            form.add_error('password', 'Invalid password')
+            try:
+                user = models.User.objects.get(email=email)
+                form.add_error('password', 'Invalid password')
+            except models.User.DoesNotExist:
+                form.add_error('email', 'User does not exist')
             return self.form_invalid(form)
 
 
 class SignupView(AlreadyLoggedInMixin, generic.FormView):
 
-    template_name = 'mapserver/signup.html'
+    template_name = 'mapserver/login.html'
     form_class = forms.SignupForm
     success_url = reverse_lazy('home')
 
@@ -136,13 +140,10 @@ class SignupView(AlreadyLoggedInMixin, generic.FormView):
                 form.add_error('password1', e.messages)
                 return self.form_invalid(form)
 
-    def render_to_response(self, context, **response_kwargs):
-        return super().render_to_response(context, **response_kwargs)
-
 
 class PasswordReset(generic.FormView):
 
-    template_name = 'mapserver/reset-password.html'
+    template_name = 'mapserver/login.html'
     form_class = forms.PasswordForm
 
     def form_valid(self, form):
@@ -150,7 +151,7 @@ class PasswordReset(generic.FormView):
         try:
             user = models.User.objects.get(email=email)
             # TODO: here password reset logic
-            return self.render_to_response(context={'email': email})
+            return self.render_to_response(context={'message': 'Link to password reset was sent to: ' + email})
         except models.User.DoesNotExist:
             form.add_error('email', 'Email address not found.')
             return self.form_invalid(form)
