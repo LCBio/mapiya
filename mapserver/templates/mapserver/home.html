@@ -8,15 +8,29 @@
 {% endblock css %}
 
 {% block content %}
-    <div class="card shadow p-5">
-        <div class="card-body">
-            <form method="post" action="{% url 'home' %}" id="dropzone" class="dropzone"></form>
+    <div class="container-fluid col-10 offset-1">
+        <form method="post" action="{% url 'home' %}" id="dropzone" class="dropzone shadow">
+            {% csrf_token %}
+        </form>
+        <div class="table-responsive">
+            <h5 class="pt-5 pb-3 text-muted">Your files:</h5>
+            {% render_table table %}
         </div>
+
     </div>
+
 {% endblock content %}
 
 {% block js %}
     {{ block.super }}
     <!-- Dropzone.js -->
     <script src="{% static 'vendors/dropzone-5.7.0/dist/dropzone.js' %}"></script>
+    <script>
+        Dropzone.options.dropzone = {
+            uploadMultiple: true,
+            success: function (file, data) {
+                $('table').html(data.table);
+            }
+        };
+    </script>
 {% endblock %}

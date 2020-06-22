@@ -1,5 +1,4 @@
-from django.template import loader
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.contrib import auth
 from django.contrib.auth.password_validation import validate_password
@@ -7,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.views import generic
 from django.core.files import File
 from django.shortcuts import redirect
+from django_tables2 import SingleTableView
 from mapserver import models, forms, tables
 
 
@@ -20,35 +20,37 @@ def get_identity(request):
         return models.Identity.objects.get_or_create(session_id=request.session.session_key)[0]
 
 
-def home_view(request):
+class HomeView(SingleTableView):
 
-    template = loader.get_template('mapserver/home.html')
-    identity = get_identity(request)
-    context = {
-        'table': tables.MapTable(models.Map.objects.filter(identity=identity))
-    }
+    table_class = tables.MapTable
+    template_name = 'mapserver/home.html'
 
-    if request.method == 'POST':
+    def get_queryset(self):
+        return models.Map.objects.filter(identity=get_identity(self.request))
+
+    def post(self, request, *args, **kwargs):
+        identity = get_identity(self.request)
         for file_id in request.FILES:
             mapobj = models.Map.objects.create(
                 identity=identity,
                 pdb=File(
                     file=request.FILES[file_id].file,
-                    name=request.FILES[file_id].name,
+                    name=request.FILES[file_id].name
                 ),
                 filename=request.FILES[file_id].name
             )
             mapobj.save_matrix()
-
-        return redirect('home')
-
-    return HttpResponse(template.render(context, request))
+        t = self.get_table()
+        return JsonResponse({
+            'success': True,
+            'table': t.as_html(request)
+        })
 
 
 class MapDetail(generic.DetailView):
 
     model = models.Map
-    template_name = 'mapserver/map-detail.html'
+    template_name = 'mapserver/map.html'
 
 
 def map_data(request, pk):
@@ -133,6 +135,10 @@ class SignupView(AlreadyLoggedInMixin, generic.FormView):
             try:
                 validate_password(password1)
                 user = models.User.objects.create_user(email=email, password=password1)
+                identity = get_identity(self.request)
+                identity.user = user
+                identity.session = None
+                identity.save()
                 auth.login(self.request, user)
                 return super().form_valid(form)
 

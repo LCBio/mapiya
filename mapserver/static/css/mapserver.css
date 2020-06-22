@@ -14,3 +14,10 @@ li.nav-item.active {
 .asteriskField {
     display: none;
 }
+
+form.dropzone {
+    background-color: rgba(0, 123, 247, 0.2);
+    border-style: dashed;
+    border-radius: 10px;
+    font-size: x-large;
+}

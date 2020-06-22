@@ -8,7 +8,7 @@ from .models import Map
 class RowNumberTable(tables.Table):
 
     row_number = tables.Column(
-        verbose_name='Nr',
+        verbose_name='#',
         empty_values=(),
         orderable=False
     )
@@ -33,11 +33,13 @@ class MapTable(RowNumberTable):
     )
 
     chains = tables.Column(
-        verbose_name='Chains:Residues'
+        verbose_name='Chains:Residues',
+        orderable=False
     )
 
     buttons = tables.Column(
-        verbose_name='Delete',
+        verbose_name='',
+        orderable=False,
         accessor='pk',
         attrs={
             'td': {'class': 'text-center'},
@@ -48,5 +50,5 @@ class MapTable(RowNumberTable):
     @staticmethod
     def render_buttons(value):
         return format_html('''
-            <a href="#" class="text-danger"><i class="fa fa-trash"></i></a>
+            <a href="#" class="text-danger" title="Delete file"><i class="fa fa-trash-alt"></i></a>
         ''')
