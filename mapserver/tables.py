@@ -1,6 +1,7 @@
 import django_tables2 as tables
 import itertools
 from django.utils.html import format_html
+from django.urls import reverse
 from .models import Map
 
 
@@ -49,6 +50,9 @@ class MapTable(RowNumberTable):
 
     @staticmethod
     def render_buttons(value):
-        return format_html('''
-            <a href="#" class="text-danger" title="Delete file"><i class="fa fa-trash-alt"></i></a>
+        return format_html(f'''
+            <a href="{reverse('map-delete', args=[value])}" data-toggle="modal" data-target="#modal"
+               class="text-danger" title="Delete file">
+                <i class="fa fa-trash-alt"></i>
+            </a>
         ''')

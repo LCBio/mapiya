@@ -8,6 +8,7 @@
 {% endblock css %}
 
 {% block content %}
+    {% include 'mapserver/modal.html' %}
     <div class="container-fluid col-10 offset-1">
         <form method="post" action="{% url 'home' %}" id="dropzone" class="dropzone shadow">
             {% csrf_token %}
@@ -32,5 +33,9 @@
                 $('table').html(data.table);
             }
         };
+
+        $('.modal').on('show.bs.modal', function (event) {
+            $(this).find('.modal-content').load(event.relatedTarget.href);
+        })
     </script>
 {% endblock %}

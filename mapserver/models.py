@@ -4,6 +4,8 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.contrib.sessions.models import Session
 from django.db import models
+from django.dispatch import receiver
+from django.db.models.signals import pre_delete
 from django.urls import reverse
 import numpy as np
 from mollib.atom import Atoms
@@ -122,3 +124,9 @@ class Map(models.Model):
 
     def __str__(self):
         return self.filename
+
+
+@receiver(pre_delete, sender=Map)
+def delete_media(sender, instance, **kwargs):
+    instance.pdb.storage.delete(instance.matrixfile)
+    instance.pdb.delete()

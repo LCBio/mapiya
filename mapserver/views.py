@@ -79,6 +79,13 @@ def map_data(request, pk):
     return JsonResponse(data=data)
 
 
+class MapDelete(generic.DeleteView):
+
+    model = models.Map
+    template_name = 'mapserver/delete.html'
+    success_url = reverse_lazy('home')
+
+
 class AlreadyLoggedInMixin:
 
     def get(self, request, *args, **kwargs):
