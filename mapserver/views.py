@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from django.utils.html import format_html
 from django.urls import reverse_lazy
 from django.contrib import auth
 from django.contrib.auth.password_validation import validate_password
@@ -84,6 +85,34 @@ class Delete(generic.DeleteView):
     model = models.Map
     template_name = 'mapserver/delete.html'
     success_url = reverse_lazy('home')
+
+
+class Table(generic.View):
+
+    def render_to_response(self):
+        return JsonResponse({
+            'success': True,
+            'representations': self.object.jsonify,
+            'html': tables.NGLTable(mapobj=self.object).as_html(self.request)
+        })
+
+    def get(self, request, pk):
+        self.object = models.Map.objects.get(pk=pk)
+        return self.render_to_response()
+
+    def post(self, request, pk):
+        self.object = models.Map.objects.get(pk=pk)
+        cmd = request.POST.get('cmd')
+        if cmd == 'addrep':
+            models.Representation.objects.create(
+                map=self.object,
+                name='New'
+            )
+        elif cmd == 'delrep':
+            pk = request.POST.get('pk')
+            representation = models.Representation.objects.get(pk=pk)
+            representation.delete()
+        return self.render_to_response()
 
 
 class AlreadyLoggedInMixin:

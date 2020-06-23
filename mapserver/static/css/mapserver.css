@@ -7,6 +7,11 @@ body {
     font-family: Ubuntu, sans-serif;
 }
 
+#content-container {
+    margin-top: 100px;
+    margin-bottom: 100px;
+}
+
 li.nav-item.active {
     font-weight: bold;
 }
@@ -20,4 +25,33 @@ form.dropzone {
     border-style: dashed;
     border-radius: 10px;
     font-size: x-large;
+}
+
+.ngl-menu {
+    position: absolute;
+    height: auto;
+    right: 0;
+    top: 5%;
+    width: 5%;
+    z-index: 1;
+    padding: 5px;
+}
+
+.ngl-menu.active {
+    width: 90%;
+    border-radius: 5px 0 0 5px;
+    background-color: black;
+    opacity: 0.75;
+}
+
+.ngl-bottom-menu {
+    position: absolute;
+    visibility: hidden;
+    bottom: 0;
+    width: 95%;
+}
+
+.color-picker {
+    width: 0;
+    visibility: hidden;
 }

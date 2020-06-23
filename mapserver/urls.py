@@ -9,5 +9,6 @@ urlpatterns = [
     path('reset/', views.PasswordReset.as_view(), name='password-reset'),
     path('map/<str:pk>/', views.Detail.as_view(), name='map-detail'),
     path('map/<str:pk>/data/', views.map_data, name='map-data'),
-    path('map/<str:pk>/delete/', views.Delete.as_view(), name='map-delete')
+    path('map/<str:pk>/delete/', views.Delete.as_view(), name='map-delete'),
+    path('map/<str:pk>/table/', views.Table.as_view(), name='map-table'),
 ]

@@ -24,13 +24,11 @@
 </head>
 
 <body>
-
     {% block topnav %}{% include 'mapserver/topnav.html' %}{% endblock topnav %}
-    <div class="container-fluid" style="margin-top: 100px; margin-bottom: 100px;">
+    <div class="container-fluid" id="content-container">
             {% block content %}{% endblock content %}
     </div>
     {% include 'mapserver/footer.html' %}
-
     {% block js %}
         <!-- jQuery -->
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>

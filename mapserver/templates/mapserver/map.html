@@ -1,12 +1,43 @@
 {% extends 'mapserver/base.html' %}
+{% load static %}
+{% load django_tables2 %}
 
 {% block content %}
     <div class="row">
-        <div class="col-xl-6">
+        <div class="col-lg-6 viewport-container">
             <div id="chartViewport"></div>
         </div>
-        <div class="col-xl-6">
-            <div id="viewport"></div>
+        <div class="col-lg-6 viewport-container">
+            <div id="nglViewport">
+                <div class="ngl-menu">
+                    <label class="text-muted">
+                        <i class="h3 fas fa-angle-double-left"></i>
+                    </label>
+                </div>
+                <div class="ngl-bottom-menu">
+                    <div class="d-flex justify-content-center">
+                        <div class="btn btn-group">
+                            <label class="btn btn-outline-secondary border-0">
+                                <i class="fas fa-expand-arrows-alt"></i>
+                                <span class="d-none d-md-inline">Full screen</span>
+                            </label>
+                            <label class="btn btn-outline-secondary border-0">
+                                <i class="fas fa-circle-notch"></i>
+                                <span class="d-none d-md-inline">Spin</span>
+                            </label>
+                            <label class="btn btn-outline-secondary border-0">
+                                <i class="fas fa-dot-circle"></i>
+                                <span class="d-none d-md-inline">Center</span>
+                            </label>
+                            <label class="btn btn-outline-secondary border-0">
+                                <i class="fas fa-fill-drip"></i>
+                                <span class="d-none d-md-inline">Background color</span>
+                                <input type="color" class="color-picker"/>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock content %}
@@ -16,7 +47,6 @@
 
     <!-- NGLviewer -->
     <script src="https://unpkg.com/ngl"></script>
-
     <!-- Highcharts -->
     <script src="https://code.highcharts.com/highcharts.js" ></script>
     <script src="https://code.highcharts.com/maps/modules/map.js"></script>
@@ -27,9 +57,9 @@
     <script src="https://code.highcharts.com/modules/boost.js"></script>
 
     <script>
-        $(document).ready(function () {
-            init_map_detail('{{ object.pdb.url }}', '{% url 'map-data' object.pk %}');
-        });
+        initNGL("{{ object.pdb.url }}", "nglViewport", "{{ object.pk }}");
+        {#initMap("{% url 'map-data' object.pk %}", "chartViewport");#}
     </script>
 
 {% endblock js %}
+

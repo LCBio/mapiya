@@ -125,6 +125,10 @@ class Map(models.Model):
     def chains(self):
         return ' '.join([f'{chid}:{len(chain)}' for chid, chain in self.calphas.chains.items()])
 
+    @property
+    def jsonify(self):
+        return {f'rep{_.pk}': _.jsonify for _ in self.representation_set.all()}
+
     def get_absolute_url(self):
         return reverse('map-detail', args=[self.id])
 
@@ -136,3 +140,57 @@ class Map(models.Model):
 def delete_media(sender, instance, **kwargs):
     instance.pdb.storage.delete(instance.matrixfile)
     instance.pdb.delete()
+
+
+class NGLColorScheme(models.Model):
+
+    name = models.CharField(max_length=20, unique=True)
+    keyword = models.CharField(max_length=20, unique=True)
+    help = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.keyword
+
+
+class NGLRepresentation(models.Model):
+
+    name = models.CharField(max_length=20, unique=True)
+    keyword = models.CharField(max_length=20, unique=True)
+    options = models.TextField(null=True, blank=True)  # JSON with options, defaults and per option help
+    help = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.keyword
+
+
+class Representation(models.Model):
+
+    map = models.ForeignKey(Map, on_delete=models.CASCADE)
+    name = models.CharField(max_length=20)
+    color = models.ForeignKey(NGLColorScheme, on_delete=models.SET_DEFAULT, default=1)
+    representation = models.ForeignKey(NGLRepresentation, on_delete=models.SET_DEFAULT, default=1)
+    selection = models.CharField(max_length=200, default='all')
+    visible = models.BooleanField(default=True)
+    options = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.map.id} - {self.name}'
+
+    @property
+    def jsonify(self):
+        return {
+            'username': self.name,
+            'style': self.representation.keyword,
+            'colorScheme': self.color.keyword,
+            'sele': self.selection
+        }
+
+
+@receiver(post_save, sender=Map)
+def create_ngl_representation(**kwargs):
+    if kwargs['created']:
+        instance = kwargs.get('instance')
+        Representation.objects.create(
+            map=instance,
+            name='Default',
+        )
