@@ -5,7 +5,7 @@ from django.utils.functional import cached_property
 from django.contrib.sessions.models import Session
 from django.db import models
 from django.dispatch import receiver
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, post_save
 from django.urls import reverse
 import numpy as np
 from mollib.atom import Atoms
@@ -70,7 +70,7 @@ class Identity(models.Model):
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    session = models.OneToOneField(Session, on_delete=models.CASCADE, null=True, blank=True)
+    session = models.OneToOneField(Session, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.id
@@ -78,6 +78,12 @@ class Identity(models.Model):
 
 def pdb_path(instance, filename):
     return f'{instance.identity.id}/{instance.id}.pdb'
+
+
+@receiver(post_save, sender=Identity)
+def clean_orphans(sender, instance, **kwargs):
+    if instance.user is None and instance.session is None:
+        instance.delete()
 
 
 class Map(models.Model):

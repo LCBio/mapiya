@@ -20,7 +20,7 @@ def get_identity(request):
         return models.Identity.objects.get_or_create(session_id=request.session.session_key)[0]
 
 
-class HomeView(SingleTableView):
+class Home(SingleTableView):
 
     table_class = tables.MapTable
     template_name = 'mapserver/home.html'
@@ -47,7 +47,7 @@ class HomeView(SingleTableView):
         })
 
 
-class MapDetail(generic.DetailView):
+class Detail(generic.DetailView):
 
     model = models.Map
     template_name = 'mapserver/map.html'
@@ -79,7 +79,7 @@ def map_data(request, pk):
     return JsonResponse(data=data)
 
 
-class MapDelete(generic.DeleteView):
+class Delete(generic.DeleteView):
 
     model = models.Map
     template_name = 'mapserver/delete.html'
@@ -94,7 +94,7 @@ class AlreadyLoggedInMixin:
         return super().get(request, *args, **kwargs)
 
 
-class LoginView(AlreadyLoggedInMixin, generic.FormView):
+class Login(AlreadyLoggedInMixin, generic.FormView):
 
     template_name = 'mapserver/login.html'
     form_class = forms.LoginForm
@@ -106,18 +106,26 @@ class LoginView(AlreadyLoggedInMixin, generic.FormView):
 
         user = auth.authenticate(self.request, email=email, password=password)
         if user is not None:
+            identity = get_identity(self.request)
+            if hasattr(user, 'identity'):
+                for mapobj in models.Map.objects.filter(identity=identity):
+                    mapobj.identity = user.identity
+                    mapobj.save()
+            else:
+                identity.user = user
+                identity.save()
             auth.login(self.request, user)
             return super().form_valid(form)
         else:
             try:
-                user = models.User.objects.get(email=email)
+                models.User.objects.get(email=email)
                 form.add_error('password', 'Invalid password')
             except models.User.DoesNotExist:
                 form.add_error('email', 'User does not exist')
             return self.form_invalid(form)
 
 
-class SignupView(AlreadyLoggedInMixin, generic.FormView):
+class Signup(AlreadyLoggedInMixin, generic.FormView):
 
     template_name = 'mapserver/login.html'
     form_class = forms.SignupForm
@@ -130,7 +138,7 @@ class SignupView(AlreadyLoggedInMixin, generic.FormView):
 
         try:
             # check if email is not already taken
-            user = models.User.objects.get(email=email)
+            models.User.objects.get(email=email)
             form.add_error('email', 'User with this email already exists')
             return self.form_invalid(form)
         except models.User.DoesNotExist:
@@ -144,8 +152,8 @@ class SignupView(AlreadyLoggedInMixin, generic.FormView):
                 user = models.User.objects.create_user(email=email, password=password1)
                 identity = get_identity(self.request)
                 identity.user = user
-                identity.session = None
                 identity.save()
+                # TODO: add proper 'Transfer identity method(s)'
                 auth.login(self.request, user)
                 return super().form_valid(form)
 
@@ -172,4 +180,4 @@ class PasswordReset(generic.FormView):
 
 def logout(request):
     auth.logout(request)
-    return redirect('login')
+    return redirect('home')
