@@ -3,32 +3,22 @@
 var init_map_detail = function (pdburl, dataurl) {
 
     var stage = new NGL.Stage("viewport", {backgroundColor:'white'});
-
+    var koko;
     var defaultCutoff = 10;
+    
 
     $('#slider').bind('click', function () {
         chart.zoomOut();
         isContact = true;
         var currentCutoff = this.value
-            $.ajax({
-            url: dataurl,
-            success: function (data) {
-                if (data.success) {
-                 data.points.forEach(function(element, index) {
+                 var koko2= jQuery.extend(true, {}, koko)
+                 koko2.points.forEach(function(element, index) {
                  if (element.value > currentCutoff) {
-                 delete data.points[index]
+                 delete koko2.points[index]
                  }
                  });
-                 chart.series[0].update({data: data.points})
+                 chart.series[0].update({data: koko2.points})
                  chart.redraw();
-            } else {
-                console.log('View returned no data');
-            }
-        },
-        error: function (e, t) {
-            console.error(e, t);
-        }
-    });
             chart.colorAxis[0].update({
                 dataClassColor: 'category',
                 dataClasses: [{
@@ -211,13 +201,15 @@ var init_map_detail = function (pdburl, dataurl) {
         success: function (data) {
             console.log(data.points.length)
             if (data.success) {
-                 data.points.forEach(function(element, index) {
+                 koko= jQuery.extend(true, {}, data)
+                 var koko2= jQuery.extend(true, {}, koko)
+                 koko2.points.forEach(function(element, index) {
                  if (element.value > defaultCutoff) {
-                 delete data.points[index]
+                 delete koko2.points[index];
                  }
                  });
                 options.series.push({
-                    data: data.points,
+                    data: koko2.points,
                     allowPointSelect: true,
                     turboThreshold: [data.points.length ],
                     boostThreshold: 900,
@@ -382,20 +374,10 @@ var init_map_detail = function (pdburl, dataurl) {
         if (isContact) {
             chart.zoomOut();
             isContact = false;
-            $.ajax({
-            url: dataurl,
-            success: function (data) {
-                if (data.success) {
-                 chart.series[0].update({data: data.points})
+            $("#slider").val(defaultCutoff); 
+                 var koko2= jQuery.extend(true, {}, koko)
+                 chart.series[0].update({data: koko2.points})
                  chart.redraw();
-            } else {
-                console.log('View returned no data');
-            }
-        },
-        error: function (e, t) {
-            console.error(e, t);
-        }
-    });
             chart.colorAxis[0].update({
                 dataClassColor: '',
                 dataClasses: '',
@@ -415,25 +397,14 @@ var init_map_detail = function (pdburl, dataurl) {
             chart.zoomOut();
             isContact = true;
             $("#slider").val(defaultCutoff); 
-            $.ajax({
-            url: dataurl,
-            success: function (data) {
-                if (data.success) {
-                 data.points.forEach(function(element, index) {
+                 var koko2= jQuery.extend(true, {}, koko)
+                 koko2.points.forEach(function(element, index) {
                  if (element.value > defaultCutoff) {
-                 delete data.points[index]
+                 delete koko2.points[index]
                  }
                  });
-                 chart.series[0].update({data: data.points})
+                 chart.series[0].update({data: koko2.points})
                  chart.redraw();
-            } else {
-                console.log('View returned no data');
-            }
-        },
-        error: function (e, t) {
-            console.error(e, t);
-        }
-    });
             chart.colorAxis[0].update({
                 dataClassColor: 'category',
                 dataClasses: [{
