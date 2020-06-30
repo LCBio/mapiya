@@ -6,6 +6,9 @@ var init_map_detail = function (pdburl, dataurl) {
     var koko;
     var defaultCutoff = 10;
     
+    function myFunction(a, b, c, d) {
+  return eval(a + '= struct1.addRepresentation("' + b + '", {colorScheme: "' + c + '", sele: "' + d + '"})');
+};
 
     $('#slider').bind('click', function () {
         chart.zoomOut();
@@ -491,7 +494,11 @@ var init_map_detail = function (pdburl, dataurl) {
         struct1.removeRepresentation(repstyle2);
 
     });
-
+    
+    var rysujemy = document.getElementById("rysujemy");
+    rysujemy.addEventListener("click", function () {
+            myFunction('nazwa', 'licorice', 'atomindex', 'ala');
+    });
 
     var selectRepStyle3 = document.getElementById("selectRepStyle3");
     var isRepStyle3 = false;
