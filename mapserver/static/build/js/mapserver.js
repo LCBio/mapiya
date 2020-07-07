@@ -6,8 +6,8 @@ var init_map_detail = function (pdburl, dataurl) {
     var koko;
     var defaultCutoff = 10;
     
-    function myFunction(a, b, c, d) {
-  return eval(a + '= struct1.addRepresentation("' + b + '", {colorScheme: "' + c + '", sele: "' + d + '"})');
+    function myFunction(rname, rtype, rcolor, rsele, ropt) {
+  return eval(rname + '= struct1.addRepresentation("' + rtype + '", {colorScheme: "' + rcolor + '", sele: "' + rsele + '", ' + ropt + '})');
 };
 
     $('#slider').bind('click', function () {
@@ -497,7 +497,7 @@ var init_map_detail = function (pdburl, dataurl) {
     
     var rysujemy = document.getElementById("rysujemy");
     rysujemy.addEventListener("click", function () {
-            myFunction('nazwa', 'licorice', 'atomindex', 'ala');
+            myFunction('nazwa', 'licorice', 'atomindex', 'ala', 'opacity: 0.9, showBorder: true');
     });
 
     var selectRepStyle3 = document.getElementById("selectRepStyle3");
