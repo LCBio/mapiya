@@ -1,10 +1,13 @@
 from django.contrib import admin
 from django.contrib.sessions.models import Session
-from .models import User, Identity, Map
+from . import models
 
 admin.site.register([
     Session,
-    User,
-    Identity,
-    Map
+    models.User,
+    models.Identity,
+    models.Map,
+    models.NGLColorScheme,
+    models.NGLRepresentation,
+    models.Representation,
 ])

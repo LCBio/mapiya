@@ -1,0 +1,57 @@
+@font-face {
+  font-family: Ubuntu;
+  src: url('../fonts/Ubuntu/Ubuntu-Regular.ttf');
+}
+
+body {
+    font-family: Ubuntu, sans-serif;
+}
+
+#content-container {
+    margin-top: 100px;
+    margin-bottom: 100px;
+}
+
+li.nav-item.active {
+    font-weight: bold;
+}
+
+.asteriskField {
+    display: none;
+}
+
+form.dropzone {
+    background-color: rgba(0, 123, 247, 0.2);
+    border-style: dashed;
+    border-radius: 10px;
+    font-size: x-large;
+}
+
+.ngl-menu {
+    position: absolute;
+    height: auto;
+    right: 0;
+    top: 5%;
+    width: 5%;
+    z-index: 1;
+    padding: 5px;
+}
+
+.ngl-menu.active {
+    width: 90%;
+    border-radius: 5px 0 0 5px;
+    background-color: black;
+    opacity: 0.75;
+}
+
+.ngl-bottom-menu {
+    position: absolute;
+    visibility: hidden;
+    bottom: 0;
+    width: 95%;
+}
+
+.color-picker {
+    width: 0;
+    visibility: hidden;
+}

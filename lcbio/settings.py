@@ -14,6 +14,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_tables2',
+    'crispy_forms',
     'mapserver',
 ]
 
@@ -63,6 +64,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 STATIC_URL = '/static/'
 MEDIA_URL = '/files/'
