@@ -62,9 +62,13 @@ class NGLTable(tables.Table):
 
     class Meta:
         attrs = {
-            'class': 'table table-borderless table-sm',
+            'class': 'table table-borderless table-sm d-none',
             'th': {'class': 'text-white'}
         }
+        row_attrs = {
+            'id': lambda record: f'rep_{record.pk}'
+        }
+        # TODO: pagination
 
     name = tables.Column(
         verbose_name='Name',
@@ -96,7 +100,7 @@ class NGLTable(tables.Table):
         mapobj = kwargs.pop('mapobj')
         kwargs['data'] = models.Representation.objects.filter(map=mapobj)
         self.base_columns['actions'].verbose_name = format_html(f'''
-            <a class="text-success tablecmd" href="{reverse('map-table', args=[mapobj.pk])}" data-cmd="addrep">
+            <a class="text-success ngl-cmd" href="{reverse('ngl-add', args=[mapobj.pk])}">
                 <i class="fas fa-plus-circle"></i>
             </a>
         ''')
@@ -104,7 +108,7 @@ class NGLTable(tables.Table):
 
     def render_name(self, record):
         return format_html(f'''
-            <input class="form-control form-control-sm" type="text" value="{record.name}">
+            <input class="form-control form-control-sm" type="text" name="name" value="{record.name}">
         ''')
 
     def render_color(self, value):
@@ -113,7 +117,7 @@ class NGLTable(tables.Table):
             for color in models.NGLColorScheme.objects.all()
         ])
         return format_html(f'''
-            <select class="custom-select custom-select-sm">{options}</select>
+            <select class="custom-select custom-select-sm" name="color">{options}</select>
         ''')
 
     def render_representation(self, value):
@@ -123,7 +127,7 @@ class NGLTable(tables.Table):
         ])
         return format_html(f'''
             <div class="input-group input-group-sm">
-                <select class="custom-select custom-select-sm">{options}</select>
+                <select class="custom-select custom-select-sm" name="representation">{options}</select>
                 <div class="input-group-append">
                     <span class="input-group-text">
                         <a class="text-secondary" href="#">
@@ -137,7 +141,7 @@ class NGLTable(tables.Table):
     def render_selection(self, value):
         return format_html(f'''
             <div class="input-group input-group-sm">
-                <input class="form-control form-control-sm" type="text" value="{value}">
+                <input class="form-control form-control-sm" type="text" name="selection" value="{value}">
                 <div class="input-group-append">
                     <span class="input-group-text">
                         <a class="text-secondary" href="#"><i class="fas fa-cog"></i></a>
@@ -147,17 +151,16 @@ class NGLTable(tables.Table):
         ''')
 
     def render_actions(self, record):
-        href = reverse('map-table', args=[record.map.pk])
 
         eye = f'''
-            <a class="text-primary mr-1 tablecmd" href="{href}" data-cmd="update" data-pk="{record.pk}">
-                <i class="fas fa-eye{"" if record.visible else "-slash"}"></i>
+            <a class="text-primary mr-1 ngl-eye" href="javascript:void(0)">
+                <i class="fas fa-eye"></i>
             </a>
         '''
         return format_html(f'''
             <div class="d-inline-flex">
                 {eye}
-                <a class="text-danger tablecmd" href="{href}" data-cmd="delrep" data-pk="{record.pk}">
+                <a class="text-danger ngl-cmd" href="{reverse('ngl-delete', args=[record.pk])}">
                     <i class="fas fa-trash-alt"></i>
                 </a>
             </div>

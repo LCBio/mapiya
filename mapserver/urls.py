@@ -10,5 +10,7 @@ urlpatterns = [
     path('map/<str:pk>/', views.Detail.as_view(), name='map-detail'),
     path('map/<str:pk>/data/', views.map_data, name='map-data'),
     path('map/<str:pk>/delete/', views.Delete.as_view(), name='map-delete'),
-    path('map/<str:pk>/table/', views.Table.as_view(), name='map-table'),
+    path('ngl/<str:pk>/add/', views.NGLAddRep.as_view(), name='ngl-add'),
+    path('ngl/<int:pk>/delete/', views.NGLDelRep.as_view(), name='ngl-delete'),
+    path('ngl/<int:pk>/update/', views.NGLUpdateRep.as_view(), name='ngl-update'),
 ]

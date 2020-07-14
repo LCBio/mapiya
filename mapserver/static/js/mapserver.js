@@ -24,8 +24,7 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
     var stage = new NGL.Stage(viewport_id, {backgroundColor: 'white'})
 
     stage.loadFile(pdburl).then(function (o) {
-        struct1 = o;
-        basicRep = o.addRepresentation("cartoon", {colorScheme: "element"});
+        o.addRepresentation("cartoon", {colorScheme: "element"});
         o.autoView();
         $('.ngl-bottom-menu').css('visibility', 'visible');
     });
@@ -35,39 +34,84 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
         stage.handleResize();
     });
 
-    var $nglMenu = $('.ngl-menu');
-    var label_html = $nglMenu.html();
-    var $table = $('<div></div>');
-    var url = '/map/' + map_pk + '/table/';
-    $.getJSON(url, function (data) {
-        $table.html(data.html);
+    let $nglMenu = $('div.ngl-menu');
+    let $icon = $('#nglMenuIcon');
+    let $table = $nglMenu.find('table');
+    let csrftoken = getCookie('csrftoken');
+
+    // onhover event handler for ngl menu on the right
+    $nglMenu.hover(function () {
+        $nglMenu.addClass('active');
+        $icon.addClass('d-none');
+        $table.removeClass('d-none');
+    }, function () {
+        $nglMenu.removeClass('active');
+        $icon.removeClass('d-none');
+        $table.addClass('d-none');
     });
 
-    $(document).on('click', 'a.tablecmd', function (event) {
+    // "click on link within NGL table" event handler
+    $table.on('click', 'a.ngl-cmd', function (event) {
         event.preventDefault();
         $.ajax({
+            headers: {"X-CSRFToken": csrftoken},
             url: $(this).attr('href'),
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'))
-            },
             method: 'POST',
-            data: {
-                'cmd': $(this).data('cmd'),
-                'pk': $(this).data('pk'),
-            },
             success: function (data) {
-                $table.html(data.html);
-                $nglMenu.html($table.html());
+                if (data.error) {
+                    alert(data.error);
+                    // TODO: perhaps some nicer way to show errors
+                } else if (data.addRep) {
+                    $table.find('tbody').append(data.addRep);
+                    // TODO: here call to NGL function showRepresentation with arg = data.addRep
+                } else if (data.delRep) {
+                    $table.find('tr#' + data.delRep).remove();
+                    // TODO: here call to NGL function deleteRepresentation with arg = data.delRep
+                }
+            }
+        });
+    });
+
+    // "onchange" event handler for inputs and selects within NGL table
+    $table.on('change', 'input, select', function () {
+        let key = $(this).parents('tr').attr('id');
+        let pk = key.split('_').pop();
+        let dataobj = {
+            'name': $(this).attr('name'),
+            'value': $(this).val()
+        };
+        $.ajax({
+            headers: {"X-CSRFToken": csrftoken},
+            url: '/ngl/' + pk + '/update/',
+            method: 'POST',
+            data: dataobj,
+            success: function (data) {
+                if (data.error) {
+                    alert(data.error);
+                } else if (data.updateRep) {
+                    // TODO: here call to NGL function modifyRepresentation with arg = data.updateRep
+                    alert('Updated rep: ' + data.updateRep);
+                }
             }
         })
     });
 
-    $nglMenu.hover(function (event) {
-        $nglMenu.html($table.html());
-        $nglMenu.addClass('active');
-    }, function (event) {
-        $nglMenu.html(label_html);
-        $nglMenu.removeClass('active');
+    $table.on('click', 'a.ngl-eye', function () {
+        let $icon = $(this).find('i');
+        let key = $(this).parents('tr').attr('id');
+        $icon.toggleClass(['fa-eye', 'fa-eye-slash']);
+        alert(key);
+        // TODO: here call to NGL function toggleRepresentation with arg = key
     });
-
 }
+
+// var fun1 = function(representation_key, cmd) {
+//     // ma odczytać wartości z tabeli html i przerobić na obiekt zrozumiały dla ngl.draw_rep
+//     // cmd = {show, hide, delete}
+// }
+
+// $('#colorPicker').find('input').val();
+// $('#colorPicker').on('change', 'input', function () {
+//     alert($(this).val());
+// });
+

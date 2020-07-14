@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from django.utils.html import format_html
+from django.template import Template, Context
 from django.urls import reverse_lazy
 from django.contrib import auth
 from django.contrib.auth.password_validation import validate_password
@@ -53,6 +53,91 @@ class Detail(generic.DetailView):
     model = models.Map
     template_name = 'mapserver/map.html'
 
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        data['table'] = tables.NGLTable(mapobj=self.object)
+        return data
+
+
+class NGLAddRep(generic.View):
+
+    def post(self, request, pk):
+        try:
+            mapobj = models.Map.objects.get(pk=pk)
+            rep = models.Representation.objects.create(
+                map=mapobj,
+                name='New'
+            )
+            html = Template('''
+                <tr {{ row.attrs.as_html }}>
+                    {% for column, cell in row.items %}
+                        <td {{ column.attrs.td.as_html }}>{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+            ''').render(context=Context({
+                'row': next(r for r in tables.NGLTable(mapobj=mapobj).rows if r.record == rep)
+            }))
+            return JsonResponse({
+                'success': True,
+                'addRep': html
+            })
+
+        except models.Map.DoesNotExist as e:
+            return JsonResponse({
+                'success': True,
+                'error': e
+            })
+
+
+class NGLDelRep(generic.View):
+
+    def post(self, request, pk):
+        try:
+            rep = models.Representation.objects.get(pk=pk)
+            key = f'rep_{rep.pk}'
+            rep.delete()
+            return JsonResponse({
+                'success': True,
+                'delRep': key
+            })
+
+        except models.Representation.DoesNotExist as e:
+            return JsonResponse({
+                'success': True,
+                'error': str(e)
+            })
+
+
+class NGLUpdateRep(generic.View):
+
+    def post(self, request, pk):
+        try:
+            rep = models.Representation.objects.get(pk=pk)
+            name = request.POST.get('name')
+            val = request.POST.get('value')
+
+            if name == 'name':
+                rep.name = val
+            elif name == 'selection':
+                rep.selection = val
+            elif name == 'color':
+                rep.color = models.NGLColorScheme.objects.get(keyword=val)
+            elif name == 'representation':
+                rep.representation = models.NGLRepresentation.objects.get(keyword=val)
+
+            rep.save()
+            key = f'rep_{rep.pk}'
+            return JsonResponse({
+                'success': True,
+                'updateRep': key
+            })
+
+        except models.Representation.DoesNotExist as e:
+            return JsonResponse({
+                'success': True,
+                'error': str(e)
+            })
+
 
 def map_data(request, pk):
     try:
@@ -85,34 +170,6 @@ class Delete(generic.DeleteView):
     model = models.Map
     template_name = 'mapserver/delete.html'
     success_url = reverse_lazy('home')
-
-
-class Table(generic.View):
-
-    def render_to_response(self):
-        return JsonResponse({
-            'success': True,
-            'representations': self.object.jsonify,
-            'html': tables.NGLTable(mapobj=self.object).as_html(self.request)
-        })
-
-    def get(self, request, pk):
-        self.object = models.Map.objects.get(pk=pk)
-        return self.render_to_response()
-
-    def post(self, request, pk):
-        self.object = models.Map.objects.get(pk=pk)
-        cmd = request.POST.get('cmd')
-        if cmd == 'addrep':
-            models.Representation.objects.create(
-                map=self.object,
-                name='New'
-            )
-        elif cmd == 'delrep':
-            pk = request.POST.get('pk')
-            representation = models.Representation.objects.get(pk=pk)
-            representation.delete()
-        return self.render_to_response()
 
 
 class AlreadyLoggedInMixin:

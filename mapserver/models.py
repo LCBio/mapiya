@@ -125,9 +125,9 @@ class Map(models.Model):
     def chains(self):
         return ' '.join([f'{chid}:{len(chain)}' for chid, chain in self.calphas.chains.items()])
 
-    @property
-    def jsonify(self):
-        return {f'rep{_.pk}': _.jsonify for _ in self.representation_set.all()}
+    # @property
+    # def jsonify(self):
+    #     return {f'rep{_.pk}': _.jsonify for _ in self.representation_set.all()}
 
     def get_absolute_url(self):
         return reverse('map-detail', args=[self.id])
@@ -170,20 +170,19 @@ class Representation(models.Model):
     color = models.ForeignKey(NGLColorScheme, on_delete=models.SET_DEFAULT, default=1)
     representation = models.ForeignKey(NGLRepresentation, on_delete=models.SET_DEFAULT, default=1)
     selection = models.CharField(max_length=200, default='all')
-    visible = models.BooleanField(default=True)
     options = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.map.id} - {self.name}'
 
-    @property
-    def jsonify(self):
-        return {
-            'username': self.name,
-            'style': self.representation.keyword,
-            'colorScheme': self.color.keyword,
-            'sele': self.selection
-        }
+    # @property
+    # def jsonify(self):
+    #     return {
+    #         'username': self.name,
+    #         'style': self.representation.keyword,
+    #         'colorScheme': self.color.keyword,
+    #         'sele': self.selection
+    #     }
 
 
 @receiver(post_save, sender=Map)

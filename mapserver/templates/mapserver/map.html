@@ -10,9 +10,10 @@
         <div class="col-lg-6 viewport-container">
             <div id="nglViewport">
                 <div class="ngl-menu">
-                    <label class="text-muted">
+                    <label class="text-muted" id="nglMenuIcon">
                         <i class="h3 fas fa-angle-double-left"></i>
                     </label>
+                    {% render_table table %}
                 </div>
                 <div class="ngl-bottom-menu">
                     <div class="d-flex justify-content-center">
@@ -29,7 +30,7 @@
                                 <i class="fas fa-dot-circle"></i>
                                 <span class="d-none d-md-inline">Center</span>
                             </label>
-                            <label class="btn btn-outline-secondary border-0">
+                            <label class="btn btn-outline-secondary border-0" id="colorPicker">
                                 <i class="fas fa-fill-drip"></i>
                                 <span class="d-none d-md-inline">Background color</span>
                                 <input type="color" class="color-picker"/>
@@ -58,7 +59,6 @@
 
     <script>
         initNGL("{{ object.pdb.url }}", "nglViewport", "{{ object.pk }}");
-        {#initMap("{% url 'map-data' object.pk %}", "chartViewport");#}
     </script>
 
 {% endblock js %}
