@@ -62,7 +62,10 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
                     alert(data.error);
                     // TODO: perhaps some nicer way to show errors
                 } else if (data.addRep) {
-                    $table.find('tbody').append(data.addRep);
+                    let $newRow = $(data.addRep);
+                    // let costam = $newRow.find('[name="color"]');
+                    // console.log(costam.val());
+                    $table.find('tbody').append($newRow);
                     // TODO: here call to NGL function showRepresentation with arg = data.addRep
                 } else if (data.delRep) {
                     $table.find('tr#' + data.delRep).remove();

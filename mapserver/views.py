@@ -9,6 +9,7 @@ from django.core.files import File
 from django.shortcuts import redirect
 from django_tables2 import SingleTableView
 from mapserver import models, forms, tables
+from mollib import atom
 
 
 def get_identity(request):
@@ -170,6 +171,35 @@ class Delete(generic.DeleteView):
     model = models.Map
     template_name = 'mapserver/delete.html'
     success_url = reverse_lazy('home')
+
+
+class RCSB(generic.FormView):
+
+    template_name = 'mapserver/rcsb.html'
+    form_class = forms.RCSBForm
+    success_url = reverse_lazy('home')
+
+    def form_valid(self, form):
+        try:
+            pdb_code = form.cleaned_data['code']
+            pdb_file = atom.PdbFile(pdb_code)
+            models.Map.objects.create(
+                identity=get_identity(self.request),
+                pdb=File(
+                    name=pdb_code,
+                    file=pdb_file.opened_file
+                ),
+                filename=pdb_code
+            )
+
+            return JsonResponse({
+                'success': True,
+                'url': self.get_success_url()
+            })
+
+        except atom.InvalidPdbCode as e:
+            form.add_error('code', e)
+            return self.form_invalid(form)
 
 
 class AlreadyLoggedInMixin:

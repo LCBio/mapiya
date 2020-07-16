@@ -81,12 +81,15 @@ def pdb_path(instance, filename):
 
 
 @receiver(post_save, sender=Identity)
-def clean_orphans(sender, instance, **kwargs):
+def clean_orphans(**kwargs):
+    instance = kwargs.get('instance')
     if instance.user is None and instance.session is None:
         instance.delete()
 
 
 class Map(models.Model):
+
+    # TODO: Add pdb file validation
 
     id = models.CharField(
         max_length=12,
@@ -125,10 +128,6 @@ class Map(models.Model):
     def chains(self):
         return ' '.join([f'{chid}:{len(chain)}' for chid, chain in self.calphas.chains.items()])
 
-    # @property
-    # def jsonify(self):
-    #     return {f'rep{_.pk}': _.jsonify for _ in self.representation_set.all()}
-
     def get_absolute_url(self):
         return reverse('map-detail', args=[self.id])
 
@@ -137,7 +136,8 @@ class Map(models.Model):
 
 
 @receiver(pre_delete, sender=Map)
-def delete_media(sender, instance, **kwargs):
+def delete_media(**kwargs):
+    instance = kwargs.get('instance')
     instance.pdb.storage.delete(instance.matrixfile)
     instance.pdb.delete()
 
@@ -174,15 +174,6 @@ class Representation(models.Model):
 
     def __str__(self):
         return f'{self.map.id} - {self.name}'
-
-    # @property
-    # def jsonify(self):
-    #     return {
-    #         'username': self.name,
-    #         'style': self.representation.keyword,
-    #         'colorScheme': self.color.keyword,
-    #         'sele': self.selection
-    #     }
 
 
 @receiver(post_save, sender=Map)
