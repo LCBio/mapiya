@@ -21,10 +21,20 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
     };
 
     fitHeight(viewport_id, height_offset);
+    let $nglMenu = $('div.ngl-menu');
+    let $icon = $('#nglMenuIcon');
+    let $table = $nglMenu.find('table');
+    let csrftoken = getCookie('csrftoken');
     var stage = new NGL.Stage(viewport_id, {backgroundColor: 'white'})
 
     stage.loadFile(pdburl).then(function (o) {
         o.addRepresentation("cartoon", {colorScheme: "element"});
+
+        $table.find('.tbody').find('tr').each(function () {
+            // call to function with key = $(this).attr('id');
+            // call to NGL draw
+        });
+
         o.autoView();
         $('.ngl-bottom-menu').css('visibility', 'visible');
     });
@@ -33,11 +43,6 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
         fitHeight(viewport_id, height_offset);
         stage.handleResize();
     });
-
-    let $nglMenu = $('div.ngl-menu');
-    let $icon = $('#nglMenuIcon');
-    let $table = $nglMenu.find('table');
-    let csrftoken = getCookie('csrftoken');
 
     // onhover event handler for ngl menu on the right
     $nglMenu.hover(function () {
@@ -62,8 +67,10 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
                     alert(data.error);
                     // TODO: perhaps some nicer way to show errors
                 } else if (data.addRep) {
-                    $table.find('tbody').append(data.addRep);
-                    // TODO: here call to NGL function showRepresentation with arg = data.addRep
+                    let $newRow = $(data.addRep);
+                    let key = $newRow.attr('id');
+                    $table.find('tbody').append($newRow);
+                    // TODO: here call to NGL function showRepresentation with arg = key
                 } else if (data.delRep) {
                     $table.find('tr#' + data.delRep).remove();
                     // TODO: here call to NGL function deleteRepresentation with arg = data.delRep
@@ -103,15 +110,16 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
         alert(key);
         // TODO: here call to NGL function toggleRepresentation with arg = key
     });
+
+    var fetchFromTable = function(key) {
+        let $currentTr = $table.find('tr#' + key);
+        return {
+            'name': $currentTr.find('[name="name"]').val(),
+            'color': $currentTr.find('[name="color"]').val(),
+        }
+    };
 }
 
-// var fun1 = function(representation_key, cmd) {
-//     // ma odczytać wartości z tabeli html i przerobić na obiekt zrozumiały dla ngl.draw_rep
-//     // cmd = {show, hide, delete}
-// }
 
-// $('#colorPicker').find('input').val();
-// $('#colorPicker').on('change', 'input', function () {
-//     alert($(this).val());
-// });
+
 

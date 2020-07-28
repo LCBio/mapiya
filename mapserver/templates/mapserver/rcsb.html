@@ -1,0 +1,11 @@
+{% load crispy_forms_tags %}
+
+<div class="modal-header bg-primary text-white">
+    <h6 class="modal-title">Download structure from the PDB database</h6>
+    <button type="button" class="close" data-dismiss="modal" >
+        <i class="fas fa-times-circle text-white"></i>
+    </button>
+</div>
+<div class="modal-body">
+    {% crispy form %}
+</div>
