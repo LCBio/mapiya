@@ -28,11 +28,12 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
     var stage = new NGL.Stage(viewport_id, {backgroundColor: 'white'})
 
     stage.loadFile(pdburl).then(function (o) {
-        o.addRepresentation("cartoon", {colorScheme: "element"});
+        struct1 = o;
+        o.addRepresentation("licorice", {colorScheme: "element"});
 
-        $table.find('.tbody').find('tr').each(function () {
-            // call to function with key = $(this).attr('id');
-            // call to NGL draw
+        $table.find('tbody').find('tr').each(function () {
+            key = $(this).attr('id');
+            mkRepresentation(key);
         });
 
         o.autoView();
@@ -70,10 +71,10 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
                     let $newRow = $(data.addRep);
                     let key = $newRow.attr('id');
                     $table.find('tbody').append($newRow);
-                    // TODO: here call to NGL function showRepresentation with arg = key
+                    mkRepresentation(key);
                 } else if (data.delRep) {
+                    rmRepresentation(data.delRep);
                     $table.find('tr#' + data.delRep).remove();
-                    // TODO: here call to NGL function deleteRepresentation with arg = data.delRep
                 }
             }
         });
@@ -96,8 +97,8 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
                 if (data.error) {
                     alert(data.error);
                 } else if (data.updateRep) {
-                    // TODO: here call to NGL function modifyRepresentation with arg = data.updateRep
-                    alert('Updated rep: ' + data.updateRep);
+                    rmRepresentation(data.updateRep);
+                    mkRepresentation(data.updateRep);
                 }
             }
         })
@@ -107,8 +108,7 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
         let $icon = $(this).find('i');
         let key = $(this).parents('tr').attr('id');
         $icon.toggleClass(['fa-eye', 'fa-eye-slash']);
-        alert(key);
-        // TODO: here call to NGL function toggleRepresentation with arg = key
+        eval(key + '.toggleVisibility()')
     });
 
     var fetchFromTable = function(key) {
@@ -116,9 +116,38 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
         return {
             'name': $currentTr.find('[name="name"]').val(),
             'color': $currentTr.find('[name="color"]').val(),
+            'representation': $currentTr.find('[name="representation"]').val(),
+            'selection': $currentTr.find('[name="selection"]').val()
         }
     };
+    
+    var rmRepresentation = function(rep) {
+        return struct1.removeRepresentation(eval(rep));
+    };
+
+    var mkRepresentation = function(rep) {
+        return eval(rep +'=struct1.addRepresentation(fetchFromTable(rep).representation, {colorScheme: fetchFromTable(rep).color, sele: \'fetchFromTable(rep).selection\'})');
+    };
+
+    $('#colorPicker').on('change', 'input', function () {
+        stage.setParameters( { backgroundColor: $(this).val() } );
+    });
+
+    $('#fullScreen').on('click', function () {
+        stage.toggleFullscreen();
+    });
+
+    $('#toggleSpin').on('click', function () {
+        stage.toggleSpin();
+    });
+
+    $('#center').on('click', function () {
+        stage.autoView();
+    });
+
 }
+
+
 
 
 
