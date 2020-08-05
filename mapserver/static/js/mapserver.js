@@ -1,4 +1,4 @@
-function getCookie(name) {
+let getCookie = function (name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');
@@ -12,11 +12,11 @@ function getCookie(name) {
         }
     }
     return cookieValue;
-}
+};
 
-var initNGL = function (pdburl, viewport_id, map_pk) {
-    var height_offset = 200;
-    var fitHeight = function (viewport_id, offset) {
+let initNGL = function (pdburl, viewport_id) {
+    let height_offset = 200;
+    let fitHeight = function (viewport_id, offset) {
         $('#' + viewport_id).height($(window).innerHeight() - offset);
     };
 
@@ -25,14 +25,15 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
     let $icon = $('#nglMenuIcon');
     let $table = $nglMenu.find('table');
     let csrftoken = getCookie('csrftoken');
-    var stage = new NGL.Stage(viewport_id, {backgroundColor: 'white'})
+    let stage = new NGL.Stage(viewport_id, {backgroundColor: 'white'})
+    let representations = {};
+    let struct;
 
     stage.loadFile(pdburl).then(function (o) {
-        struct1 = o;
-        o.addRepresentation("licorice", {colorScheme: "element"});
+        struct = o;
 
         $table.find('tbody').find('tr').each(function () {
-            key = $(this).attr('id');
+            let key = $(this).attr('id');
             mkRepresentation(key);
         });
 
@@ -73,8 +74,9 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
                     $table.find('tbody').append($newRow);
                     mkRepresentation(key);
                 } else if (data.delRep) {
-                    rmRepresentation(data.delRep);
-                    $table.find('tr#' + data.delRep).remove();
+                    let key = data.delRep;
+                    rmRepresentation(key);
+                    $table.find('tr#' + key).remove();
                 }
             }
         });
@@ -97,8 +99,9 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
                 if (data.error) {
                     alert(data.error);
                 } else if (data.updateRep) {
-                    rmRepresentation(data.updateRep);
-                    mkRepresentation(data.updateRep);
+                    let key = data.updateRep;
+                    rmRepresentation(key);
+                    mkRepresentation(key);
                 }
             }
         })
@@ -108,10 +111,10 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
         let $icon = $(this).find('i');
         let key = $(this).parents('tr').attr('id');
         $icon.toggleClass(['fa-eye', 'fa-eye-slash']);
-        eval(key + '.toggleVisibility()')
+        representations[key].toggleVisibility();
     });
 
-    var fetchFromTable = function(key) {
+    let fetchFromTable = function(key) {
         let $currentTr = $table.find('tr#' + key);
         return {
             'name': $currentTr.find('[name="name"]').val(),
@@ -121,12 +124,19 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
         }
     };
     
-    var rmRepresentation = function(rep) {
-        return struct1.removeRepresentation(eval(rep));
+    let rmRepresentation = function(key) {
+        let rep = representations[key];
+        struct.removeRepresentation(rep);
+        delete representations[key];
     };
 
-    var mkRepresentation = function(rep) {
-        return eval(rep +'=struct1.addRepresentation(fetchFromTable(rep).representation, {colorScheme: fetchFromTable(rep).color, sele: \'fetchFromTable(rep).selection\'})');
+    let mkRepresentation = function(key) {
+        let data = fetchFromTable(key);
+        representations[key] = struct.addRepresentation(data.representation, {
+            name: data.name,
+            colorScheme: data.color,
+            sele: data.selection
+        });
     };
 
     $('#colorPicker').on('change', 'input', function () {
@@ -145,10 +155,4 @@ var initNGL = function (pdburl, viewport_id, map_pk) {
         stage.autoView();
     });
 
-}
-
-
-
-
-
-
+};
