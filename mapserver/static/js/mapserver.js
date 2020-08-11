@@ -120,7 +120,17 @@ let initNGL = function (pdburl, viewport_id) {
             'name': $currentTr.find('[name="name"]').val(),
             'color': $currentTr.find('[name="color"]').val(),
             'representation': $currentTr.find('[name="representation"]').val(),
-            'selection': $currentTr.find('[name="selection"]').val()
+            'selection': $currentTr.find('[name="selection"]').val(),
+            'options': {aspectRatio: 1.4,
+lineOnly: false,
+cylinderOnly: false,
+multipleBond: 'off',
+radius: 0.3, 
+scale: 0.5,
+opacity: 1.0,
+roughness: 1.0,
+metalness: 0.0
+}
         }
     };
     
@@ -132,11 +142,11 @@ let initNGL = function (pdburl, viewport_id) {
 
     let mkRepresentation = function(key) {
         let data = fetchFromTable(key);
-        representations[key] = struct.addRepresentation(data.representation, {
+        representations[key] = struct.addRepresentation(data.representation, Object.assign({}, {
             name: data.name,
             colorScheme: data.color,
-            sele: data.selection
-        });
+            sele: data.selection,
+        }, data.options));
     };
 
     $('#colorPicker').on('change', 'input', function () {
