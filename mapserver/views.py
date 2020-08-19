@@ -140,6 +140,25 @@ class NGLUpdateRep(generic.View):
             })
 
 
+class NGLOptions(generic.View):
+
+    def get(self, request, pk):
+        try:
+            rep = models.Representation.objects.get(pk=pk)
+            form = forms.ngl_options_form_factory(rep)
+            html = form.as_table()
+            data = {
+                'success': True,
+                'html': html
+            }
+        except models.Representation.DoesNotExist as e:
+            data = {
+                'success': True,
+                'error': str(e)
+            }
+        return JsonResponse(data)
+
+
 def map_data(request, pk):
     try:
         map_obj = models.Map.objects.get(pk=pk)

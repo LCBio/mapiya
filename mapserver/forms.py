@@ -1,6 +1,7 @@
 from django import forms
 from django.urls import reverse
 from crispy_forms import helper, layout
+import json
 
 
 class CrispyFormMixin:
@@ -167,3 +168,22 @@ class RCSBForm(CrispyFormMixin, forms.Form):
             'code',
             layout.HTML(f'''<button type="submit" class="btn btn-success btn-block mty-3">Submit</button>'''),
         )
+
+
+def ngl_options_form_factory(representation):
+
+    form = forms.Form()
+    ngl_rep = representation.representation
+    options = json.loads(ngl_rep.options)
+    for name, option in options.items():
+        label = option.get('name', name)
+        if 'choices' in option:
+            field = forms.ChoiceField(choices=[(_, _) for _ in option['choices']])
+        elif type(option['default']) is bool:
+            field = forms.BooleanField()
+        else:
+            field = forms.FloatField()
+        field.label = label
+        form.fields[name] = field
+
+    return form

@@ -22,6 +22,7 @@ class RowNumberTable(tables.Table):
         return '%d' % next(self.counter)
 
 
+# for the homepage
 class MapTable(RowNumberTable):
 
     class Meta:
@@ -58,6 +59,7 @@ class MapTable(RowNumberTable):
         ''')
 
 
+# ngl menu
 class NGLTable(tables.Table):
 
     class Meta:
@@ -108,7 +110,7 @@ class NGLTable(tables.Table):
 
     def render_name(self, record):
         return format_html(f'''
-            <input class="form-control form-control-sm" type="text" name="name" value="{record.name}">
+            <input class="form-control form-control-sm ngl-input" type="text" name="name" value="{record.name}">
         ''')
 
     def render_color(self, value):
@@ -117,20 +119,21 @@ class NGLTable(tables.Table):
             for color in models.NGLColorScheme.objects.all()
         ])
         return format_html(f'''
-            <select class="custom-select custom-select-sm" name="color">{options}</select>
+            <select class="custom-select custom-select-sm ngl-input" name="color">{options}</select>
         ''')
 
-    def render_representation(self, value):
+    def render_representation(self, record):
         options = '\n'.join([
-            f'<option {"selected" if value == rep else ""} value="{rep.keyword}">{rep.name}</option>'
+            f'<option {"selected" if record.representation == rep else ""} value="{rep.keyword}">{rep.name}</option>'
             for rep in models.NGLRepresentation.objects.all()
         ])
         return format_html(f'''
             <div class="input-group input-group-sm">
-                <select class="custom-select custom-select-sm" name="representation">{options}</select>
+                <select class="custom-select custom-select-sm ngl-input" name="representation">{options}</select>
                 <div class="input-group-append">
                     <span class="input-group-text">
-                        <a class="text-secondary" href="#">
+                        <a class="text-secondary ngl-options" href="{reverse('ngl-options', args=[record.pk])}"
+                           data-keyword="representation">
                             <i class="fas fa-cog"></i>
                         </a>
                     </span>
@@ -138,13 +141,17 @@ class NGLTable(tables.Table):
             </div>
         ''')
 
-    def render_selection(self, value):
+    def render_selection(self, record):
         return format_html(f'''
             <div class="input-group input-group-sm">
-                <input class="form-control form-control-sm" type="text" name="selection" value="{value}">
+                <input class="form-control form-control-sm ngl-input" type="text" name="selection"
+                       value="{record.selection}">
                 <div class="input-group-append">
                     <span class="input-group-text">
-                        <a class="text-secondary" href="#"><i class="fas fa-cog"></i></a>
+                        <a class="text-secondary ngl-options" href="{reverse('ngl-options', args=[record.pk])}"
+                           data-keyword="selection">
+                            <i class="fas fa-cog"></i>
+                        </a>
                     </span>
                 </div>
             </div>

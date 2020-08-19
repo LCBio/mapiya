@@ -1,3 +1,4 @@
+// helper function used to insert csrf token into ajax post data
 let getCookie = function (name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -12,6 +13,11 @@ let getCookie = function (name) {
         }
     }
     return cookieValue;
+};
+
+// helper function to check if jQuery returns undefined
+$.fn.exists = function () {
+    return this.length !== 0;
 };
 
 let initNGL = function (pdburl, viewport_id) {
@@ -83,7 +89,7 @@ let initNGL = function (pdburl, viewport_id) {
     });
 
     // "onchange" event handler for inputs and selects within NGL table
-    $table.on('change', 'input, select', function () {
+    $table.on('change', '.ngl-input', function () {
         let key = $(this).parents('tr').attr('id');
         let pk = key.split('_').pop();
         let dataobj = {
@@ -107,11 +113,67 @@ let initNGL = function (pdburl, viewport_id) {
         })
     });
 
+    // toggle representation visibility event handler
     $table.on('click', 'a.ngl-eye', function () {
         let $icon = $(this).find('i');
         let key = $(this).parents('tr').attr('id');
         $icon.toggleClass(['fa-eye', 'fa-eye-slash']);
         representations[key].toggleVisibility();
+    });
+
+    // handler for on onclick event on the "cog" icon
+    $table.on('click', 'a.ngl-options', function (event) {
+        event.preventDefault();
+        let url = $(this).attr('href');
+
+        // current table row
+        let $tr = $(this).parents('tr');
+        let keyword = $(this).data('keyword');
+
+        // next table row
+        let $options = $tr.next();
+
+        // if next row exists and has data-keyword attribute
+        if ($options.exists() && $options.data('keyword')) {
+
+            // if keywords match remove next row
+            if ($options.data('keyword') === keyword) {
+                $options.remove();
+            }
+
+        // create options panel as the next row in the table
+        } else {
+            $options = $('<tr><td colspan="5"><div></div></td></tr>');
+            $options.insertAfter($tr);
+        }
+
+        // if panel options exists fill it with data fetched from the url and insert after current row
+        if ($options.exists()) {
+            $.ajax({
+                url: url,
+                method: 'GET',
+                data: {keyword: keyword},
+                success: function (data) {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        $options.data('keyword', keyword);
+                        $options.find('div').html(data.html);
+                    }
+                }
+            });
+        }
+
+    });
+
+    // function which removes options panel when new type of representation is selected
+    $table.on('change', 'select[name="representation"]', function () {
+        let $options = $(this).parents('tr').next();
+        if ($options.exists() && $options.data('keyword')) {
+            if ($options.data('keyword') === 'representation') {
+                $options.remove();
+            }
+        }
     });
 
     let fetchFromTable = function(key) {

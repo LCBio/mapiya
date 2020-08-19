@@ -38,7 +38,7 @@ form.dropzone {
 }
 
 .ngl-menu.active {
-    width: 90%;
+    width: 66%;
     border-radius: 5px 0 0 5px;
     background-color: black;
     opacity: 0.75;
@@ -54,4 +54,20 @@ form.dropzone {
 .color-picker {
     width: 0;
     visibility: hidden;
+}
+
+.ngl-menu {
+    font-size: .85rem;
+}
+
+.ngl-menu .custom-select {
+    font-size: .75rem;
+}
+
+.ngl-menu .form-control {
+    font-size: .75rem;
+}
+
+.ngl-menu .input-group-text a {
+    font-size: .75rem;
 }

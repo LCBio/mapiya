@@ -14,4 +14,5 @@ urlpatterns = [
     path('ngl/<str:pk>/add/', views.NGLAddRep.as_view(), name='ngl-add'),
     path('ngl/<int:pk>/delete/', views.NGLDelRep.as_view(), name='ngl-delete'),
     path('ngl/<int:pk>/update/', views.NGLUpdateRep.as_view(), name='ngl-update'),
+    path('ngl/<int:pk>/options/', views.NGLOptions.as_view(), name='ngl-options'),
 ]
