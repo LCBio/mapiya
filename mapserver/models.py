@@ -146,6 +146,7 @@ class NGLColorScheme(models.Model):
 
     name = models.CharField(max_length=20, unique=True)
     keyword = models.CharField(max_length=20, unique=True)
+    options = models.TextField(null=True, blank=True)  # JSON with options, defaults and per option help
     help = models.CharField(max_length=100)
 
     def __str__(self):

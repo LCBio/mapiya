@@ -178,11 +178,14 @@ def ngl_options_form_factory(representation):
     for name, option in options.items():
         label = option.get('name', name)
         if 'choices' in option:
-            field = forms.ChoiceField(choices=[(_, _) for _ in option['choices']])
+            field = forms.ChoiceField(
+                choices=[(_, _) for _ in option['choices']],
+                initial=option.get('default', option['choices'][0])
+            )
         elif type(option['default']) is bool:
-            field = forms.BooleanField()
+            field = forms.BooleanField(initial=option['default'])
         else:
-            field = forms.FloatField()
+            field = forms.FloatField(initial=option['default'])
         field.label = label
         form.fields[name] = field
 
