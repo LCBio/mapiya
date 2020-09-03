@@ -158,7 +158,7 @@ class Atom:
                 elif type(attr) is str and val != ' ':
                     val = val.strip()
                 elif isinstance(attr, Vector):
-                    val = Vector(val)
+                    val = Vector(val[0:11], val[11:19], val[19:27])
                 setattr(self, arg, val)
             else:
                 raise TypeError(f'"{arg}" is an invalid argument for Atom()')

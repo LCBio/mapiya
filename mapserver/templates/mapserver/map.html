@@ -47,18 +47,19 @@
     {{ block.super }}
 
     <!-- NGLviewer -->
-    <script src="https://unpkg.com/ngl"></script>
+    <script src="{% static 'js/ngl.js' %}"></script>
     <!-- Highcharts -->
-    <script src="https://code.highcharts.com/highcharts.js" ></script>
-    <script src="https://code.highcharts.com/maps/modules/map.js"></script>
-    <script src="https://code.highcharts.com/maps/modules/data.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
-    <script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
-    <script src="https://code.highcharts.com/modules/heatmap.js"></script>
-    <script src="https://code.highcharts.com/modules/boost.js"></script>
+{#    <script src="https://code.highcharts.com/highcharts.js" ></script>#}
+{#    <script src="https://code.highcharts.com/maps/modules/map.js"></script>#}
+{#    <script src="https://code.highcharts.com/maps/modules/data.js"></script>#}
+{#    <script src="https://code.highcharts.com/modules/exporting.js"></script>#}
+{#    <script src="https://code.highcharts.com/modules/offline-exporting.js"></script>#}
+{#    <script src="https://code.highcharts.com/modules/heatmap.js"></script>#}
+{#    <script src="https://code.highcharts.com/modules/boost.js"></script>#}
 
     <script>
         initNGL("{{ object.pdb.url }}", "nglViewport");
+        initChart("{{ object.pk }}", "chartViewport");
     </script>
 
 {% endblock js %}

@@ -20,19 +20,34 @@ $.fn.exists = function () {
     return this.length !== 0;
 };
 
-let initNGL = function (pdburl, viewport_id) {
-    let height_offset = 200;
-    let fitHeight = function (viewport_id, offset) {
-        $('#' + viewport_id).height($(window).innerHeight() - offset);
-    };
+let fitHeight = function (viewport_id) {
+    let offset = 200;
+    $('#' + viewport_id).height($(window).innerHeight() - offset);
+};
 
-    fitHeight(viewport_id, height_offset);
+let initChart = function (map_pk, viewport_id) {
+    fitHeight(viewport_id);
+
+    $(window).resize(function () {
+        fitHeight(viewport_id);
+    });
+
+    let $viewport = $('#' + viewport_id);
+    let dim = Math.min($viewport.width(), $viewport.height());
+
+    $.getJSON('/map/' + map_pk + '/tiles/',  {'dim': dim}, function (data) {
+        $viewport.html(data.html);
+    });
+}
+
+let initNGL = function (pdburl, viewport_id) {
+    fitHeight(viewport_id);
     let $nglMenu = $('div.ngl-menu');
     let $icon = $('#nglMenuIcon');
     let $table = $nglMenu.find('table');
     let csrftoken = getCookie('csrftoken');
     let stage = new NGL.Stage(viewport_id, {backgroundColor: 'white'})
-    let representations = {};
+    representations = {};
     let struct;
 
     stage.loadFile(pdburl).then(function (o) {
@@ -48,7 +63,7 @@ let initNGL = function (pdburl, viewport_id) {
     });
 
     $(window).resize(function () {
-        fitHeight(viewport_id, height_offset);
+        fitHeight(viewport_id);
         stage.handleResize();
     });
 
@@ -182,17 +197,7 @@ let initNGL = function (pdburl, viewport_id) {
             'name': $currentTr.find('[name="name"]').val(),
             'color': $currentTr.find('[name="color"]').val(),
             'representation': $currentTr.find('[name="representation"]').val(),
-            'selection': $currentTr.find('[name="selection"]').val(),
-            'options': {aspectRatio: 1.4,
-lineOnly: false,
-cylinderOnly: false,
-multipleBond: 'off',
-radius: 0.3, 
-scale: 0.5,
-opacity: 1.0,
-roughness: 1.0,
-metalness: 0.0
-}
+            'selection': $currentTr.find('[name="selection"]').val()
         }
     };
     
@@ -204,11 +209,16 @@ metalness: 0.0
 
     let mkRepresentation = function(key) {
         let data = fetchFromTable(key);
+        let pk = key.split('_').pop();
+        let options = {};
+        $.getJSON('/ngl/' + pk + '/options/', function (data) {
+            options = data;
+        });
         representations[key] = struct.addRepresentation(data.representation, Object.assign({}, {
             name: data.name,
             colorScheme: data.color,
             sele: data.selection,
-        }, data.options));
+        }, options));
     };
 
     $('#colorPicker').on('change', 'input', function () {

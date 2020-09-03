@@ -190,3 +190,25 @@ def ngl_options_form_factory(representation):
         form.fields[name] = field
 
     return form
+
+
+def ngl_options_form_factory2(representation):
+
+    form = forms.Form()
+    ngl_rep = representation.color
+    options = json.loads(ngl_rep.options)
+    for name, option in options.items():
+        label = option.get('name', name)
+        if 'choices' in option:
+            field = forms.ChoiceField(
+                choices=[(_, _) for _ in option['choices']],
+                initial=option.get('default', option['choices'][0])
+            )
+        elif type(option['default']) is bool:
+            field = forms.BooleanField(initial=option['default'])
+        else:
+            field = forms.FloatField(initial=option['default'])
+        field.label = label
+        form.fields[name] = field
+
+    return form

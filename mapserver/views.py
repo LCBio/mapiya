@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from django.utils.html import format_html
 from django.template import Template, Context
 from django.urls import reverse_lazy
 from django.contrib import auth
@@ -10,6 +11,7 @@ from django.shortcuts import redirect
 from django_tables2 import SingleTableView
 from mapserver import models, forms, tables
 from mollib import atom
+import json
 
 
 def get_identity(request):
@@ -143,20 +145,64 @@ class NGLUpdateRep(generic.View):
 class NGLOptions(generic.View):
 
     def get(self, request, pk):
+
+        data = {'success': True}
+
         try:
             rep = models.Representation.objects.get(pk=pk)
-            form = forms.ngl_options_form_factory(rep)
-            html = form.as_table()
-            data = {
-                'success': True,
-                'html': html
-            }
+            keyword = request.GET.get('keyword')
+            if keyword is None:
+                default_options = json.loads(rep.representation.options)
+                options = {key: option['default'] for key, option in default_options.items()}
+                if rep.options:
+                    options.update(json.loads(rep.options))
+                data['options'] = options
+
+            elif keyword == 'representation':
+                data['html'] = forms.ngl_options_form_factory(rep).as_table()
+
+            elif keyword == 'color':
+                data['html'] = forms.ngl_options_form_factory2(rep).as_table()
+
         except models.Representation.DoesNotExist as e:
-            data = {
-                'success': True,
-                'error': str(e)
-            }
+            data['error'] = str(e)
+
         return JsonResponse(data)
+
+
+def map_tiles(request, pk):
+    try:
+        map_obj = models.Map.objects.get(pk=pk)
+        dim = int(request.GET.get('dim')) - 20
+
+        chains = [(x, int(y)) for x, y in [_.split(':') for _ in map_obj.chains.split()]]
+        sum_len = sum(x[1] for x in chains)
+        dims = [round(x[1] * dim / sum_len) for x in chains]
+
+        def get_rect(w, h, x, y):
+            return f'<rect class="map-tile" x="{x}" y="{y}" width="{w}" height="{h}"></rect>'
+
+        x = y = 0
+        rects = []
+        for dy in dims:
+            for dx in dims:
+                rects.append(get_rect(dx, dy, x, y))
+                x += dx
+            x = 0
+            y += dy
+
+        rects = '\n'.join(rects)
+        html = f'<svg width="{dim}" height="{dim}">{rects}</svg>'
+
+        data = {
+            'success': True,
+            'html': format_html(html)
+        }
+    except (models.Map.DoesNotExist, TypeError):
+        data = {
+            'success': False
+        }
+    return JsonResponse(data=data)
 
 
 def map_data(request, pk):
@@ -175,6 +221,7 @@ def map_data(request, pk):
         ]
         data = {
             'success': True,
+            'chains': map_obj.chains,
             'labels': labels + [''],
             'points': points,
         }
@@ -202,7 +249,7 @@ class RCSB(generic.FormView):
         try:
             pdb_code = form.cleaned_data['code']
             pdb_file = atom.PdbFile(pdb_code)
-            models.Map.objects.create(
+            map_obj = models.Map.objects.create(
                 identity=get_identity(self.request),
                 pdb=File(
                     name=pdb_code,
@@ -210,6 +257,7 @@ class RCSB(generic.FormView):
                 ),
                 filename=pdb_code
             )
+            map_obj.save_matrix()
 
             return JsonResponse({
                 'success': True,
@@ -238,17 +286,8 @@ class Login(AlreadyLoggedInMixin, generic.FormView):
     def form_valid(self, form):
         email = form.cleaned_data['email']
         password = form.cleaned_data['password']
-
         user = auth.authenticate(self.request, email=email, password=password)
         if user is not None:
-            identity = get_identity(self.request)
-            if hasattr(user, 'identity'):
-                for mapobj in models.Map.objects.filter(identity=identity):
-                    mapobj.identity = user.identity
-                    mapobj.save()
-            else:
-                identity.user = user
-                identity.save()
             auth.login(self.request, user)
             return super().form_valid(form)
         else:
@@ -287,8 +326,8 @@ class Signup(AlreadyLoggedInMixin, generic.FormView):
                 user = models.User.objects.create_user(email=email, password=password1)
                 identity = get_identity(self.request)
                 identity.user = user
+                identity.session = None
                 identity.save()
-                # TODO: add proper 'Transfer identity method(s)'
                 auth.login(self.request, user)
                 return super().form_valid(form)
 

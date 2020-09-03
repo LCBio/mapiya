@@ -6,11 +6,12 @@ from django.contrib.sessions.models import Session
 from django.db import models
 from django.dispatch import receiver
 from django.db.models.signals import pre_delete, post_save
+from django.core.files.storage import default_storage as storage
 from django.urls import reverse
-import numpy as np
 from mollib.atom import Atoms
 from mollib.utils import DistanceMatrix
 from .utils import rs8, rs10, rs12
+import numpy as np
 
 
 class UserManager(BaseUserManager):
@@ -76,15 +77,30 @@ class Identity(models.Model):
         return self.id
 
 
-def pdb_path(instance, filename):
-    return f'{instance.identity.id}/{instance.id}.pdb'
-
-
-@receiver(post_save, sender=Identity)
-def clean_orphans(**kwargs):
+@receiver(pre_delete, sender=Session)
+def clean_orphan_identities(**kwargs):
     instance = kwargs.get('instance')
-    if instance.user is None and instance.session is None:
-        instance.delete()
+    if hasattr(instance, 'identity'):
+        instance.identity.delete()
+
+
+@receiver(pre_delete, sender=Identity)
+def clean_orphan_media(**kwargs):
+    instance = kwargs.get('instance')
+    if storage.exists(instance.id):
+        dirs, files = storage.listdir(instance.id)
+        for f in files:
+            storage.delete(f'{instance.id}/{f}')
+        for d in dirs:
+            for f in storage.listdir(f'{instance.id}/{d}')[1]:
+                storage.delete(f'{instance.id}/{d}/{f}')
+            storage.delete(f'{instance.id}/{d}')
+        storage.delete(instance.id)
+
+
+def pdb_path(instance, filename):
+    suffix = '' if filename.endswith('.pdb') else '.pdb'
+    return f'{instance.media_dir}/{filename}{suffix}'
 
 
 class Map(models.Model):
@@ -99,6 +115,10 @@ class Map(models.Model):
     identity = models.ForeignKey(Identity, on_delete=models.CASCADE)
     filename = models.CharField(max_length=50)
     pdb = models.FileField(upload_to=pdb_path)
+
+    @property
+    def media_dir(self):
+        return f'{self.identity.id}/{self.id}'
 
     @property
     def matrixfile(self):
@@ -138,15 +158,16 @@ class Map(models.Model):
 @receiver(pre_delete, sender=Map)
 def delete_media(**kwargs):
     instance = kwargs.get('instance')
-    instance.pdb.storage.delete(instance.matrixfile)
-    instance.pdb.delete()
+    for f in storage.listdir(instance.media_dir)[1]:
+        storage.delete(f'{instance.media_dir}/{f}')
+    storage.delete(instance.media_dir)
 
 
 class NGLColorScheme(models.Model):
 
     name = models.CharField(max_length=20, unique=True)
     keyword = models.CharField(max_length=20, unique=True)
-    options = models.TextField(null=True, blank=True)  # JSON with options, defaults and per option help
+    options = models.TextField(null=True, blank=True)
     help = models.CharField(max_length=100)
 
     def __str__(self):
@@ -157,7 +178,7 @@ class NGLRepresentation(models.Model):
 
     name = models.CharField(max_length=20, unique=True)
     keyword = models.CharField(max_length=20, unique=True)
-    options = models.TextField(null=True, blank=True)  # JSON with options, defaults and per option help
+    options = models.TextField(null=True, blank=True)
     help = models.CharField(max_length=100)
 
     def __str__(self):

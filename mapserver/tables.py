@@ -113,13 +113,23 @@ class NGLTable(tables.Table):
             <input class="form-control form-control-sm ngl-input" type="text" name="name" value="{record.name}">
         ''')
 
-    def render_color(self, value):
+    def render_color(self, record):
         options = '\n'.join([
-            f'<option {"selected" if value == color else ""} value="{color.keyword}">{color.name}</option>'
+            f'<option {"selected" if record.color == color else ""} value="{color.keyword}">{color.name}</option>'
             for color in models.NGLColorScheme.objects.all()
         ])
         return format_html(f'''
-            <select class="custom-select custom-select-sm ngl-input" name="color">{options}</select>
+            <div class="input-group input-group-sm">
+                <select class="custom-select custom-select-sm ngl-input" name="color">{options}</select>
+                <div class="input-group-append">
+                    <span class="input-group-text">
+                        <a class="text-secondary ngl-options" href="{reverse('ngl-options', args=[record.pk])}"
+                           data-keyword="color">
+                            <i class="fas fa-cog"></i>
+                        </a>
+                    </span>
+                </div>
+            </div>
         ''')
 
     def render_representation(self, record):

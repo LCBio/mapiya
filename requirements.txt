@@ -1,6 +1,7 @@
 django
 requests
 numpy
+matplotlib
 cached_property
 bitarray
 django-tables2

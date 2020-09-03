@@ -41,7 +41,7 @@ form.dropzone {
     width: 66%;
     border-radius: 5px 0 0 5px;
     background-color: black;
-    opacity: 0.75;
+    opacity: 0.85;
 }
 
 .ngl-bottom-menu {
@@ -70,4 +70,21 @@ form.dropzone {
 
 .ngl-menu .input-group-text a {
     font-size: .75rem;
+}
+
+.ngl-menu th label {
+    color: white;
+}
+
+#chartViewport {
+    background-color: white;
+}
+
+.map-tile {
+    fill: lightblue;
+    cursor: pointer;
+}
+
+.map-tile:hover {
+    fill: lightgrey;
 }

@@ -10,6 +10,7 @@ urlpatterns = [
     path('rcsb/', views.RCSB.as_view(), name='rcsb'),
     path('map/<str:pk>/', views.Detail.as_view(), name='map-detail'),
     path('map/<str:pk>/data/', views.map_data, name='map-data'),
+    path('map/<str:pk>/tiles/', views.map_tiles, name='map-tiles'),
     path('map/<str:pk>/delete/', views.Delete.as_view(), name='map-delete'),
     path('ngl/<str:pk>/add/', views.NGLAddRep.as_view(), name='ngl-add'),
     path('ngl/<int:pk>/delete/', views.NGLDelRep.as_view(), name='ngl-delete'),

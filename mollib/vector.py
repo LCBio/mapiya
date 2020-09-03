@@ -12,7 +12,7 @@ class Vector:
     """
 
     def __init__(self, *args):
-        # Vector() can be initialized with 0, 1 or arguments
+        # Vector() can be initialized with 0, 1 or 3 arguments
         if args:
 
             # one argument
