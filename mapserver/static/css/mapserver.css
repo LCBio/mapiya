@@ -75,16 +75,3 @@ form.dropzone {
 .ngl-menu th label {
     color: white;
 }
-
-#chartViewport {
-    background-color: white;
-}
-
-.map-tile {
-    fill: lightblue;
-    cursor: pointer;
-}
-
-.map-tile:hover {
-    fill: lightgrey;
-}

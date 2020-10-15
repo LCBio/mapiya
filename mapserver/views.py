@@ -1,5 +1,4 @@
 from django.http import JsonResponse
-from django.utils.html import format_html
 from django.template import Template, Context
 from django.urls import reverse_lazy
 from django.contrib import auth
@@ -43,7 +42,6 @@ class Home(SingleTableView):
                 ),
                 filename=request.FILES[file_id].name
             )
-            mapobj.save_matrix()
         t = self.get_table()
         return JsonResponse({
             'success': True,
@@ -170,41 +168,6 @@ class NGLOptions(generic.View):
         return JsonResponse(data)
 
 
-def map_tiles(request, pk):
-    try:
-        map_obj = models.Map.objects.get(pk=pk)
-        dim = int(request.GET.get('dim')) - 20
-
-        chains = [(x, int(y)) for x, y in [_.split(':') for _ in map_obj.chains.split()]]
-        sum_len = sum(x[1] for x in chains)
-        dims = [round(x[1] * dim / sum_len) for x in chains]
-
-        def get_rect(w, h, x, y):
-            return f'<rect class="map-tile" x="{x}" y="{y}" width="{w}" height="{h}"></rect>'
-
-        x = y = 0
-        rects = []
-        for dy in dims:
-            for dx in dims:
-                rects.append(get_rect(dx, dy, x, y))
-                x += dx
-            x = 0
-            y += dy
-
-        rects = '\n'.join(rects)
-        html = f'<svg width="{dim}" height="{dim}">{rects}</svg>'
-
-        data = {
-            'success': True,
-            'html': format_html(html)
-        }
-    except (models.Map.DoesNotExist, TypeError):
-        data = {
-            'success': False
-        }
-    return JsonResponse(data=data)
-
-
 def map_data(request, pk):
     try:
         map_obj = models.Map.objects.get(pk=pk)
@@ -224,6 +187,25 @@ def map_data(request, pk):
             'chains': map_obj.chains,
             'labels': labels + [''],
             'points': points,
+            'objects': [
+                {
+                    'type': 'protein chain',
+                    'length': 28,
+                    'label': 'A',
+                    'labels': [],
+                    'hydrophobicity': [1.0, 23.4, ]
+                },
+                {
+                    'type': 'ligand',
+                    'length': 1,
+                    'label': 'VIT_D'
+                },
+                {
+                    'type': 'nucleic acid',
+                    'length': 123,
+                    'label': '5`'
+                }
+            ]
         }
     except models.Map.DoesNotExist:
         data = {
@@ -257,7 +239,6 @@ class RCSB(generic.FormView):
                 ),
                 filename=pdb_code
             )
-            map_obj.save_matrix()
 
             return JsonResponse({
                 'success': True,

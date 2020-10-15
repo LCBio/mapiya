@@ -199,9 +199,10 @@ class Representation(models.Model):
 
 
 @receiver(post_save, sender=Map)
-def create_ngl_representation(**kwargs):
+def map_init_extras(**kwargs):
     if kwargs['created']:
         instance = kwargs.get('instance')
+        instance.save_matrix()
         Representation.objects.create(
             map=instance,
             name='Default',

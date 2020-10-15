@@ -35,9 +35,6 @@ let initChart = function (map_pk, viewport_id) {
     let $viewport = $('#' + viewport_id);
     let dim = Math.min($viewport.width(), $viewport.height());
 
-    $.getJSON('/map/' + map_pk + '/tiles/',  {'dim': dim}, function (data) {
-        $viewport.html(data.html);
-    });
 }
 
 let initNGL = function (pdburl, viewport_id) {
