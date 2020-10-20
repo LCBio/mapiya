@@ -4,14 +4,14 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.contrib.sessions.models import Session
 from django.db import models
-from django.dispatch import receiver
-from django.db.models.signals import pre_delete, post_save
-from django.core.files.storage import default_storage as storage
+from django.core.files import File
 from django.urls import reverse
 from mollib.atom import Atoms
 from mollib.utils import DistanceMatrix
 from .utils import rs8, rs10, rs12
 import numpy as np
+import io
+import json
 
 
 class UserManager(BaseUserManager):
@@ -77,27 +77,6 @@ class Identity(models.Model):
         return self.id
 
 
-@receiver(pre_delete, sender=Session)
-def clean_orphan_identities(**kwargs):
-    instance = kwargs.get('instance')
-    if hasattr(instance, 'identity'):
-        instance.identity.delete()
-
-
-@receiver(pre_delete, sender=Identity)
-def clean_orphan_media(**kwargs):
-    instance = kwargs.get('instance')
-    if storage.exists(instance.id):
-        dirs, files = storage.listdir(instance.id)
-        for f in files:
-            storage.delete(f'{instance.id}/{f}')
-        for d in dirs:
-            for f in storage.listdir(f'{instance.id}/{d}')[1]:
-                storage.delete(f'{instance.id}/{d}/{f}')
-            storage.delete(f'{instance.id}/{d}')
-        storage.delete(instance.id)
-
-
 def pdb_path(instance, filename):
     suffix = '' if filename.endswith('.pdb') else '.pdb'
     return f'{instance.media_dir}/{filename}{suffix}'
@@ -115,38 +94,62 @@ class Map(models.Model):
     identity = models.ForeignKey(Identity, on_delete=models.CASCADE)
     filename = models.CharField(max_length=50)
     pdb = models.FileField(upload_to=pdb_path)
+    info = models.TextField(null=True, blank=True)
 
     @property
     def media_dir(self):
         return f'{self.identity.id}/{self.id}'
 
-    @property
-    def matrixfile(self):
-        return f'{self.pdb.path[:-4]}.npy'
-
     @cached_property
     def atoms(self):
-        return Atoms.from_file(self.pdb.path)
+        return Atoms.from_fileobject(self.pdb.open('rt'))
 
-    @cached_property
-    def calphas(self):
-        return self.atoms.select('name CA')
+    def get_matrix(self, model=0):
+        atoms = self.atoms.models_list[model].drop('WATER or HYDRO')
+        residues = []
+        objects = []
+        for chainID, chain in atoms.chains.items():
+            protein, other = chain.partition('PROTEIN')
+            hetero, nucleic = other.partition('HETERO')
+            if len(protein):
+                residues.extend(protein.residues_list)
+                objects.append({
+                    'type': 'protein',
+                    'chain': chainID,
+                    'residues': [f'{r[0].resname}:{r[0].resid}' for r in protein.residues_list]
+                })
+            if len(nucleic):
+                residues.extend(nucleic.residues_list)
+                objects.append({
+                    'type': 'nucleic',
+                    'chain': chainID,
+                    'residues': [f'{r[0].resname}:{r[0].resid}' for r in nucleic.residues_list]
+                })
+            if len(hetero):
+                residues.extend(hetero.residues_list)
+                objects.extend([{
+                    'type': 'ligand',
+                    'chain': chainID,
+                    'label': f'{r[0].resname}:{r[0].resid}'
+                } for r in hetero.residues_list])
 
-    def save_matrix(self):
-        matrix = DistanceMatrix(self.calphas.numpy).distance_map
-        np.save(self.matrixfile, matrix)
+        distances = np.zeros(shape=(len(residues), len(residues)))
+        for i, r1 in enumerate(residues):
+            for j, r2 in enumerate(residues[i + 1:], i + 1):
+                distances[i, j] = distances[j, i] = np.sqrt(DistanceMatrix(r1.numpy, r2.numpy).d2.min())
 
-    @property
-    def matrix(self):
-        return np.load(self.matrixfile)
+        return json.dumps(objects), distances
 
-    @cached_property
-    def labels(self):
-        return [f'{atom.resid}:{atom.chain}' for atom in self.calphas]
-
-    @cached_property
-    def chains(self):
-        return ' '.join([f'{chid}:{len(chain)}' for chid, chain in self.calphas.chains.items()])
+    def save_matrix(self, model=0):
+        with io.BytesIO() as f:
+            info, matrix = self.get_matrix(model)
+            np.save(f, matrix)
+            MapModel.objects.create(
+                map=self,
+                matrix=File(f, name=f'matrix{model}.npy'),
+                info=info,
+                number=model
+            )
 
     def get_absolute_url(self):
         return reverse('map-detail', args=[self.id])
@@ -155,12 +158,19 @@ class Map(models.Model):
         return self.filename
 
 
-@receiver(pre_delete, sender=Map)
-def delete_media(**kwargs):
-    instance = kwargs.get('instance')
-    for f in storage.listdir(instance.media_dir)[1]:
-        storage.delete(f'{instance.media_dir}/{f}')
-    storage.delete(instance.media_dir)
+def matrix_path(instance, filename):
+    return f'{instance.map.media_dir}/{filename}'
+
+
+class MapModel(models.Model):
+
+    map = models.ForeignKey(Map, on_delete=models.CASCADE)
+    number = models.SmallIntegerField()
+    matrix = models.FileField(upload_to=matrix_path, null=True, blank=True)
+    info = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.map.filename} - {self.number}'
 
 
 class NGLColorScheme(models.Model):
@@ -196,14 +206,3 @@ class Representation(models.Model):
 
     def __str__(self):
         return f'{self.map.id} - {self.name}'
-
-
-@receiver(post_save, sender=Map)
-def map_init_extras(**kwargs):
-    if kwargs['created']:
-        instance = kwargs.get('instance')
-        instance.save_matrix()
-        Representation.objects.create(
-            map=instance,
-            name='Default',
-        )

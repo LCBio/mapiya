@@ -116,9 +116,9 @@ class Atom:
     ATOM_PATT = re.compile('''^
         (?P<hetero>(ATOM[ ]{2}|HETATM)) # hetero
         (?P<serial>[0-9 ]{5})           # serial number
-        (?P<name>[A-Z0-9 ]{5})          # name
+        (?P<name>[A-Z0-9' ]{5})         # name
         (?P<altloc>[A-Z ])              # alternative locator
-        (?P<resname>[A-Z]{3})           # amino acid name
+        (?P<resname>[A-Z ]{3})          # amino acid name
         (?P<chain>[ ][A-Z])             # chain id
         (?P<resnum>[0-9 ]{4})           # residue number
         (?P<icode>[A-Z ])               # insertion code
@@ -356,6 +356,14 @@ class Atoms:
         if not isinstance(selection, Selection):
             selection = Selection(selection)
         return Atoms([atom for atom in self if not selection.match(atom)])
+
+    def partition(self, selection):
+        if not isinstance(selection, Selection):
+            selection = Selection(selection)
+        sele, drop = [], []
+        for atom in self:
+            sele.append(atom) if selection.match(atom) else drop.append(atom)
+        return Atoms(sele), Atoms(drop)
 
     def update_ss(self):
         dssp = DsspFile.from_pdb(self.pdb).data

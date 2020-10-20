@@ -11,7 +11,7 @@ from django_tables2 import SingleTableView
 from mapserver import models, forms, tables
 from mollib import atom
 import json
-
+import numpy as np
 
 def get_identity(request):
 
@@ -170,48 +170,22 @@ class NGLOptions(generic.View):
 
 def map_data(request, pk):
     try:
-        map_obj = models.Map.objects.get(pk=pk)
-        matrix = map_obj.matrix
-        labels = map_obj.labels
-        points = [
-            {
-                'x': i,
-                'y': j,
-                'xNgl': labels[i],
-                'yNgl': labels[j],
-                'value': matrix[i][j]
-            } for i in range(len(labels)) for j in range(len(labels))
-        ]
-        data = {
-            'success': True,
-            'chains': map_obj.chains,
-            'labels': labels + [''],
-            'points': points,
-            'objects': [
-                {
-                    'type': 'protein chain',
-                    'length': 28,
-                    'label': 'A',
-                    'labels': [],
-                    'hydrophobicity': [1.0, 23.4, ]
-                },
-                {
-                    'type': 'ligand',
-                    'length': 1,
-                    'label': 'VIT_D'
-                },
-                {
-                    'type': 'nucleic acid',
-                    'length': 123,
-                    'label': '5`'
-                }
-            ]
-        }
-    except models.Map.DoesNotExist:
-        data = {
-            'success': False
-        }
-    return JsonResponse(data=data)
+        model = request.GET.get('model', 0)
+        map_model = models.MapModel.objects.get(
+            map_id=pk,
+            number=model
+        )
+
+        return JsonResponse({
+            'info': json.loads(map_model.info),
+            'matrix': np.load(map_model.matrix.path).tolist()
+        })
+
+    except models.MapModel.DoesNotExist as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
 
 
 class Delete(generic.DeleteView):

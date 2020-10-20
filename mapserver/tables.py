@@ -1,8 +1,9 @@
+from . import models
 import django_tables2 as tables
-import itertools
 from django.utils.html import format_html
 from django.urls import reverse
-from . import models
+import itertools
+import json
 
 
 # Base class for tables with row numbers
@@ -27,15 +28,14 @@ class MapTable(RowNumberTable):
 
     class Meta:
         model = models.Map
-        fields = ('row_number', 'filename', 'chains')
-        attrs = {'class': 'table table-hover'}
+        fields = ('row_number', 'filename')
+        attrs = {'class': 'table'}
 
     filename = tables.Column(
         linkify=True
     )
 
-    chains = tables.Column(
-        verbose_name='Chains:Residues',
+    info = tables.Column(
         orderable=False
     )
 
@@ -48,6 +48,17 @@ class MapTable(RowNumberTable):
             'th': {'class': 'text-center'}
         }
     )
+
+    @staticmethod
+    def render_filename(record):
+        models_count = json.loads(record.info)['models']
+        suffix = f' : {models_count} models' if models_count > 1 else ''
+        return f'{record.filename}{suffix}'
+
+    @staticmethod
+    def render_info(record):
+        info = record.mapmodel_set.first().info
+        return info
 
     @staticmethod
     def render_buttons(value):
@@ -108,12 +119,14 @@ class NGLTable(tables.Table):
         ''')
         super().__init__(**kwargs)
 
-    def render_name(self, record):
+    @staticmethod
+    def render_name(record):
         return format_html(f'''
             <input class="form-control form-control-sm ngl-input" type="text" name="name" value="{record.name}">
         ''')
 
-    def render_color(self, record):
+    @staticmethod
+    def render_color(record):
         options = '\n'.join([
             f'<option {"selected" if record.color == color else ""} value="{color.keyword}">{color.name}</option>'
             for color in models.NGLColorScheme.objects.all()
@@ -132,7 +145,8 @@ class NGLTable(tables.Table):
             </div>
         ''')
 
-    def render_representation(self, record):
+    @staticmethod
+    def render_representation(record):
         options = '\n'.join([
             f'<option {"selected" if record.representation == rep else ""} value="{rep.keyword}">{rep.name}</option>'
             for rep in models.NGLRepresentation.objects.all()
@@ -151,7 +165,8 @@ class NGLTable(tables.Table):
             </div>
         ''')
 
-    def render_selection(self, record):
+    @staticmethod
+    def render_selection(record):
         return format_html(f'''
             <div class="input-group input-group-sm">
                 <input class="form-control form-control-sm ngl-input" type="text" name="selection"
@@ -167,7 +182,8 @@ class NGLTable(tables.Table):
             </div>
         ''')
 
-    def render_actions(self, record):
+    @staticmethod
+    def render_actions(record):
 
         eye = f'''
             <a class="text-primary mr-1 ngl-eye" href="javascript:void(0)">

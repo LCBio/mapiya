@@ -7,6 +7,7 @@ admin.site.register([
     models.User,
     models.Identity,
     models.Map,
+    models.MapModel,
     models.NGLColorScheme,
     models.NGLRepresentation,
     models.Representation,

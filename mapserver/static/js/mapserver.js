@@ -20,6 +20,7 @@ $.fn.exists = function () {
     return this.length !== 0;
 };
 
+
 let fitHeight = function (viewport_id) {
     let offset = 200;
     $('#' + viewport_id).height($(window).innerHeight() - offset);
@@ -33,7 +34,10 @@ let initChart = function (map_pk, viewport_id) {
     });
 
     let $viewport = $('#' + viewport_id);
-    let dim = Math.min($viewport.width(), $viewport.height());
+
+    $.getJSON('/map/' + map_pk + /data/, function (data) {
+        // highcharts logic
+    });
 
 }
 
