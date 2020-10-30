@@ -20,6 +20,26 @@ $.fn.exists = function () {
     return this.length !== 0;
 };
 
+class Map {
+    constructor(data) {
+        this.data = data.info;
+        this.matrix = data.matrix;
+    }
+
+    get_info() {
+        let html = '<ul>'
+        for (const item of this.data) {
+            let count;
+            if (item.type === 'ligand') {
+                count = item.label;
+            } else {
+                count = item.residues.length;
+            }
+            html += '<li>' + item.type + ' ' + item.chain + ' ' + count + '</li>'
+        }
+        return html + '</ul>'
+    }
+}
 
 let fitHeight = function (viewport_id) {
     let offset = 200;
@@ -34,11 +54,12 @@ let initChart = function (map_pk, viewport_id) {
     });
 
     let $viewport = $('#' + viewport_id);
-
-    $.getJSON('/map/' + map_pk + /data/, function (data) {
-        // highcharts logic
+    $.getJSON('/map/' + map_pk + '/data/', function (data) {
+        let map = new Map(data);
+        $viewport.append(map.get_info());
+    }).fail(function () {
+        $viewport.append('<h1>Error</h1>');
     });
-
 }
 
 let initNGL = function (pdburl, viewport_id) {
