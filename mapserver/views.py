@@ -13,6 +13,7 @@ from mollib import atom
 import json
 import numpy as np
 
+
 def get_identity(request):
 
     if request.user.is_authenticated:
@@ -176,9 +177,13 @@ def map_data(request, pk):
             number=model
         )
 
+        matrix = np.load(map_model.matrix.path)
         return JsonResponse({
+            'title': map_model.map.filename,
             'info': json.loads(map_model.info),
-            'matrix': np.load(map_model.matrix.path).tolist()
+            'matrix': np.concatenate([
+                matrix[i, i + 1:] for i in range(matrix.shape[0] - 1)
+            ]).round(3).tolist()
         })
 
     except models.MapModel.DoesNotExist as e:

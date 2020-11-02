@@ -35,10 +35,6 @@ class MapTable(RowNumberTable):
         linkify=True
     )
 
-    info = tables.Column(
-        orderable=False
-    )
-
     buttons = tables.Column(
         verbose_name='',
         orderable=False,
@@ -54,11 +50,6 @@ class MapTable(RowNumberTable):
         models_count = json.loads(record.info)['models']
         suffix = f' : {models_count} models' if models_count > 1 else ''
         return f'{record.filename}{suffix}'
-
-    @staticmethod
-    def render_info(record):
-        info = record.mapmodel_set.first().info
-        return info
 
     @staticmethod
     def render_buttons(value):

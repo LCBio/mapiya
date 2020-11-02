@@ -111,27 +111,15 @@ class Map(models.Model):
         for chainID, chain in atoms.chains.items():
             protein, other = chain.partition('PROTEIN')
             hetero, nucleic = other.partition('HETERO')
-            if len(protein):
-                residues.extend(protein.residues_list)
-                objects.append({
-                    'type': 'protein',
-                    'chain': chainID,
-                    'residues': [f'{r[0].resname}:{r[0].resid}' for r in protein.residues_list]
-                })
-            if len(nucleic):
-                residues.extend(nucleic.residues_list)
-                objects.append({
-                    'type': 'nucleic',
-                    'chain': chainID,
-                    'residues': [f'{r[0].resname}:{r[0].resid}' for r in nucleic.residues_list]
-                })
-            if len(hetero):
-                residues.extend(hetero.residues_list)
-                objects.extend([{
-                    'type': 'ligand',
-                    'chain': chainID,
-                    'label': f'{r[0].resname}:{r[0].resid}'
-                } for r in hetero.residues_list])
+
+            for obj, type_ in zip([protein, nucleic, hetero], ['protein', 'nucleic', 'hetero']):
+                if len(obj):
+                    residues.extend(obj.residues_list)
+                    objects.append({
+                        'type': type_,
+                        'chain': chainID,
+                        'residues': [f'{r[0].resname}:{r[0].resid}' for r in obj.residues_list]
+                    })
 
         distances = np.zeros(shape=(len(residues), len(residues)))
         for i, r1 in enumerate(residues):

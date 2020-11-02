@@ -20,26 +20,129 @@ $.fn.exists = function () {
     return this.length !== 0;
 };
 
+//------------------------------- BEGIN Map class -----------------------------
+
+const DEFAULT_CONTACT_CUTOFF = 4.5;
+
 class Map {
+
     constructor(data) {
         this.data = data.info;
-        this.matrix = data.matrix;
+        this.triup = data.matrix;
+        this.title = data.title;
+        this.lengths = [];
+        this.labels = [];
+
+        this.dim = 0;
+        for (let obj of this.data) {
+            this.dim += obj.residues.length;
+            this.lengths.push(obj.residues.length);
+            this.labels.push(...obj.residues);
+        }
+        this.diagonal = this.makeDiagonal();
+        this.diagSeries = this.makeDiagSeries();
+        this.offDiagSeries = this.makeOffDiagSeries();
+        this.contactSeries = this.makeContactSeries(DEFAULT_CONTACT_CUTOFF);
     }
 
-    get_info() {
-        let html = '<ul>'
-        for (const item of this.data) {
-            let count;
-            if (item.type === 'ligand') {
-                count = item.label;
-            } else {
-                count = item.residues.length;
-            }
-            html += '<li>' + item.type + ' ' + item.chain + ' ' + count + '</li>'
+    matrix(x, y) {
+        if (x > y) {
+            return this.triup[0.5 * y * (2 * this.dim - 3 - y) + x - 1];
+        } else if (x < y) {
+            return this.matrix(y, x);
+        } else {
+            return 0.0;
         }
-        return html + '</ul>'
+    }
+
+    makeDiagonal() {
+        let data = [];
+        for (let i = 0; i < this.dim; ++i)
+            data.push([i, i, 1]);
+        return {
+            data: data,
+            colorAxis: null,
+            color: '#000000',
+            showInLegend: false,
+            boostThreshold: 1
+        }
+    }
+
+    makeDiagSeries() {
+        let series = [];
+        let start = 0;
+        for (let id = 0; id < this.lengths.length; ++id) {
+            let data = [];
+            let stop = start + this.lengths[id];
+            for (let j = start; j < stop; ++j) {
+                for (let i = j + 1; i < stop; ++i) {
+                    data.push([i, j, this.matrix(i, j)]);
+                }
+            }
+            start = stop;
+            series.push({
+                name: 'D_' + id,
+                data: data,
+                colorAxis: 0,
+                boostThreshold: 1
+            });
+        }
+        return series;
+    }
+
+    makeOffDiagSeries() {
+        let series = [];
+        let startY = 0;
+        for (let jd = 0; jd < this.lengths.length - 1; ++jd) {
+            let stopY = startY + this.lengths[jd];
+            let startX = stopY;
+            for (let id = jd + 1; id < this.lengths.length; ++id) {
+                let data = [];
+                let stopX = startX + this.lengths[id];
+                for (let j = startY; j < stopY; ++j)
+                    for (let i = startX; i < stopX; ++i)
+                        data.push([i, j, this.matrix(i, j)]);
+                series.push({
+                    name: 'D_' + id + ':' + jd,
+                    data: data,
+                    colorAxis: 0,
+                    boostThreshold: 1
+                });
+                startX = stopX;
+            }
+            startY = stopY
+        }
+        return series;
+    }
+
+    makeContactSeries(cutoff) {
+        let series = [];
+        let distanceSeries = [...this.diagSeries, ...this.offDiagSeries];
+        for (let serie of distanceSeries) {
+            let data = [];
+            for (let d of serie.data) {
+                if (d[2] < cutoff) {
+                    data.push([d[1], d[0], 1]);
+                }
+            }
+            series.push({
+                name: serie.name,
+                data: data,
+                colorAxis: null,
+                color: '#002aff',
+                showInLegend: true
+            });
+        }
+
+        return series;
+    }
+
+    getSeries() {
+        return [this.diagonal, ...this.diagSeries, ...this.offDiagSeries, ...this.contactSeries];
     }
 }
+
+//------------------------------- END Map class -------------------------------
 
 let fitHeight = function (viewport_id) {
     let offset = 200;
@@ -56,7 +159,84 @@ let initChart = function (map_pk, viewport_id) {
     let $viewport = $('#' + viewport_id);
     $.getJSON('/map/' + map_pk + '/data/', function (data) {
         let map = new Map(data);
-        $viewport.append(map.get_info());
+        let chart = Highcharts.chart(viewport_id, {
+
+            chart: {
+                plotBorderWidth: 1,
+
+                type: 'heatmap',
+                zoomType: 'xy',
+                boost: {
+                    useGPUTranslations: true
+                }
+            },
+
+            title: {
+                text: map.title
+            },
+
+            series: map.getSeries(),
+
+            plotOptions: {
+                series: {
+                    boostThreshold: 0,
+                    events: {
+                        click: function (event) {
+                            series = chart.series;
+                            for (let i = 0; i < series.length; i++) {
+                                series[i].hide();
+                            }
+                            this.show();
+                            // chart.redraw();
+                        }
+                    }
+                }
+            },
+
+            tooltip: {
+                formatter: function () {
+                    return map.labels[this.point.x] + ' ' + map.labels[this.point.y];
+                }
+            },
+
+            xAxis: {
+                // min: 0,
+                // max: map.dim - 1,
+                tickInterval: 1,
+                labels: {
+                    rotation: -90,
+                    formatter: function () {
+                        return map.labels[this.value];
+                    }
+                }
+            },
+
+            yAxis: {
+                // min: 0,
+                // max: map.dim - 1,
+                tickInterval: 1,
+                scrollbar: {
+                    enabled: true
+                },
+                tickWidth: 1,
+                gridLineWidth: 0,
+                title: {text: null},
+                labels: {
+                    formatter: function () {
+                        return map.labels[this.value];
+                    }
+                }
+            },
+
+            colorAxis: {
+                stops: [
+                    [0, '#c4463a'],
+                    [0.5, '#fffbbc'],
+                    [0.9, '#3060cf'],
+                ]
+            }
+        });
+
     }).fail(function () {
         $viewport.append('<h1>Error</h1>');
     });
