@@ -6,3 +6,4 @@ cached_property
 bitarray
 django-tables2
 django-crispy-forms
+django_plotly_dash

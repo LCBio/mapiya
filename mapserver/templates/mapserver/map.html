@@ -5,7 +5,10 @@
 {% block content %}
     <div class="row">
         <div class="col-lg-6 viewport-container">
-            <div id="chartViewport" class="text-center"></div>
+          <div class="plotly-app">
+            {% load plotly_dash %}
+            {% plotly_app name="ContactMap" initial_arguments=plotly %}
+          </div>
         </div>
         <div class="col-lg-6 viewport-container">
             <div id="nglViewport">
@@ -55,8 +58,7 @@
 
     <script>
         initNGL("{{ object.pdb.url }}", "nglViewport");
-        initChart("{{ object.pk }}", "chartViewport");
+<!--        initChart("{{ object.pk }}", "chartViewport"); to be removed --> 
     </script>
-
 {% endblock js %}
 

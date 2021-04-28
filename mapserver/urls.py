@@ -1,7 +1,9 @@
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.conf.urls import include
 from . import views
+from . import plotly_apps
 
 urlpatterns = [
     path('', views.Home.as_view(), name='home'),
@@ -17,4 +19,5 @@ urlpatterns = [
     path('ngl/<int:pk>/delete/', views.NGLDelRep.as_view(), name='ngl-delete'),
     path('ngl/<int:pk>/update/', views.NGLUpdateRep.as_view(), name='ngl-update'),
     path('ngl/<int:pk>/options/', views.NGLOptions.as_view(), name='ngl-options'),
+    path('django_plotly_dash/', include('django_plotly_dash.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -14,6 +14,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_tables2',
+    'django_plotly_dash.apps.DjangoPlotlyDashConfig',
     'crispy_forms',
     'mapserver.apps.MapserverConfig',
 ]
@@ -70,6 +71,8 @@ STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 AUTH_USER_MODEL = 'mapserver.User'
 LOGIN_REDIRECT_URL = '/'
