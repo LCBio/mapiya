@@ -12,13 +12,12 @@ from django_plotly_dash import DjangoDash
 
 # CSS style
 tab_style = {'margin': '0 0.5vw 0.5vh 0.5vw', 'background-color': '#95C8D8', 'padding': '0.5vh 0', 'color': 'gray', 'font-size': '2vh'}
-tab_disabled = {'margin': '0 0.5vw 0.5vh 0.5vw', 'background-color': '#f5f5f0', 'padding': '0.5vh 0', 'color': '#bfbfbf', 'font-size': '2vh'}
+tab_disabled_style = {'margin': '0 0.5vw 0.5vh 0.5vw', 'background-color': '#f5f5f0', 'padding': '0.5vh 0', 'color': '#bfbfbf', 'font-size': '2vh'}
 tab_selected_style = {'margin': '0 0.5vw 0.5vh 0.5vw', 'borderBottom': '3px solid #4682B4', 'background-color': '#95C8D8', 'padding': '0.5vh 0', 'color': 'black', 'font-size': '2vh'}
-lab_style = {'display': 'inline-block', 'padding': '1vh 1.5vw 0 0', 'margin': '0 0 0 1.5vw', 'font-size':'2.5vh'}
-labs = {'margin': '0 0.5vw','color': 'gray', 'text-align': 'left', 'font-size': '2vh'}
-drops = {'font-size': '2vh', 'height': '4vh'}
-drops1 = {'margin': '0 0 0.4vh 0.5vw','width': '20vw', 'display': 'inline-block'}
-drops2 = {'margin': '0 0 0.4vh 0.5vw', 'margin-left': '2.5vw', 'width': '20vw', 'display': 'inline-block'}
+labs = {'margin': '0 0','color': 'gray', 'text-align': 'left', 'font-size': '1.8vh'}
+drops = {'margin': '0 0 0.4vh 0.5vw','width': '20vw', 'display': 'inline-block', 'font-size': '2vh', 'font-family': 'Ubuntu, sans-serif', 'color':'dimgrey'}
+lab_style = {'color': 'white', 'text-align': 'left', 'font-size': '0.85rem', 'font-weight': '500', 'margin-left':'2px', 'font-family': 'Ubuntu, sans-serif'}
+drop_style = {'margin': '1vh 0 0 2.5vw','width': '14vw', 'display': 'inline-block', 'font-size': '2vh', 'color': 'dimgrey', 'font-family': 'Ubuntu, sans-serif'}
 
 # colorscales
 cs_blues = [[0, "#ffffff"], [0.05, "#f6fdff"], [0.10, "#e6f9ff"], [0.20, "#b4e6f4"], [0.3, "#82d2ea"], [0.4, "#1DACD6"], [0.5, "#1680ba"], [0.6, "#1060a5"], [0.7, "#0b4090"], [0.8, "#000066"], [0.9, "#000029"], [1, "rgb(0,0,0)"]]
@@ -31,6 +30,7 @@ acids={'-': 1, 'X': 1, 'TRP': 0, 'PHE': 0.05, 'TYR': 0.1, 'ASN': 0.15, 'GLN': 0.
 
 
 app = DjangoDash('ContactMap')
+app.css.append_css({'external_url': '/static/css/app.css'})
 
 app.layout = html.Div([
     dcc.Input(id="input-path", value='', type='hidden'),	# path to pdb (initial from django)
@@ -44,7 +44,7 @@ app.layout = html.Div([
     dcc.Tabs(id='tabs-list', value='tab-1', parent_className='custom-tabs', className='custom-tabs-container', 
         children=[
         dcc.Tab(label='OBJECTS & INTERACTIONS', value='tab-1', style=tab_style, selected_style=tab_selected_style),
-        dcc.Tab(label='CONTACT MAP', value='tab-2', style=tab_style, selected_style=tab_selected_style, disabled=True, disabled_style=tab_disabled),
+        dcc.Tab(label='CONTACT MAP', value='tab-2', style=tab_style, selected_style=tab_selected_style, disabled=True, disabled_style=tab_disabled_style),
     ], colors={"border": "1px solid rgba(0,0,0,1)", "background": "rgba(0,0,0,0.1)",},),
     html.Div(id='tabs', style={'height':'88vh'}),
 ], style={'height':'97vh', 'width':'96vw', 'margin':'0', 'padding':'0'})
@@ -82,14 +82,15 @@ def load_basic_data(pdb, info):
     return [str(path_matrix), str(residues), str(objects), str(contacts)]
 
 
-@app.expanded_callback([Output('cutoff', 'max'), Output('cutoff','value')], Input('matrix', 'value'))
+@app.expanded_callback(Output('cutoff','max'), Input('matrix', 'value'))
 def update_max_cutoff(path_matrix):
-    maxi = round(np.amax(np.load(path_matrix)) + 1,0)
-    return [maxi, maxi]
+
+    return round(np.amax(np.load(path_matrix)) + 1,0)
 
 
 @app.callback(Output('tabs', 'children'), [Input('tabs-list', 'value'), Input('objects', 'value'), Input('contacts', 'value')])
 def identify_objects_in_contact_and_render_content(tab, obj, con):
+
     if tab == 'tab-1':
         options1=[]
         options2=[]
@@ -109,15 +110,14 @@ def identify_objects_in_contact_and_render_content(tab, obj, con):
         return html.Div([
             html.Div([
               html.Div([
-                html.Label('Select Intermolecular Map', style=labs),
-                dcc.Dropdown(id='object_selected', placeholder="Select Object", clearable=False, style=drops, optionHeight = 30,
-                  options=options1, value='')], style=drops1,),
+                html.Label('Intermolecular Map', style=labs),
+                dcc.Dropdown(id='object_selected', placeholder="Select Object", clearable=False, optionHeight = 30,
+                  options=options1, value='')], style=drops,),
               html.Div([
-                html.Label('Select Intramolecular Map', style=labs),
-                dcc.Dropdown(id='interaction_selected', placeholder="Select Interaction", clearable=False, style=drops, optionHeight = 30,
-                  options=options2, value='')], style=drops2,),
+                html.Label('Intramolecular Map', style=labs),
+                dcc.Dropdown(id='interaction_selected', placeholder="Select Interaction", clearable=False, optionHeight = 30,
+                  options=options2, value='')], style={**drops, 'margin-left': '2.5vw'},),
             ]),
-
             html.Div(id='data', style={'height':'5vh', 'margin-top':'2vh'}),		# temporary
             html.Div([
                 dcc.Loading(id='loading-chord', children=[html.Div(dcc.Graph(id='graph_chord', style={'height': '80vh'}, 
@@ -128,42 +128,51 @@ def identify_objects_in_contact_and_render_content(tab, obj, con):
     elif tab == 'tab-2':
         return html.Div([
             html.Div([
+            html.Div([
               html.Div([
-                html.Label('Select Feature', style=labs),
-                dcc.Dropdown(id='feature_selected', placeholder="Select Feature", clearable=False, style=drops, optionHeight = 30,
+                html.Label('Select Feature', style=lab_style),
+                dcc.Dropdown(id='feature_selected', placeholder="Select Feature", clearable=False, style={'margin-top':'6px'}, optionHeight = 30,
                   options=[
                     {'label': 'distance', 'value': 'D'},
                     {'label': 'hydrophobicity', 'value': 'H'},
                     {'label': 'electrostatic', 'value': 'E'},
                     {'label': 'polarity', 'value': 'P'},
-                    {'label': 'aromatic', 'value': 'A'},
-                  ], 
-                  value='D')], style=drops1,),
+                    {'label': 'aromatic', 'value': 'A'},], 
+                  value='D')], style={**drop_style, 'margin-left':'1vw'} ),
               html.Div([
-                html.Label('Select Colorscale', style=labs),
-                dcc.Dropdown(id='color_selected', placeholder="Select Color", clearable=False, style=drops, optionHeight = 30,
-                  options=[{'label': i, 'value': i} for i in colors], value='ice')], style=drops2,),
+                html.Label('Select ColorScale', style=lab_style),
+                dcc.Dropdown(id='color_selected', placeholder="Select Color", clearable=False, style={'margin-top':'6px'}, optionHeight = 30,
+                  options=[{'label': i, 'value': i} for i in colors], value='ice')], style=drop_style, ),
               html.Div([
-                html.Label('Reverse CS', style=labs),
-                dcc.Checklist(id='reverse', options=[{'label': '', 'value': '_r'},], value='', labelStyle=labs),], 
-                  style={'width': '10vw', 'marginTop':'2vh', 'marginLeft': '2vw', 'marginBottom':'0', 'display': 'inline-block', 'vertical-align':'top'}),
+                html.Label('Reverse', style=lab_style),
+                dcc.Checklist(id='reverse', options=[{'label': '', 'value': '_r'},], value='',),], 
+                  style={'width': '7vw', 'marginTop':'3.5vh', 'marginLeft': '0.8vw', 'display': 'inline-block', 'vertical-align':'top'}, ),
               html.Div([
-                html.Label('Select Cutoff [Å]', style=labs),
-                dcc.Input(id="cutoff", type="number", placeholder="Select Contact Cutoff", min=0, max=200, value=200, step=0.1, debounce=True, style=dict(height='30px', marginTop='0px'))],
-                  style={'width': '14vw', 'marginTop':'0', 'marginLeft': '2vw', 'marginBottom':'0', 'display': 'inline-block', 'vertical-align':'top'}),
+                html.Label('Select Cutoff [Å]', style=lab_style),
+                dcc.Input(id="cutoff", type="number", placeholder=" default: 8Å", min=0, max=200, value='', step=0.1, debounce=True, 
+                  style=dict(height='32px', width='13vw', marginTop='6px', borderRadius= '6px 6px 6px 6px', borderColor='black', color='dimgrey'))],
+                style={**drop_style, 'vertical-align':'top'}, ),
               html.Div([
-                html.Label('Select Y1D Feature', style=labs),
-                dcc.Dropdown(id='1dy', placeholder="Select 1D Feature", clearable=False, style=drops, optionHeight = 30,
+                html.Label('Select 1D-Y', style=lab_style),
+                dcc.Dropdown(id='1dy', placeholder="Select 1D Feature", clearable=False, style={'margin-top':'6px'}, optionHeight = 30,
                   options=[
                     {'label': 'none', 'value': 'none'},
                     {'label': 'composition', 'value': 'composition'},
                     {'label': 'charged', 'value': 'charge'},
-                  ], value='none')], style=drops2,),
-            ]),
-
+                  ], value='none')], style=drop_style, ),
+              html.Div([
+                html.Label('Select 1D-X', style=lab_style),
+                dcc.Dropdown(id='1dx', placeholder="Select 1D Feature", clearable=False, style={'margin-top':'6px'}, optionHeight = 30,
+                  options=[
+                    {'label': 'none', 'value': 'none'},
+                    {'label': 'composition', 'value': 'composition'},
+                    {'label': 'charged', 'value': 'charge'},
+                  ], value='none')], style=drop_style, ),
+            ], className="content"),
+            ], className="hoverable"),
 
             html.Div([
-                dcc.Loading(id='loading-map', children=[html.Div(dcc.Graph(id='graph_map', style={'height': '87vh', 'margin-top': '0'}, 
+                dcc.Loading(id='loading-map', children=[html.Div(dcc.Graph(id='graph_map', style={'height': '94vh', 'margin-top': '0'}, 
             config={'toImageButtonOptions': {'format':'svg', 'width':1400, 'height':800, 'scale':1.5}, 'responsive': True}, ))], type='circle'),
             ], className='graph-parent'),
         ])
@@ -193,8 +202,8 @@ def switch_to_map_tab(obj, interaction):
       raise PreventUpdate
 
 
-@app.expanded_callback(Output('graph_map', 'figure'), [Input('selected', 'value'), Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'), Input('cutoff', 'value'), Input('cutoff', 'max'), Input('matrix', 'value'), Input('residues', 'value'), Input('1dy', 'value')])
-def display_contact_map(selected, feature, color, rv, cutoff, c_max, path_matrix, resids, y_val):
+@app.expanded_callback(Output('graph_map', 'figure'), [Input('selected', 'value'), Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'), Input('cutoff', 'value'), Input('matrix', 'value'), Input('residues', 'value'), Input('1dy', 'value')])
+def display_contact_map(selected, feature, color, rv, cutoff, path_matrix, resids, y_val):
 
     if len(rv) > 0 and rv[0] == '_r':
       color = color+rv[0]
@@ -219,7 +228,7 @@ def display_contact_map(selected, feature, color, rv, cutoff, c_max, path_matrix
     desc_c = np.zeros(distances.shape, 'U3')
 
     if objA == objB:
-      if cutoff == c_max:
+      if cutoff == '':
         cutoff = 8
       maxi = np.amax(distances)
       contacts = np.copy(distances)
@@ -229,9 +238,10 @@ def display_contact_map(selected, feature, color, rv, cutoff, c_max, path_matrix
       m = np.nonzero(contacts)
       contacts[contacts == cutoff-1] = maxi/3
       distances[m] = contacts[m]
-    else:
+    elif cutoff != '':
       distances[distances > cutoff] = 0
-    if cutoff == c_max:
+
+    if cutoff == '':
       cutoff = 8
     desc_c[desc_d < cutoff] = 'YES'
     desc_c[desc_d > cutoff] = 'NO'
@@ -244,15 +254,16 @@ def display_contact_map(selected, feature, color, rv, cutoff, c_max, path_matrix
     if y_val == 'none':
       dataset = [trace1]
     else:
+      residuesY = list(i.split(':')[0] for i in residuesA)
       if y_val == 'composition':
-        data_seq = list(acids[str(i.split(':')[0])] for i in residuesA)
+        data_seq = list(acids[i] for i in residuesY)
         trace2 = go.Bar(x=[-1]*len(residuesA), y=residuesA, orientation='h', base=0, text=residuesA, name='amino acid', hoverinfo="text+name", marker=dict(cmin=0.00, cmax=0.99, color=data_seq, colorscale=cs_seq, 
           colorbar=dict(title='SEQ', len=0.5, x=1, y=0.75, tickvals=[0.02, 0.07, 0.12, 0.17, 0.22, 0.27, 0.32, 0.37, 0.42, 0.47, 0.52, 0.57, 0.62, 0.67, 0.72, 0.77, 0.82, 0.87, 0.92, 0.97],
           ticktext=['W', 'F', 'Y', 'N', 'Q', 'D', 'E', 'S', 'T', 'H', 'K', 'R', 'L', 'I', 'V', 'A', 'G', 'M', 'C', 'P']), showscale=True), showlegend=False, yaxis='y1', xaxis='x2')
       elif y_val == 'charge':
-        data_seq = list(0.75 if (i.split(':')[0] =='GLU' or i.split(':')[0] == 'ASP') else 0.35 if (i.split(':')[0] =='ARG' or i.split(':')[0] == 'LYS' or i.split(':')[0] == 'HIS') else 0.0 for i in residuesA)
+        data_seq = list(0.75 if (i =='GLU' or i == 'ASP') else 0.35 if (i =='ARG' or i == 'LYS' or i == 'HIS') else 0.0 for i in residuesY)
         trace2 = go.Bar(x=[-1]*len(residuesA), y=residuesA, orientation='h', base=0, text=residuesA, name='charged', hoverinfo="text+name", marker=dict(cmin=0.00, cmax=0.99, color=data_seq, colorscale=cs_ternary, 
-          colorbar=dict(title='charge', len=0.3, x=1, y=0.75, tickvals=[0.17,0.5,0.83], ticktext=["no", "positive", "negative"]), showscale=True), showlegend=False, yaxis='y1', xaxis='x2')
+          colorbar=dict(title='CHARGE', len=0.3, x=1, y=0.75, tickvals=[0.17,0.5,0.83], ticktext=["no", "positive", "negative"]), showscale=True), showlegend=False, yaxis='y1', xaxis='x2')
 
       dataset = [trace1, trace2]
 
@@ -263,7 +274,7 @@ def display_contact_map(selected, feature, color, rv, cutoff, c_max, path_matrix
             autosize=True,
             hovermode='closest',
             xaxis1=dict(tickfont = dict(size = 17), title = dict(text = objB[0], font=dict(color="black", size=24)), automargin = True, scaleanchor="y", scaleratio=scr,  domain=[0, 0.87], 
-                   range=[-0.5, int(objB[2])-int(objB[1])+1], tickangle = 45, showline=True),
+                   range=[-0.6, int(objB[2])-int(objB[1])+1], tickangle = 45, showline=True),
             xaxis2=dict(tickfont = dict(size = 18), automargin = True, domain=[0.87, 0.96], tickvals=[0], ticktext=[''], showticklabels=False),
             yaxis1=dict(tickfont = dict(size = 16), title = dict(text = objA[0], font=dict(color="black", size=24)), scaleanchor="x", scaleratio=scr, domain=[0, 0.96], 
                    range=[-0.6, int(objA[2])-int(objA[1])+1], tickangle = 0, showline=True, automargin=True),

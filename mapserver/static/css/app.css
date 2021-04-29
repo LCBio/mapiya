@@ -1,0 +1,28 @@
+.hoverable {
+    width: 24px;
+    height: 22px;
+/*  transition: width 0.2s, height 0.2s;*/
+    background-image: url(../img/menu.jpeg);
+    background-size: 100% 100%;
+    position: absolute;
+    z-index: 10;
+}
+
+.hoverable:hover {
+    width: 96%;
+    height: 12vh;
+    background: #272727;
+    opacity: 0.98;
+    border-radius: 5px 5px 5px 5px;
+    background-image: none;
+}
+
+.hoverable .content {
+    visibility: hidden;
+    display: none;
+}
+
+.hoverable:hover .content {
+    visibility: visible;
+    display: inline-block;
+}
