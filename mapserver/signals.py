@@ -30,9 +30,10 @@ def clean_orphan_media(**kwargs):
 @receiver(signals.pre_delete, sender=models.Map)
 def delete_media(**kwargs):
     instance = kwargs.get('instance')
-    for f in storage.listdir(instance.media_dir)[1]:
-        storage.delete(f'{instance.media_dir}/{f}')
-    storage.delete(instance.media_dir)
+    if storage.exists(instance.media_dir):
+        for f in storage.listdir(instance.media_dir)[1]:
+            storage.delete(f'{instance.media_dir}/{f}')
+        storage.delete(instance.media_dir)
 
 
 @receiver(signals.post_save, sender=models.Map)
