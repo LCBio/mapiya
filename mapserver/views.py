@@ -23,6 +23,7 @@ def get_identity(request):
         request.session.save()
         return models.Identity.objects.get_or_create(session_id=request.session.session_key)[0]
 
+
 class Home(SingleTableView):
 
     table_class = tables.MapTable
@@ -57,9 +58,10 @@ class Detail(generic.DetailView):
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
         data['table'] = tables.NGLTable(mapobj=self.object)
-        path = str(kwargs['object'].pdb)
-        info=str(models.MapModel.objects.get(matrix=path.split('/')[0]+'/'+path.split('/')[1]+'/matrix0.npy').info)
-        data['plotly'] = {'input-path': {'value': path}, 'input-info': {'value': info}}
+        data['plotly'] = {
+            'input-path': {'value': self.object.pdb.name},
+            'input-info': {'value': self.object.mapmodel_set.first().info}
+        }
         return data
 
 
