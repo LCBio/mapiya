@@ -75,7 +75,10 @@ def load_basic_data(pdb, info):
       for obj2 in range(obj1,n):
         j = objects[str(obj2)]
         mat = matrix[i[0]:i[1]+1, j[0]:j[1]+1]
-        mini = np.amin(mat[np.nonzero(mat)])
+        try:
+            mini = np.amin(mat[np.nonzero(mat)])
+        except:
+            mini = 9.0
         if mini < 8.0:
           contacts[obj1][obj2]=1
           contacts[obj2][obj1]=1
