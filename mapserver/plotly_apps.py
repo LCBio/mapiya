@@ -60,7 +60,7 @@ app.layout = html.Div([
     dcc.Input(id="con-inter", value='', type='hidden'),		# intermolecular contacts (options2) --> to be moved to django: model.inter (field similar to info)
     dcc.Input(id="data_1D", value='', type='hidden'),		# dict of features for 1D plots      --> to be moved to django and saved in media dir as 'patterns'
     dcc.Input(id="selected", value='', type='hidden'),		# selected object or interaction - plotly required variable
-
+    dcc.Input(id="data_Con", value='', type='hidden'),		# list = [desc_d, distances, contacts] - submatrix for selected interactions - plotly required variable
 
     dcc.Tabs(id='tabs-list', value='tab-1', parent_className='custom-tabs', className='custom-tabs-container', 
         children=[
@@ -241,26 +241,18 @@ def switch_color(sel):
       return 'Blues'
 
 
-
-@app.expanded_callback(Output('graph_map', 'figure'), [Input('selected', 'value'), Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'), Input('cutoff', 'value'), Input('input-pk', 'value'), Input('1dy', 'value'), Input('1dx', 'value'), Input('data_1D', 'value')])
-def display_contact_map(selected, feature, cs, rv, cutoff, pk, y_val, x_val, data1D):
-
-#    print('Start... ', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))######
-    if len(rv) > 0 and rv[0] == '_r':
-      cs = cs+rv[0]
-    objA = ''
-    objB = ''
-    tokens = selected.split('|')
-    if len(tokens) == 1:
-      objA = tokens[0].split(':')
-      objB = objA
-    else:
-      objA = tokens[0].split(':')
-      objB = tokens[1].split(':')
+@app.expanded_callback(Output('data_Con', 'value'), [Input('selected', 'value'), Input('cutoff', 'value'), Input('input-pk', 'value')])
+def prepare_contact_data(selected, cutoff, pk):
 
     model = MapModel.objects.get(map_id=pk)
     path_matrix=os.getcwd()+model.matrix.url
     res_list = json.loads(model.info)
+
+    selected = selected.split('|')
+    objA = selected[0].split(':')
+    objB = objA
+    if len(selected) > 1:
+      objB = selected[1].split(':')
 
     residuesA = res_list[objA[0]][0]
     residuesB = res_list[objB[0]][0]
@@ -269,8 +261,8 @@ def display_contact_map(selected, feature, cs, rv, cutoff, pk, y_val, x_val, dat
     desc_d = np.copy(distances)
     desc_c = np.zeros(distances.shape, 'U3')
     if cutoff == '':
-      cutoff = 8.1
-    desc_c[desc_d < cutoff] = 'YES'
+      cutoff = 8.0
+    desc_c[desc_d <= cutoff] = 'YES'
     desc_c[desc_d > cutoff] = 'NO'
 
     if objA == objB:
@@ -280,13 +272,33 @@ def display_contact_map(selected, feature, cs, rv, cutoff, pk, y_val, x_val, dat
       contacts[contacts > cutoff] = maxi
       contacts = np.tril(contacts,-1)
       m = np.nonzero(contacts)
-      contacts[contacts == cutoff-1] = maxi/3
+      contacts[contacts == cutoff-1] = round(maxi/3,2)
       distances[m] = contacts[m]
     else:
       distances[distances > cutoff] = 0
 
-    dataset = []
+    dataCon = [desc_d, distances, desc_c, residuesA, residuesB, objA, objB, cutoff]
+    return dataCon
 
+
+@app.expanded_callback(Output('graph_map', 'figure'), [Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'), Input('1dy', 'value'), Input('1dx', 'value'), Input('data_1D', 'value'), Input('data_Con', 'value')])
+def display_contact_map(feature, cs, rv, y_val, x_val, data1D, dataCon):
+
+#    print('Start... ', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))######
+
+    if len(rv) > 0 and rv[0] == '_r':
+      cs = cs+rv[0]
+
+    desc_d = dataCon[0]
+    distances = dataCon[1]
+    desc_c = dataCon[2]
+    residuesA = dataCon[3]
+    residuesB = dataCon[4]
+    objA = dataCon[5]
+    objB = dataCon[6]
+    cutoff = dataCon[7]
+
+    dataset = []
     ax = 0.96
     if x_val != 'none':
       ax = 0.88
