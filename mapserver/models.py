@@ -108,14 +108,17 @@ class Map(models.Model):
         atoms = self.atoms.models_list[model].drop('WATER or HYDRO')
         residues = []
         objects = {}
+        ix_from = 0
         for chainID, chain in atoms.chains.items():
             protein, other = chain.partition('PROTEIN')
             hetero, nucleic = other.partition('HETERO')
 
             for obj, type_ in zip([protein, nucleic, hetero], ['protein', 'nucleic', 'hetero']):
                 if len(obj):
+                    length = len(obj.residues_list)
                     residues.extend(obj.residues_list)
-                    objects[type_+'-'+chainID] = [f'{r[0].resname}:{r[0].resid}' for r in obj.residues_list]
+                    objects[type_+'-'+chainID] = [[f'{r[0].resname}:{r[0].resid}' for r in obj.residues_list],[ix_from, ix_from+length-1]]
+                    ix_from += length
 
         distances = np.zeros(shape=(len(residues), len(residues)))
         for i, r1 in enumerate(residues):

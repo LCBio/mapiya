@@ -63,9 +63,10 @@ app.css.append_css({'external_url': '/static/css/app.css'})
 app.layout = html.Div([
     dcc.Input(id="input-pk", value='', type='hidden'),		# current object pk
     dcc.Input(id="matrix", value='', type='hidden'),		# path to distance matrix NxN
-    dcc.Input(id="residues", value='', type='hidden'),		# residues dict = {'object':['AA:ix', 'AA:ix', ...]}
-    dcc.Input(id="objects", value='', type='hidden'),		# objects dict = {'id':[from, to, type-chain]}
-    dcc.Input(id="contacts", value='', type='hidden'),		# contacts matrix[id1][id2] = 0 or 1 (if 2 objects in contact)
+    dcc.Input(id="residues", value='', type='hidden'),		# residues dict = {'object':[['AA:ix', 'AA:ix', ...],[from:to]]}
+#    dcc.Input(id="objects", value='', type='hidden'),		# objects dict = {'id':[from, to, type-chain]}
+    dcc.Input(id="con-intra", value='', type='hidden'),		# intramolecular contacts (options1)
+    dcc.Input(id="con-inter", value='', type='hidden'),		# intermolecular contacts (options2)
     dcc.Input(id="selected", value='', type='hidden'),		# selected object or interaction
     dcc.Input(id="data_1D", value='', type='hidden'),		# dict of features for 1D plots
 
@@ -79,56 +80,43 @@ app.layout = html.Div([
 ], style={'height':'97vh', 'width':'96vw', 'margin':'0', 'padding':'0'})
 
 
-@app.expanded_callback([Output('matrix', 'value'), Output('residues', 'value'), Output('objects', 'value'), Output('contacts', 'value')], [Input('input-pk', 'value')])
+@app.expanded_callback([Output('matrix', 'value'), Output('residues', 'value'), Output('con-intra', 'value'), Output('con-inter', 'value')], [Input('input-pk', 'value')])
 def load_basic_data(pk):
 
     model = MapModel.objects.get(map_id=pk)
     info = json.loads(model.info)
-
-    objects = {}
-    ix_from = 0
-    for num, key in enumerate(info):
-      length = len(info[key])
-      objects[str(num)] = [ix_from, ix_from+length-1, key]
-      ix_from += length
+    options1=[]
+    options2=[]
 
     matrix = np.load(os.getcwd()+model.matrix.url)
-    n=len(objects)
-    contacts = np.zeros(shape=(n,n), dtype = int)
-    for obj1 in range(0,n):
-      i = objects[str(obj1)]
-      for obj2 in range(obj1,n):
-        j = objects[str(obj2)]
-        mat = matrix[i[0]:i[1]+1, j[0]:j[1]+1]
-        try:
-          mini = np.amin(mat[np.nonzero(mat)])
-          if mini < 8.0:
-            contacts[obj1][obj2]=1
-            contacts[obj2][obj1]=1
-        except ValueError:  #raised if mat[np.nonzero(mat)] is empty.
-          pass
-    return [str(os.getcwd()+model.matrix.url), str(info), str(objects), str(contacts)]
+    n=len(info)
+    for num1, i in enumerate(info):
+      r1=info[i][1]	#range1
+      for num2, j in enumerate(info):
+        if num2 >= num1:
+          r2=info[j][1]	#range2
+          mat = matrix[r1[0]:r1[1], r2[0]:r2[1]]
+          mat = mat[np.nonzero(mat)]
+          try:
+            counts = len(mat[mat >= 8.0])
+            if counts > 0:
+              if num1==num2:
+                val = i+":"+str(r1[0])+":"+str(r1[1])+":"+str(counts)
+                options1.append({'label': i, 'value': val})
+              else:
+                val = i+":"+str(r1[0])+":"+str(r1[1])+"|"+j+":"+str(r2[0])+":"+str(r2[1])+"|"+str(counts)
+                options2.append({'label': i+":"+j, 'value': val})
+          except ValueError:
+            pass
+    return [str(os.getcwd()+model.matrix.url), str(info), str(options1), str(options2)]
 
 
-@app.callback(Output('tabs', 'children'), [Input('tabs-list', 'value'), Input('objects', 'value'), Input('contacts', 'value')])
-def identify_objects_in_contact_and_render_content(tab, obj, con):
+@app.callback(Output('tabs', 'children'), [Input('tabs-list', 'value'), Input('con-intra', 'value'), Input('con-inter', 'value')])
+def identify_objects_in_contact_and_render_content(tab, intra, inter):
 
     if tab == 'tab-1':
-        options1=[]
-        options2=[]
-        objects = json.loads(obj.replace('\'', '\"'))
-        contacts = json.loads(con.replace(' ', ','))
-        for num,i in enumerate(objects):
-          if contacts[num][num] == 1:
-            label = str(objects[i][2])
-            val = label+':'+str(objects[i][0])+":"+str(objects[i][1])
-            options1.append({'label': label, 'value': val})
-          for j in range(num, len(objects)):
-            if num != j and contacts[num][j] == 1:
-              label = str(objects[i][2]+':'+objects[str(j)][2])
-              val = str(objects[i][2]+':'+str(objects[i][0])+":"+str(objects[i][1])+'|'+objects[str(j)][2]+":"+str(objects[str(j)][0])+":"+str(objects[str(j)][1]))
-              options2.append({'label': label, 'value': val})
-
+        options1=json.loads(intra.replace('\'', '\"'))
+        options2=json.loads(inter.replace('\'', '\"'))
         return html.Div([
             html.Div([
               html.Div([
@@ -250,7 +238,7 @@ def calc_1D_data(resids):
     res_list = json.loads(resids.replace('\'', '\"'))
     for i in res_list:
       if i.startswith('protein'):
-        residues = list(i.split(':')[0] for i in res_list[i])
+        residues = list(i.split(':')[0] for i in res_list[i][0])
         data_1D[i+':composition'] = list(acids[i] for i in residues)
         data_1D[i+':hydropathy'] = list(K_D_normal[i] for i in residues)
         s_len = len(residues)
@@ -316,8 +304,8 @@ def display_contact_map(selected, feature, cs, rv, cutoff, path_matrix, resids, 
       objB = tokens[1].split(':')
 
     res_list = json.loads(resids.replace('\'', '\"'))
-    residuesA = res_list[objA[0]]
-    residuesB = res_list[objB[0]]
+    residuesA = res_list[objA[0]][0]
+    residuesB = res_list[objB[0]][0]
 
     distances = np.load(path_matrix)[int(objA[1]):int(objA[2])+1, int(objB[1]):int(objB[2])+1].round(decimals=3)
     desc_d = np.copy(distances)
