@@ -1,7 +1,6 @@
 import os
 import json
 import numpy as np
-import math
 from datetime import datetime
 
 import dash
@@ -13,6 +12,7 @@ from dash.exceptions import PreventUpdate
 from django_plotly_dash import DjangoDash
 
 from .models import Map, MapModel
+from mollib.patterns import calc_patterns, calc_entropy
 
 # CSS style
 tab_style = {'margin': '0 0.5vw 0.5vh 0.5vw', 'background-color': '#95C8D8', 'padding': '0.5vh 0', 'color': 'gray', 'font-size': '2vh'}
@@ -29,15 +29,9 @@ cs_seq = [[0, "#c6ff1a"], [0.05, "#c6ff1a"], [0.05, "#ffff00"], [0.1, "#ffff00"]
 cs_binary = [[0, '#ffffff'], [0.49, '#ffffff'], [0.5, '#1DACD6'], [1, '#1DACD6']]
 cs_ternary = [[0, 'rgb(255,255,255)'], [0.33, 'rgb(255,255,255)'], [0.33, "#1DACD6"], [0.66, "#1DACD6"], [0.66, "#000066"], [0.99, "#000066"], [1, '#cccccc']]
 
-# colorhash
-acids={'-': 1, 'X': 1, 'TRP': 0, 'PHE': 0.05, 'TYR': 0.1, 'ASN': 0.15, 'GLN': 0.2, 'ASP': 0.25, 'GLU': 0.3, 'SER': 0.35, 'THR': 0.4, 'HIS': 0.45, 'LYS': 0.5, 'ARG': 0.55, 'LEU': 0.6, 'ILE': 0.65, 'VAL': 0.7, 'ALA': 0.75, 'GLY': 0.8, 'MET': 0.85, 'CYS': 0.9, 'PRO': 0.95}
-K_D_normal={'ALA':0.70,'ARG':0.00,'ASN':0.11,'ASP':0.11,'CYS':0.78,'GLN':0.11,'GLU':0.11,'GLY':0.46,'HIS':0.14,'ILE':1.00,'LEU':0.92,'LYS':0.07,'MET':0.71,'PHE':0.81,'PRO':0.32,'SER':0.41,'THR':0.42,'TRP':0.40,'TYR':0.36,'VAL':0.97}
-
 
 # const. data
 amino = ['W', 'F', 'Y', 'N', 'Q', 'D', 'E', 'S', 'T', 'H', 'K', 'R', 'L', 'I', 'V', 'A', 'G', 'M', 'C', 'P']
-AA = {'ALA','ARG','ASN','ASP','CYS','GLN','GLU','GLY','HIS','ILE','LEU','LYS','MET','PHE','PRO','SER','THR','TRP','TYR','VAL'}
-K_D = {'ALA':'1.8','ARG':'-4.5','ASN':'-3.5','ASP':'-3.5','CYS':'2.5','GLN':'-3.5','GLU':'-3.5','GLY':'-0.4','HIS':'-3.2','ILE':'4.5','LEU':'3.8','LYS':'-3.9','MET':'1.9','PHE':'2.8','PRO':'-1.6','SER':'-0.8','THR':'-0.7','TRP':'-0.9','TYR':'-1.3','VAL':'4.2'}
 
 params = {'composition': [cs_seq, 'SEQUENCE', 0.45, [0.02, 0.07, 0.12, 0.17, 0.22, 0.27, 0.32, 0.37, 0.42, 0.47, 0.52, 0.57, 0.62, 0.67, 0.72, 0.77, 0.82, 0.87, 0.92, 0.97], amino],
           'hydropathy': ['RdBu', 'HYDROPATHY', 0.22, [0.1, 0.5, 0.9], ['-4.5 (philic)','0.0','4.5 (phobic)']],
@@ -61,10 +55,9 @@ app = DjangoDash('ContactMap')
 app.css.append_css({'external_url': '/static/css/app.css'})
 
 app.layout = html.Div([
-    dcc.Input(id="input-pk", value='', type='hidden'),		# current object pk
-    dcc.Input(id="matrix", value='', type='hidden'),		# path to distance matrix NxN
-    dcc.Input(id="residues", value='', type='hidden'),		# residues dict = {'object':[['AA:ix', 'AA:ix', ...],[from:to]]}
-#    dcc.Input(id="objects", value='', type='hidden'),		# objects dict = {'id':[from, to, type-chain]}
+    dcc.Input(id="input-pk", value='', type='hidden'),		# current object pk - initial input from django
+    dcc.Input(id="matrix", value='', type='hidden'),		# path to distance matrix NxN (full)
+    dcc.Input(id="residues", value='', type='hidden'),		# residues dict = {'object':[['AA:ix', 'AA:ix', ...],[from:to]]}	# info
     dcc.Input(id="con-intra", value='', type='hidden'),		# intramolecular contacts (options1)
     dcc.Input(id="con-inter", value='', type='hidden'),		# intermolecular contacts (options2)
     dcc.Input(id="selected", value='', type='hidden'),		# selected object or interaction
@@ -239,50 +232,11 @@ def calc_1D_data(resids):
     for i in res_list:
       if i.startswith('protein'):
         residues = list(i.split(':')[0] for i in res_list[i][0])
-        data_1D[i+':composition'] = list(acids[i] for i in residues)
-        data_1D[i+':hydropathy'] = list(K_D_normal[i] for i in residues)
-        s_len = len(residues)
-        entropy = [0]*s_len
-        for z in ['hydrophobic', 'amphipatic', 'hydrophilic', 'charged', 'polar', 'nonpolar', 'aromatic', 'π-bond', 'sulfur', 'H-Bond donor', 'H-Bond acceptor', 'SEQ entropy']:
-          data_1D[i+':'+z] = ['0']*s_len
-        for n, j in enumerate(residues):
-          if j in ['ALA', 'GLY', 'LEU', 'ILE', 'VAL', 'PRO', 'PHE']:			# hydrophobic
-            data_1D[i+':hydrophobic'][n] = '0.7'
-          if j in ['TRP', 'TYR', 'MET', 'LYS']:						# amphipatic
-            data_1D[i+':amphipatic'][n] = '0.7'
-          if j in ['ARG', 'ASN', 'ASP', 'GLN', 'GLU', 'HIS', 'SER', 'THR', 'CYS']:	# hydrophilic
-            data_1D[i+':hydrophilic'][n] = '0.7'
-          if j in ['LYS', 'ARG', 'HIS']:						# charged-positive
-            data_1D[i+':charged'][n] = '0.5'
-          if j in ['GLU', 'ASP']:							# charged-negative
-            data_1D[i+':charged'][n] = '0.8'
-          if j in ['CYS', 'MET', 'SER', 'THR', 'TYR', 'GLN', 'ASN']:			# polar
-            data_1D[i+':polar'][n] = '0.7'
-          if j in ['ALA', 'GLY', 'ILE', 'LEU', 'VAL', 'PHE', 'PRO', 'TRP']:		# nonpolar
-            data_1D[i+':nonpolar'][n] = '0.7'
-          if j in ['PHE', 'TYR', 'TRP', 'HIS']:						# aromatic
-            data_1D[i+':aromatic'][n] = '0.7'
-          if j in ['ARG', 'ASN', 'ASP', 'GLN', 'GLU', 'GLY']:				# non-aromatic pi-system
-            data_1D[i+':π-bond'][n] = '0.7'
-          if j == 'CYS':								# sulfur containing: disulfide bridge
-            data_1D[i+':sulfur'][n] = '0.8'
-          elif j == 'MET':								# sulfur containing: S-π interactions
-            data_1D[i+':sulfur'][n] = '0.5'
-          if j in ['ARG', 'ASN', 'GLN', 'HIS', 'LYS', 'SER', 'THR', 'TRP', 'TYR']:	# hydrogen bond donor
-            data_1D[i+':H-Bond donor'][n] = '0.7'
-          if j in ['ASN', 'ASP', 'GLN', 'GLU', 'HIS', 'SER', 'THR', 'TYR']:		# hydrogen bond acceptor
-            data_1D[i+':H-Bond acceptor'][n] = '0.7'
+        patterns = calc_patterns(residues)
+        for z in patterns:
+          data_1D[i+':'+z] = patterns[z]
+        data_1D[i+':SEQ entropy'] = calc_entropy(residues)
 
-          if n <= s_len - 6:
-            frag = residues[n:n+6]
-            S = 0
-            for kk in AA:
-              gg = frag.count(kk)/6
-              if gg > 0:
-                S += gg*math.log2(gg)
-            for z in range(n, n+6):
-              entropy[z] += (S*(-1))/6
-        data_1D[i+':SEQ entropy'] = ["%.2f" % number for number in entropy]
     return str(data_1D)
 
 # 'electrostatics', 'II-structure', 'solvent access'
