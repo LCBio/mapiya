@@ -56,12 +56,11 @@ app.css.append_css({'external_url': '/static/css/app.css'})
 
 app.layout = html.Div([
     dcc.Input(id="input-pk", value='', type='hidden'),		# current object pk - initial input from django
-    dcc.Input(id="matrix", value='', type='hidden'),		# path to distance matrix NxN (full)
-    dcc.Input(id="residues", value='', type='hidden'),		# residues dict = {'object':[['AA:ix', 'AA:ix', ...],[from:to]]}	# info
-    dcc.Input(id="con-intra", value='', type='hidden'),		# intramolecular contacts (options1)
-    dcc.Input(id="con-inter", value='', type='hidden'),		# intermolecular contacts (options2)
-    dcc.Input(id="selected", value='', type='hidden'),		# selected object or interaction
-    dcc.Input(id="data_1D", value='', type='hidden'),		# dict of features for 1D plots
+    dcc.Input(id="con-intra", value='', type='hidden'),		# intramolecular contacts (options1) --> to be moved to django: model.intra (field similar to info)
+    dcc.Input(id="con-inter", value='', type='hidden'),		# intermolecular contacts (options2) --> to be moved to django: model.inter (field similar to info)
+    dcc.Input(id="data_1D", value='', type='hidden'),		# dict of features for 1D plots      --> to be moved to django and saved in media dir as 'patterns'
+    dcc.Input(id="selected", value='', type='hidden'),		# selected object or interaction - plotly required variable
+
 
     dcc.Tabs(id='tabs-list', value='tab-1', parent_className='custom-tabs', className='custom-tabs-container', 
         children=[
@@ -73,11 +72,11 @@ app.layout = html.Div([
 ], style={'height':'97vh', 'width':'96vw', 'margin':'0', 'padding':'0'})
 
 
-@app.expanded_callback([Output('matrix', 'value'), Output('residues', 'value'), Output('con-intra', 'value'), Output('con-inter', 'value')], [Input('input-pk', 'value')])
+@app.expanded_callback([Output('con-intra', 'value'), Output('con-inter', 'value')], [Input('input-pk', 'value')])
 def load_basic_data(pk):
 
     model = MapModel.objects.get(map_id=pk)
-    info = json.loads(model.info)
+    info = json.loads(model.info)		# dict = {'protein-A':[['AA:200','AA:201', ...],[from:to]]}
     options1=[]
     options2=[]
 
@@ -101,7 +100,25 @@ def load_basic_data(pk):
                 options2.append({'label': i+":"+j, 'value': val})
           except ValueError:
             pass
-    return [str(os.getcwd()+model.matrix.url), str(info), str(options1), str(options2)]
+    return [str(options1), str(options2)]
+
+
+@app.expanded_callback(Output('data_1D', 'value'), Input('input-pk', 'value'))
+def calc_1D_data(pk):
+    
+    model = MapModel.objects.get(map_id=pk)
+    info = json.loads(model.info)
+
+    data_1D = {}
+    for i in info:
+      if i.startswith('protein'):
+        residues = list(i.split(':')[0] for i in info[i][0])
+        patterns = calc_patterns(residues)
+        for z in patterns:
+          data_1D[i+':'+z] = patterns[z]
+        data_1D[i+':SEQ entropy'] = calc_entropy(residues)
+# 'electrostatics', 'II-structure', 'solvent access' - the other missing data (they will be provided by external software)
+    return str(data_1D)
 
 
 @app.callback(Output('tabs', 'children'), [Input('tabs-list', 'value'), Input('con-intra', 'value'), Input('con-inter', 'value')])
@@ -224,25 +241,9 @@ def switch_color(sel):
       return 'Blues'
 
 
-@app.expanded_callback(Output('data_1D', 'value'), Input('residues', 'value'))
-def calc_1D_data(resids):
-    
-    data_1D = {}
-    res_list = json.loads(resids.replace('\'', '\"'))
-    for i in res_list:
-      if i.startswith('protein'):
-        residues = list(i.split(':')[0] for i in res_list[i][0])
-        patterns = calc_patterns(residues)
-        for z in patterns:
-          data_1D[i+':'+z] = patterns[z]
-        data_1D[i+':SEQ entropy'] = calc_entropy(residues)
 
-    return str(data_1D)
-
-# 'electrostatics', 'II-structure', 'solvent access'
-
-@app.expanded_callback(Output('graph_map', 'figure'), [Input('selected', 'value'), Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'), Input('cutoff', 'value'), Input('matrix', 'value'), Input('residues', 'value'), Input('1dy', 'value'), Input('1dx', 'value'), Input('data_1D', 'value')])
-def display_contact_map(selected, feature, cs, rv, cutoff, path_matrix, resids, y_val, x_val, data1D):
+@app.expanded_callback(Output('graph_map', 'figure'), [Input('selected', 'value'), Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'), Input('cutoff', 'value'), Input('input-pk', 'value'), Input('1dy', 'value'), Input('1dx', 'value'), Input('data_1D', 'value')])
+def display_contact_map(selected, feature, cs, rv, cutoff, pk, y_val, x_val, data1D):
 
 #    print('Start... ', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))######
     if len(rv) > 0 and rv[0] == '_r':
@@ -257,7 +258,10 @@ def display_contact_map(selected, feature, cs, rv, cutoff, path_matrix, resids, 
       objA = tokens[0].split(':')
       objB = tokens[1].split(':')
 
-    res_list = json.loads(resids.replace('\'', '\"'))
+    model = MapModel.objects.get(map_id=pk)
+    path_matrix=os.getcwd()+model.matrix.url
+    res_list = json.loads(model.info)
+
     residuesA = res_list[objA[0]][0]
     residuesB = res_list[objB[0]][0]
 
