@@ -117,7 +117,7 @@ class Map(models.Model):
                 if len(obj):
                     length = len(obj.residues_list)
                     residues.extend(obj.residues_list)
-                    objects[type_+'-'+chainID] = [[f'{r[0].resname}:{r[0].resid}' for r in obj.residues_list],[ix_from, ix_from+length-1]]
+                    objects[type_+'-'+chainID] = [[f'{r[0].resname}:{r[0].resid}' for r in obj.residues_list],[ix_from, ix_from+length]]
                     ix_from += length
 
         distances = np.zeros(shape=(len(residues), len(residues)))
