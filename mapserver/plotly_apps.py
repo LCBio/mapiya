@@ -100,7 +100,7 @@ def load_basic_data(pk):
                 options2.append({'label': i+":"+j, 'value': val})
           except ValueError:
             pass
-    return [str(options1), str(options2)]
+    return [options1, options2]
 
 
 @app.expanded_callback(Output('data_1D', 'value'), Input('input-pk', 'value'))
@@ -118,25 +118,23 @@ def calc_1D_data(pk):
           data_1D[i+':'+z] = patterns[z]
         data_1D[i+':SEQ entropy'] = calc_entropy(residues)
 # 'electrostatics', 'II-structure', 'solvent access' - the other missing data (they will be provided by external software)
-    return str(data_1D)
+    return data_1D
 
 
 @app.callback(Output('tabs', 'children'), [Input('tabs-list', 'value'), Input('con-intra', 'value'), Input('con-inter', 'value')])
 def identify_objects_in_contact_and_render_content(tab, intra, inter):
 
     if tab == 'tab-1':
-        options1=json.loads(intra.replace('\'', '\"'))
-        options2=json.loads(inter.replace('\'', '\"'))
         return html.Div([
             html.Div([
               html.Div([
                 html.Label('Intermolecular Map', style=labs),
                 dcc.Dropdown(id='object_selected', placeholder="Select Object", clearable=False, optionHeight = 30,
-                  options=options1, value='')], style=drops,),
+                  options=intra, value='')], style=drops,),
               html.Div([
                 html.Label('Intramolecular Map', style=labs),
                 dcc.Dropdown(id='interaction_selected', placeholder="Select Interaction", clearable=False, optionHeight = 30,
-                  options=options2, value='')], style={**drops, 'margin-left': '2.5vw'},),
+                  options=inter, value='')], style={**drops, 'margin-left': '2.5vw'},),
             ]),
             html.Div([
                 dcc.Loading(id='loading-chord', children=[html.Div(dcc.Graph(id='graph_chord', style={'height': '80vh'}, 
@@ -308,7 +306,6 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data1D, dataCon):
     sc_len = 0.975
     if y_val != 'none' or x_val != 'none':
       sc_len = 0.5
-      data1D = json.loads(data1D.replace('\'', '\"'))
 
 ###---Colorbars position settings
       sc_show = True
@@ -376,10 +373,12 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data1D, dataCon):
           colorbar=dict(title=params[x_val][1], len=params[x_val][2], x=1, y=sc_x, yanchor="top", tickvals=params[x_val][3], ticktext=params[x_val][4]),), showlegend=False, yaxis='y2', xaxis='x1')
 
         dataset.append(trace3)
+
     trace1 = go.Heatmap(x=residuesB, y=residuesA, z=distances, name='DISTANCE MAP', colorscale=cs, yaxis='y1', xaxis='x1', 
         text=desc_c, hovertext=desc_d, hovertemplate='residue: %{x} in '+objB[0]+'<br>residue: %{y} in '+objA[0]+'<br>distance: %{hovertext} [Å]<br>contact cutoff: '+str(cutoff)+' [Å]<br>contact: %{text}',
         colorbar=dict(title='DISTANCES', len=sc_len, x=1, y=0, yanchor="bottom"))
     dataset.append(trace1)
+
     return {
         'data': dataset,
         'layout': go.Layout(
