@@ -57,9 +57,7 @@ class Detail(generic.DetailView):
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
         data['table'] = tables.NGLTable(mapobj=self.object)
-        path = str(kwargs['object'].pdb)
-        info=str(models.MapModel.objects.get(matrix=path.split('/')[0]+'/'+path.split('/')[1]+'/matrix0.npy').info)
-        data['plotly'] = {'input-path': {'value': path}, 'input-info': {'value': info}}
+        data['plotly'] = {'input-pk': {'value': self.object.pk}}
         return data
 
 

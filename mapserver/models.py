@@ -107,7 +107,7 @@ class Map(models.Model):
     def get_matrix(self, model=0):
         atoms = self.atoms.models_list[model].drop('WATER or HYDRO')
         residues = []
-        objects = []
+        objects = {}
         for chainID, chain in atoms.chains.items():
             protein, other = chain.partition('PROTEIN')
             hetero, nucleic = other.partition('HETERO')
@@ -115,11 +115,7 @@ class Map(models.Model):
             for obj, type_ in zip([protein, nucleic, hetero], ['protein', 'nucleic', 'hetero']):
                 if len(obj):
                     residues.extend(obj.residues_list)
-                    objects.append({
-                        'type': type_,
-                        'chain': chainID,
-                        'residues': [f'{r[0].resname}:{r[0].resid}' for r in obj.residues_list]
-                    })
+                    objects[type_+'-'+chainID] = [f'{r[0].resname}:{r[0].resid}' for r in obj.residues_list]
 
         distances = np.zeros(shape=(len(residues), len(residues)))
         for i, r1 in enumerate(residues):
