@@ -60,7 +60,8 @@ app.layout = html.Div([
     dcc.Input(id="con-inter", value='', type='hidden'),		# intermolecular contacts (options2) --> to be moved to django: model.inter (field similar to info)
     dcc.Input(id="data_1D", value='', type='hidden'),		# dict of features for 1D plots      --> to be moved to django and saved in media dir as 'patterns'
     dcc.Input(id="selected", value='', type='hidden'),		# selected object or interaction - plotly required variable
-    dcc.Input(id="data_Con", value='', type='hidden'),		# list = [desc_d, distances, contacts] - submatrix for selected interactions - plotly required variable
+    dcc.Input(id="data_Dist", value='', type='hidden'),		# list = [desc_d, residuesA, residuesB, objA, objB] - submatrix for selected interactions - plotly required variable
+    dcc.Input(id="data_Con", value='', type='hidden'),		# list = [distances, desc_c, cutoff] - contacts for selected cutoff - plotly required variable
 
     dcc.Tabs(id='tabs-list', value='tab-1', parent_className='custom-tabs', className='custom-tabs-container', 
         children=[
@@ -239,29 +240,43 @@ def switch_color(sel):
       return 'Blues'
 
 
-@app.expanded_callback(Output('data_Con', 'value'), [Input('selected', 'value'), Input('cutoff', 'value'), Input('input-pk', 'value')])
-def prepare_contact_data(selected, cutoff, pk):
+@app.expanded_callback(Output('data_Dist', 'value'), [Input('selected', 'value'), Input('input-pk', 'value')])
+def prepare_distance_data(selected, pk):
 
-    model = MapModel.objects.get(map_id=pk)
-    path_matrix=os.getcwd()+model.matrix.url
-    res_list = json.loads(model.info)
+    if selected == '':
+      raise PreventUpdate
+    else:
+      model = MapModel.objects.get(map_id=pk)
+      path_matrix=os.getcwd()+model.matrix.url
+      res_list = json.loads(model.info)
 
-    selected = selected.split('|')
-    objA = selected[0].split(':')
-    objB = objA
-    if len(selected) > 1:
-      objB = selected[1].split(':')
+      selected = selected.split('|')
+      objA = selected[0].split(':')
+      objB = objA
+      if len(selected) > 1:
+        objB = selected[1].split(':')
 
-    residuesA = res_list[objA[0]][0]
-    residuesB = res_list[objB[0]][0]
+      residuesA = res_list[objA[0]][0]
+      residuesB = res_list[objB[0]][0]
 
-    distances = np.load(path_matrix)[int(objA[1]):int(objA[2])+1, int(objB[1]):int(objB[2])+1].round(decimals=3)
-    desc_d = np.copy(distances)
+      desc_d = np.load(path_matrix)[int(objA[1]):int(objA[2])+1, int(objB[1]):int(objB[2])+1].round(decimals=3)
+
+      dataDist = [desc_d, residuesA, residuesB, objA, objB]
+      return dataDist
+
+
+@app.expanded_callback(Output('data_Con', 'value'), [Input('cutoff', 'value'), Input('data_Dist', 'value')])
+def prepare_contact_data(cutoff, dataDist):
+
+    distances = np.array(dataDist[0])
+    objA = dataDist[3]
+    objB = dataDist[4]
+
     desc_c = np.zeros(distances.shape, 'U3')
     if cutoff == '':
       cutoff = 8.0
-    desc_c[desc_d <= cutoff] = 'YES'
-    desc_c[desc_d > cutoff] = 'NO'
+    desc_c[distances <= cutoff] = 'YES'
+    desc_c[distances > cutoff] = 'NO'
 
     if objA == objB:
       maxi = np.amax(distances)
@@ -275,33 +290,31 @@ def prepare_contact_data(selected, cutoff, pk):
     else:
       distances[distances > cutoff] = 0
 
-    dataCon = [desc_d, distances, desc_c, residuesA, residuesB, objA, objB, cutoff]
+    dataCon = [distances, desc_c, cutoff]
     return dataCon
 
 
-@app.expanded_callback(Output('graph_map', 'figure'), [Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'), Input('1dy', 'value'), Input('1dx', 'value'), Input('data_1D', 'value'), Input('data_Con', 'value')])
-def display_contact_map(feature, cs, rv, y_val, x_val, data1D, dataCon):
+@app.expanded_callback(Output('graph_map', 'figure'), [Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'), Input('1dy', 'value'), Input('1dx', 'value'), Input('data_1D', 'value'), Input('data_Dist', 'value'), Input('data_Con', 'value')])
+def display_contact_map(feature, cs, rv, y_val, x_val, data1D, dataDist, dataCon):
 
 #    print('Start... ', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))######
 
     if len(rv) > 0 and rv[0] == '_r':
       cs = cs+rv[0]
 
-    desc_d = dataCon[0]
-    distances = dataCon[1]
-    desc_c = dataCon[2]
-    residuesA = dataCon[3]
-    residuesB = dataCon[4]
-    objA = dataCon[5]
-    objB = dataCon[6]
-    cutoff = dataCon[7]
+    distances = dataCon[0]
+    desc_c = dataCon[1]
+    cutoff = dataCon[2]
+    desc_d = dataDist[0]
+    residuesA = dataDist[1]
+    residuesB = dataDist[2]
+    objA = dataDist[3]
+    objB = dataDist[4]
 
     dataset = []
     ax = 0.96
     if x_val != 'none':
       ax = 0.88
-    y_ax1 = dict(tickfont = dict(size = 16), title = dict(text = objA[0], font=dict(color="black", size=24)), domain=[0, ax], 
-        range=[-0.9, int(objA[2])-int(objA[1])+1], tickangle = 0, showline=True, automargin=True)
 
     sc_len = 0.975
     if y_val != 'none' or x_val != 'none':
@@ -385,10 +398,9 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data1D, dataCon):
             paper_bgcolor='rgba(0,0,0,0)',
             autosize=True,
             hovermode='closest',
-            xaxis1=dict(tickfont = dict(size = 17), title = dict(text = objB[0], font=dict(color="black", size=24)), automargin = True, domain=[0, 0.87], 
-                   range=[-1, int(objB[2])-int(objB[1])+1], tickangle = 45, showline=True),
+            xaxis1=dict(tickfont = dict(size = 17), title = dict(text = objB[0], font=dict(color="black", size=24)), automargin = True, domain=[0, 0.87], range=[-1, int(objB[2])-int(objB[1])+1], tickangle = 45, showline=True),
             xaxis2=dict(tickfont = dict(size = 18, color="gray"), automargin = True, domain=[0.87, 0.955],tickmode='array', tickvals=[0.5], ticktext=[y_val+'-'+objA[0].split('-')[1]],  tickangle = 45),
-            yaxis1=y_ax1,
+            yaxis1=dict(tickfont = dict(size = 16), title = dict(text = objA[0], font=dict(color="black", size=24)), domain=[0, ax], range=[-0.9, int(objA[2])-int(objA[1])+1], tickangle = 0, showline=True, automargin=True),
             yaxis2=dict(tickfont = dict(size = 16, color="gray"), tickmode='array', tickvals=[0.5], ticktext=[x_val+'-'+objB[0].split('-')[1]], domain=[0.88, 0.965], showline=False, automargin = True),
             margin=dict(t=0),
          )

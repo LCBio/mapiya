@@ -22,7 +22,7 @@ def calc_patterns(seq):
     for n, j in enumerate(seq):
         for z in ['hydrophobic', 'amphipatic', 'hydrophilic', 'polar', 'nonpolar', 'aromatic', 'π-bond', 'H-Bond donor', 'H-Bond acceptor']:
             if j in PATTERNS[z]:
-                data_1D[z][n] = '0.7'
+                data_1D[z][n] = 0.7
         for z in ['charged', 'sulfur']:
             if j in PATTERNS[z][0]:
                 data_1D[z][n] = 0.5
