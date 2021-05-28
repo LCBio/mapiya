@@ -2,8 +2,9 @@ import os
 import json
 import numpy as np
 from datetime import datetime
-
+import pandas as pd
 import dash
+import dash_bio as dashbio
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
@@ -13,6 +14,7 @@ from django_plotly_dash import DjangoDash
 
 from .models import Map, MapModel
 from mollib.patterns import calc_patterns, calc_entropy
+from mollib.chord import *
 
 # CSS style
 tab_style = {'margin': '0 0.5vw 0.5vh 0.5vw', 'background-color': '#95C8D8', 'padding': '0.5vh 0', 'color': 'gray', 'font-size': '2vh'}
@@ -58,6 +60,7 @@ app.layout = html.Div([
     dcc.Input(id="input-pk", value='', type='hidden'),		# current object pk - initial input from django
     dcc.Input(id="con-intra", value='', type='hidden'),		# intramolecular contacts (options1) --> to be moved to django: model.intra (field similar to info)
     dcc.Input(id="con-inter", value='', type='hidden'),		# intermolecular contacts (options2) --> to be moved to django: model.inter (field similar to info)
+    dcc.Input(id="contacts", value='', type='hidden'),		# list of objects + matrix of contacts counts
     dcc.Input(id="data_1D", value='', type='hidden'),		# dict of features for 1D plots      --> to be moved to django and saved in media dir as 'patterns'
     dcc.Input(id="selected", value='', type='hidden'),		# selected object or interaction - plotly required variable
     dcc.Input(id="data_Dist", value='', type='hidden'),		# list = [desc_d, residuesA, residuesB, objA, objB] - submatrix for selected interactions - plotly required variable
@@ -69,29 +72,33 @@ app.layout = html.Div([
         dcc.Tab(label='CONTACT MAP', value='tab-2', style=tab_style, selected_style=tab_selected_style, disabled=True, disabled_style=tab_disabled_style),
         dcc.Tab(label='DOWNLOAD DATA', value='tab-3', style=tab_style, selected_style=tab_selected_style),
     ], colors={"border": "1px solid rgba(0,0,0,1)", "background": "rgba(0,0,0,0.1)",},),
-    html.Div(id='tabs', style={'height':'88vh'}),
+    html.Div(id='tabs', style={'height':'94vh'}),
 ], style={'height':'97vh', 'width':'96vw', 'margin':'0', 'padding':'0'})
 
 
-@app.expanded_callback([Output('con-intra', 'value'), Output('con-inter', 'value')], [Input('input-pk', 'value')])
+@app.expanded_callback([Output('con-intra', 'value'), Output('con-inter', 'value'), Output('contacts', 'value')], [Input('input-pk', 'value')])
 def load_basic_data(pk):
 
     model = MapModel.objects.get(map_id=pk)
     info = json.loads(model.info)		# dict = {'protein-A':[['AA:200','AA:201', ...],[from:to]]}
     options1=[]
     options2=[]
+    objects=[]
+    contacts=np.zeros(shape=(len(info),len(info)), dtype=int)
 
     matrix = np.load(os.getcwd()+model.matrix.url)
     n=len(info)
     for num1, i in enumerate(info):
+      objects.append(i)
       r1=info[i][1]	#range1
       for num2, j in enumerate(info):
         if num2 >= num1:
           r2=info[j][1]	#range2
           mat = matrix[r1[0]:r1[1], r2[0]:r2[1]]
           mat = mat[np.nonzero(mat)]
+          counts = 0
           try:
-            counts = len(mat[mat >= 8.0])
+            counts = len(mat[mat >= 8.0])	# model.cutoff field needed in django (filled out by user via input option on the initial mapserver view)
             if counts > 0:
               if num1==num2:
                 val = i+":"+str(r1[0])+":"+str(r1[1])+":"+str(counts)
@@ -101,7 +108,9 @@ def load_basic_data(pk):
                 options2.append({'label': i+":"+j, 'value': val})
           except ValueError:
             pass
-    return [options1, options2]
+          contacts[num1][num2] = counts
+          contacts[num2][num1] = counts
+    return [options1, options2, [objects,contacts]]
 
 
 @app.expanded_callback(Output('data_1D', 'value'), Input('input-pk', 'value'))
@@ -129,18 +138,15 @@ def identify_objects_in_contact_and_render_content(tab, intra, inter):
         return html.Div([
             html.Div([
               html.Div([
-                html.Label('Intermolecular Map', style=labs),
+                html.Label('to see Intermolecular Map', style=labs),
                 dcc.Dropdown(id='object_selected', placeholder="Select Object", clearable=False, optionHeight = 30,
                   options=intra, value='')], style=drops,),
               html.Div([
-                html.Label('Intramolecular Map', style=labs),
+                html.Label('to see Intramolecular Map', style=labs),
                 dcc.Dropdown(id='interaction_selected', placeholder="Select Interaction", clearable=False, optionHeight = 30,
                   options=inter, value='')], style={**drops, 'margin-left': '2.5vw'},),
             ]),
-            html.Div([
-                dcc.Loading(id='loading-chord', children=[html.Div(dcc.Graph(id='graph_chord', style={'height': '80vh'}, 
-            config={'toImageButtonOptions': {'format':'svg', 'width':1200, 'height':1200, 'scale':1}, 'responsive': True}, ))], type='circle'),
-            ], className='graph-parent'),
+            html.Div(id='dashbio-circos', style={'width':'90vw', 'marginLeft':'0vw'}),
         ])
 
     elif tab == 'tab-2':
@@ -212,14 +218,38 @@ def load_download_section(text, dat, val):
     return ['You have entered: \n{}'.format(text)]
 
 
-@app.expanded_callback(Output('graph_chord', 'figure'), [Input('objects', 'value'), Input('interaction_selected', 'options')])
-def display_chord(obj_all, obj_con):
+@app.expanded_callback(Output('dashbio-circos', 'children'), Input('contacts', 'value'))
+def display_circos(data):
 
-    objects = json.loads(obj_all.replace('\'', '\"'))
+    labels = data[0]
+    contacts = data[1]
+    matrix=normalize_contact_counts(contacts)
+    radii_sribb=[0.3]*len(labels)
+    ideo_colors=['rgba(186,225,255,0.9)', 'rgba(186,255,201,0.9)', 'rgba(255,255,186,0.9)', 'rgba(255,223,186,0.9)', 'rgba(224,194,143,0.9)', 'rgba(255,154,130,0.9)', 'rgba(255,179,186,0.9)', 'rgba(209, 135, 135,0.9)', 'rgba(184,161,177,0.9)', 'rgba(211,195,181,0.9)', ]  #pink, orange, yellow, green, blue, purple, brown, gray
 
-    fig = go.Figure()
+    k=len(labels)/len(ideo_colors)
+    if k>1:
+      new_colors=[]
+      for i in range(int(k)+1):
+        new_colors.extend(ideo_colors)
+      ideo_colors = new_colors
 
-    return fig
+    shapes = []
+    ideograms = []
+    ribbon_info = []
+
+    layout = go.Layout(title='', 
+      plot_bgcolor='#FFFFFF', height=680, showlegend=False, margin=dict(t=20,b=0,l=0, r=0),
+      xaxis=dict(range=[-1.4,1.4], gridcolor='rgba(0,0,0,0)', zeroline=False, tickmode='array', tickvals=[0], ticktext=[''],),
+      yaxis=dict(range=[-1.15,1.15], gridcolor='rgba(0,0,0,0)', zeroline=False, tickmode='array', tickvals=[0], ticktext=[''],),
+    )
+    shapes, ideograms, ribbon_info = make_shapes_and_info(matrix, contacts, labels, ideo_colors, radii_sribb)
+    layout['shapes'] = shapes
+
+    data = go.Data(ideograms+ribbon_info)
+    fig = go.Figure(data=data, layout=layout)
+
+    return dcc.Graph(figure=fig)
 
 
 @app.expanded_callback([Output('tabs-list', 'value'), Output('selected', 'value')], [Input('object_selected', 'value'), Input('interaction_selected', 'value')])
