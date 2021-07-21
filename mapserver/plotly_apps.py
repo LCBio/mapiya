@@ -13,6 +13,9 @@ from .models import Map, MapModel
 from mollib.patterns import calc_patterns, calc_entropy
 from mollib.chord import *
 
+#    np.set_printoptions(threshold=sys.maxsize)				### testing mode
+#    print('Start... ', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))	### testing mode
+
 # CSS style
 tab_style = {'margin': '0 0.5vw 0.5vh 0.5vw', 'background-color': '#95C8D8', 'padding': '0.5vh 0', 'color': 'gray', 'font-size': '2vh'}
 tab_disabled_style = {'margin': '0 0.5vw 0.5vh 0.5vw', 'background-color': '#f5f5f0', 'padding': '0.5vh 0', 'color': '#bfbfbf', 'font-size': '2vh'}
@@ -95,7 +98,7 @@ def load_basic_data(pk):
           mat = mat[np.nonzero(mat)]
           counts = 0
           try:
-            counts = len(mat[mat >= 8.0])	# model.cutoff field needed in django (filled out by user via input option on the initial mapserver view)
+            counts = len(mat[mat <= 8.0])	# model.cutoff field needed in django (filled out by user via input option on the initial mapserver view)
             if counts > 0:
               if num1==num2:
                 val = i+":"+str(r1[0])+":"+str(r1[1])+":"+str(counts)
@@ -261,10 +264,7 @@ def switch_to_map_tab(obj, interaction):
 
 @app.expanded_callback(Output('color_selected', 'value'), [Input('selected', 'value')])
 def switch_color(sel):
-    if len(sel.split('|')) == 1:
       return 'ice'
-    else:
-      return 'Blues'
 
 
 @app.expanded_callback(Output('data_Dist', 'value'), [Input('selected', 'value'), Input('input-pk', 'value')])
@@ -315,7 +315,7 @@ def prepare_contact_data(cutoff, dataDist):
       contacts[contacts == cutoff-1] = round(maxi/3,2)
       distances[m] = contacts[m]
     else:
-      distances[distances > cutoff] = 0
+      distances[distances > cutoff] = cutoff+0.1
 
     dataCon = [distances, desc_c, cutoff]
     return dataCon
@@ -324,7 +324,7 @@ def prepare_contact_data(cutoff, dataDist):
 @app.expanded_callback(Output('graph_map', 'figure'), [Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'), Input('1dy', 'value'), Input('1dx', 'value'), Input('data_1D', 'value'), Input('data_Dist', 'value'), Input('data_Con', 'value')])
 def display_contact_map(feature, cs, rv, y_val, x_val, data1D, dataDist, dataCon):
 
-#    print('Start... ', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))######
+
 
     if len(rv) > 0 and rv[0] == '_r':
       cs = cs+rv[0]
@@ -413,7 +413,6 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data1D, dataDist, dataCon
           colorbar=dict(title=params[x_val][1], len=params[x_val][2], x=1, y=sc_x, yanchor="top", tickvals=params[x_val][3], ticktext=params[x_val][4]),), showlegend=False, yaxis='y2', xaxis='x1')
 
         dataset.append(trace3)
-
     trace1 = go.Heatmap(x=residuesB, y=residuesA, z=distances, name='DISTANCE MAP', colorscale=cs, yaxis='y1', xaxis='x1', 
         text=desc_c, hovertext=desc_d, hovertemplate='residue: %{x} in '+objB[0]+'<br>residue: %{y} in '+objA[0]+'<br>distance: %{hovertext} [Å]<br>contact cutoff: '+str(cutoff)+' [Å]<br>contact: %{text}',
         colorbar=dict(title='DISTANCES', len=sc_len, x=1, y=0, yanchor="bottom"))
