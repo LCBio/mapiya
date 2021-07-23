@@ -10,14 +10,151 @@
 {% block content %}
     {% include 'mapserver/modal.html' %}
     <div class="container-fluid col-10 offset-1">
-        <form method="post" action="{% url 'home' %}" id="dropzone" class="dropzone shadow">
-            {% csrf_token %}
-        </form>
+        <div class="row">
+            <div class="col-lg-4 viewport-container pdb-drop">
+                <div class="h5 text-center">
+                    <a href="{% url 'rcsb' %}" data-toggle="modal" data-target="#modal">
+                        Download structure from RCSB.org
+                    </a>
+                    <h5 class="text-muted text-center">or</h5>
+                </div>
+                <form method="post" action="{% url 'home' %}" id="dropzone" class="dropzone shadow">
+                    {% csrf_token %}
+                </form>
 
-        <div class="h5 text-center mt-md-5">
-            <a href="{% url 'rcsb' %}" data-toggle="modal" data-target="#modal">
-                or download structure directly from the PDB database
-            </a>
+                <div class="feature col-lg-12 row mt-2">
+                    <div class="opt-label" style="margin-bottom:1vh; width:100%">deselect unnecessary chains<span class="tooltiptext">Select chains for further analysis.</span></div>
+                    <div id="chains"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-8 pr-0 mr-0">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h5 class="text-muted mb-md-4">Fix PDB with PDBfixer:</h5>
+                        <div class="feature col-lg-12 row">
+                          <div class="opt-label">protonation pH<span class="tooltiptext">Select pH to use for adding missing hydrogens.<br>default: <i>7.0</i>
+                            <br>Some residues can exist in multiple protonation states depending on specific pH.</span></div>
+                          <div class="dropdown">
+                            <button class="dropbtn" id="ph-btn"><i>enter value </i> &nbsp;&nbsp; ▼</button>
+                            <div class="dropdown-content">
+                                <input type="number" name="ph" id="ph" value="7.0" min="0.0" max="14.0" step="0.1" onchange="selectionChanged(this,'ph-btn'), getVal(this);" /><label for="ph"><i>range: 0-14</i></label>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="feature col-lg-12 row">
+                            <div class="opt-label">add atoms<span class="tooltiptext">Select which missing atoms to add:<br><i>all</i>, <i>heavy</i>, <i>hydrogen</i>, or <i>none.</i><br>default: <i>all</i></span></div>
+                            <div class="dropdown"><select required class='dropbtn' id='atoms' onchange="getVal(this);">
+                              <option class="opt" value="" disabled selected hidden>select option &nbsp;&nbsp; ▼</option>
+                              <option class="opt" value="all">all atoms *</option>
+                              <option class="opt" value="heavy">heavy atoms </option>
+                              <option class="opt" value="hydrogen">hydrogen atoms</option>
+                              <option class="opt" value="none">none</option>
+                            </select></div>
+                        </div>
+                        <div class="feature col-lg-12 row">
+                          <div class="opt-label">add residues<span class="tooltiptext">Add residues that are missing from the ATOM data section but included in the SEQRES records of the PDB header.</span></div>
+                          <div class="dropdown"><select required class='dropbtn' id='resids' onchange="getVal(this);">
+                              <option class="opt" value="" disabled selected hidden>select option &nbsp;&nbsp; ▼</option>
+                              <option class="opt" value="True">YES</option>
+                              <option class="opt" value="False">NO *</option>
+                          </select></div>
+                        </div>
+                        <div class="feature col-lg-12 row">
+                          <div class="opt-label">keep heterogens<span class="tooltiptext">Select which heterogens to keep:<br><i>all</i>, <i>water</i>, or <i>none.</i><br>default: <i>all</i>
+                            <br>A heterogen is any residue other than a standard amino acid or nucleotide.</span></div>
+                            <div class="dropdown"><select required class='dropbtn' id='hetero' onchange="getVal(this);">
+                              <option class="opt" value="" disabled selected hidden>select option &nbsp;&nbsp; ▼</option>
+                              <option class="opt" value="all">all heterogens *</option>
+                              <option class="opt" value="water">water molecules</option>
+                              <option class="opt" value="none">none</option>
+                            </select></div>
+                        </div>
+                        <div class="feature col-lg-12 row">
+                          <div class="opt-label">replace nonstandard<span class="tooltiptext">Replace non-standard residues with standard equivalents.</span></div>
+                          <div class="dropdown"><select required class='dropbtn' id='nonstand' onchange="getVal(this);">
+                              <option class="opt" value="" disabled selected hidden>select option &nbsp;&nbsp; ▼</option>
+                              <option class="opt" value="True">YES *</option>
+                              <option class="opt" value="False">NO</option>
+                          </select></div>
+                        </div>
+                        <div class="feature col-lg-12 row">
+                          <div class="opt-label">add solvent<span class="tooltiptext">Add solvent box.</span></div>
+                          <div class="dropdown"><select required class='dropbtn' id='water' onchange="getVal(this);">
+                              <option class="opt" value="" disabled selected hidden>select option &nbsp;&nbsp; ▼</option>
+                              <option class="opt" value="True">YES *</option>
+                              <option class="opt" value="False">NO</option>
+                          </select></div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <h5 class="text-muted mb-md-4">Get structural & surface properties:</h5>
+                        <div class="feature col-lg-12 row">
+                          <div class="opt-label">contact cutoff<span class="tooltiptext">Calculate contacts for selected cutoff of distance between atoms.</span></div>
+                          <div class="dropdown">
+                            <button class="dropbtn" id="dist-btn"><i>enter value </i> &nbsp;&nbsp; ▼</button>
+                            <div class="dropdown-content">
+                                <input type="number" id="dist" value="8.0" min="0.0" max="200" step="0.1" onchange="selectionChanged(this,'dist-btn'), getVal(this);" /><label for="dist"><i>default: 8Å</i></label>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="feature col-lg-12 row">
+                          <div class="opt-label">secondary structure<span class="tooltiptext">Report secondary  structure  assignment in 8-letter notation.
+                            <br>STRIDE is a program to recognize secondary structural elements in proteins from their atomic coordinates. It performs the same task as
+                                DSSP by Kabsch and Sander but utilizes both hydrogen bond energy and main chain dihedral angles rather than hydrogen bonds alone.</span></div>
+                          <div class="dropdown"><select required class='dropbtn' id='ss' onchange="getVal(this);">
+                              <option class="opt" value="" disabled selected hidden>select software &nbsp;&nbsp; ▼</option>
+                              <option class="opt" value="stride">STRIDE *</option>
+                              <option class="opt" value="dssp">DSSP</option>
+                              <option class="opt" value="off">off</option>
+                          </select></div>
+                        </div>
+                        <div class="feature col-lg-12 row">
+                          <div class="opt-label">solvent accessibility<span class="tooltiptext">Calculate per residue solvent accessible surface area.
+                            <br></span></div>
+                          <div class="dropdown"><select required class='dropbtn' id='sa' onchange="getVal(this);">
+                              <option class="opt" value="" disabled selected hidden>select software &nbsp;&nbsp; ▼</option>
+                              <option class="opt" value="stride">STRIDE *</option>
+                              <option class="opt" value="dssp">DSSP</option>
+                              <option class="opt" value="off">off</option>
+                          </select></div>
+                        </div>
+                        <div class="feature col-lg-12 row">
+                          <div class="opt-label">hydrogen bonds<span class="tooltiptext">Calculate the network of hdrogen bonds.
+                            <br>STRIDE provides backbone hydrogen bonds only, while EDHB calculates complete HB network (including side chains and C-H...X).</span></div>
+                          <div class="dropdown"><select required class='dropbtn' id='hb' onchange="getVal(this);">
+                              <option class="opt" value="" disabled selected hidden>select software &nbsp;&nbsp; ▼</option>
+                              <option class="opt" value="stride">STRIDE</option>
+                              <option class="opt" value="edhb">EDHB *</option>
+                              <option class="opt" value="off">off</option>
+                          </select></div>
+                        </div>
+                        <div class="feature col-lg-12 row">
+                          <div class="opt-label">electrostatics<span class="tooltiptext">Calculate electrostatic and slovation effects using APBS.
+                            <br>The surface potentials include: ...</span></div>
+                          <div class="dropdown"><select required class='dropbtn' id='elest' onchange="getVal(this);">
+                              <option class="opt" value="" disabled selected hidden>select software &nbsp;&nbsp; ▼</option>
+                              <option class="opt" value="apbs">APBS *</option>
+                              <option class="opt" value="off">off</option>
+                          </select></div>
+                        </div>
+                        <div class="feature col-lg-12 row">
+                          <div class="opt-label">Ramachandran angles<span class="tooltiptext">Calculate protein main chain dihedral angles (Phi & Psi) using STRIDE.</span></div>
+                          <div class="dropdown"><select required class='dropbtn' id='rama' onchange="getVal(this);">
+                              <option class="opt" value="" disabled selected hidden>select software &nbsp;&nbsp; ▼</option>
+                              <option class="opt" value="stride">STRIDE *</option>
+                              <option class="opt" value="off">off</option>
+                          </select></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12 pl-0 pr-0 mt-3 mx-auto">
+            <button type="submit" class="btn btn-success btn-block mty-3" onclick="submit_data();">Submit</button>
         </div>
 
         <div class="table-responsive">
@@ -63,5 +200,41 @@
                 }
             });
         });
+    </script>
+    <script>
+        function selectionChanged(element,obj) {
+            document.getElementById(obj).innerHTML = element.value
+        }
+        var opts = {'ph':'7.0','atoms':'all','resids':'False','hetero':'all','nonstand':'True', 'dist':'8.0','ss':'stride','sa':'stride','hb':'edhb','elest':'apbs','rama':'stride'}
+        function getVal(element) {
+          opts[element.id] = element.value;
+        }
+
+        var chains = ['A', 'B', 'C', 'D'];		/* replace the temporary array with the output from the initial PDB parsing */
+        var html = '';
+        chains.forEach(function (chain) {
+            html += '<label class="chain-box"><input class="chain-input" id="ch_' + chain + '" value="' + chain + '" type="checkbox" checked><span class="chain-text">' + chain + '</span></label>'
+          })
+        document.querySelector('#chains').innerHTML = html;
+
+        function return_chains() {
+          selected = [];
+          chains.forEach(function (chain) {
+            if (document.getElementById("ch_"+chain).checked) {
+              if (selected.includes(chain) == false) {
+                selected.push(chain);
+              }
+            }
+          });
+          return selected;
+        }
+
+        function submit_data() {
+          selected_chains = return_chains()
+          console.log(selected_chains, opts)		/* pass selected_chains and opts (selected values of options) as inputs for external software */
+                                                        /* THEN: run PDBfixer and save PDB file in media */
+                                                        /* THEN: show spinner when running in parallel: 1) STRIDE 2) EDHB 3) APBS and 4) calculate distance matrix */
+                                                        /* THEN: display 'Your files' table with links to map & visualizer view */
+        }
     </script>
 {% endblock %}
