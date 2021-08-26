@@ -2,7 +2,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '0sdys*-h6wn3fk2)!cjnmu(c%^p-%*c4m13)s2xk2ou5u_g0_x'
 DEBUG = True
-ALLOWED_HOSTS = ['lcbio.pl', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['lcbio.pl', 'localhost', '127.0.0.1', '0.0.0.0']
 ROOT_URLCONF = 'lcbio.urls'
 WSGI_APPLICATION = 'lcbio.wsgi.application'
 
