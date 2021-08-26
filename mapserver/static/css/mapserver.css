@@ -153,6 +153,15 @@ select option:disabled {
 .dropdown:hover .dropdown-content {display: block;}
 .dropdown:hover .dropbtn {background-color: #007bff; color: white;}
 
+.field-foldable {
+  display: none;
+  min-width: 100%;
+  padding: 4px 0 6px 0;
+}
+.opt-env {color: gray; margin-right: 4px; margin-bottom: 9px;}
+textarea:placeholder-shown {
+   font-style: italic;
+}
 
 /* NGL visualizer style */
 .ngl-menu {
