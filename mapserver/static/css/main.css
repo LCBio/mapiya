@@ -1,0 +1,31 @@
+@font-face {
+  font-family: Ubuntu;
+  src: url('../fonts/Ubuntu/Ubuntu-Regular.ttf');
+}
+
+body {
+    font-family: Ubuntu, sans-serif;
+}
+
+.content-container {
+    margin-top: 80px;
+    margin-bottom: 60px;
+}
+
+.viewport-container {
+    /*height: 85vh;*/
+    padding: 1rem;
+}
+
+li.nav-item.active {
+    font-weight: bold;
+}
+
+.asteriskField {
+    display: none;
+}
+
+div.plotly-app div {
+    height: 80vh !important;
+    padding-bottom: 1% !important;
+}

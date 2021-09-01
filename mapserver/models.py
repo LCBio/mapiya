@@ -1,80 +1,14 @@
-from django.contrib.auth.base_user import BaseUserManager
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.utils import timezone
 from django.utils.functional import cached_property
-from django.contrib.sessions.models import Session
+from django.utils.crypto import get_random_string
 from django.db import models
 from django.core.files import File
 from django.urls import reverse
 from mollib.atom import Atoms
 from mollib.utils import DistanceMatrix
-from .utils import rs8, rs10, rs12
+from users.models import Identity
 import numpy as np
 import io
 import json
-
-
-class UserManager(BaseUserManager):
-
-    def create_user(self, email, password, **kwargs):
-
-        if not email:
-            raise ValueError('Email must be set')
-
-        email = self.normalize_email(email)
-        user = self.model(email=email, **kwargs)
-        user.set_password(password)
-        user.save()
-
-        return user
-
-    def create_superuser(self, email, password, **kwargs):
-
-        kwargs.setdefault('is_staff', True)
-        kwargs.setdefault('is_superuser', True)
-        kwargs.setdefault('is_active', True)
-
-        if kwargs.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
-        if kwargs.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
-
-        return self.create_user(email, password, **kwargs)
-
-
-class User(AbstractBaseUser, PermissionsMixin):
-
-    id = models.CharField(max_length=8, primary_key=True, default=rs8)
-    email = models.EmailField('email address', unique=True)
-    is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    date_joined = models.DateTimeField(default=timezone.now)
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
-
-    objects = UserManager()
-
-    def __str__(self):
-        return self.email
-
-
-class Identity(models.Model):
-
-    class Meta:
-        verbose_name_plural = 'Identities'
-
-    id = models.CharField(
-        max_length=10,
-        primary_key=True,
-        default=rs10
-    )
-
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    session = models.OneToOneField(Session, on_delete=models.SET_NULL, null=True, blank=True)
-
-    def __str__(self):
-        return self.id
 
 
 def pdb_path(instance, filename):
@@ -82,15 +16,22 @@ def pdb_path(instance, filename):
     return f'{instance.media_dir}/{filename}{suffix}'
 
 
+def get_map_id():
+    while True:
+        map_id = get_random_string(Map.ID_LENGTH)
+        try:
+            Map.objects.get(id=map_id)
+        except Map.DoesNotExist:
+            return map_id
+
+
 class Map(models.Model):
+
+    ID_LENGTH = 12
 
     # TODO: Add pdb file validation
 
-    id = models.CharField(
-        max_length=12,
-        primary_key=True,
-        default=rs12
-    )
+    id = models.CharField(max_length=ID_LENGTH, primary_key=True, default=get_map_id)
     identity = models.ForeignKey(Identity, on_delete=models.CASCADE)
     filename = models.CharField(max_length=50)
     pdb = models.FileField(upload_to=pdb_path)
@@ -104,8 +45,9 @@ class Map(models.Model):
     def atoms(self):
         return Atoms.from_fileobject(self.pdb.open('rt'))
 
-    def get_matrix(self, model=0):
-        atoms = self.atoms.models_list[model].drop('WATER or HYDRO')
+    def get_matrix(self, model_number):
+        model = self.atoms.models[model_number] if model_number else self.atoms
+        atoms = model.drop('WATER or HYDRO')
         residues = []
         objects = {}
         ix_from = 0
@@ -117,7 +59,10 @@ class Map(models.Model):
                 if len(obj):
                     length = len(obj.residues_list)
                     residues.extend(obj.residues_list)
-                    objects[type_+'-'+chainID] = [[f'{r[0].resname}:{r[0].resid}' for r in obj.residues_list],[ix_from, ix_from+length]]
+                    objects[type_ + '-' + chainID] = [
+                        [f'{r[0].resname}:{r[0].resid}' for r in obj.residues_list],
+                        [ix_from, ix_from+length]
+                    ]
                     ix_from += length
 
         distances = np.zeros(shape=(len(residues), len(residues)))
@@ -126,17 +71,6 @@ class Map(models.Model):
                 distances[i, j] = distances[j, i] = np.sqrt(DistanceMatrix(r1.numpy, r2.numpy).d2.min())
 
         return json.dumps(objects), distances
-
-    def save_matrix(self, model=0):
-        with io.BytesIO() as f:
-            info, matrix = self.get_matrix(model)
-            np.save(f, matrix)
-            MapModel.objects.create(
-                map=self,
-                matrix=File(f, name=f'matrix{model}.npy'),
-                info=info,
-                number=model
-            )
 
     def get_absolute_url(self):
         return reverse('map-detail', args=[self.id])
@@ -151,45 +85,28 @@ def matrix_path(instance, filename):
 
 class MapModel(models.Model):
 
+    class StatusChoices(models.TextChoices):
+
+        QUEUE = 'Q'
+        RUNNING = 'R'
+        ERROR = 'E'
+        FINISHED = 'F'
+
     map = models.ForeignKey(Map, on_delete=models.CASCADE)
-    number = models.SmallIntegerField()
+    model_number = models.SmallIntegerField()
     matrix = models.FileField(upload_to=matrix_path, null=True, blank=True)
     info = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=1, choices=StatusChoices.choices, default=StatusChoices.QUEUE)
+    date_init = models.DateTimeField(auto_now_add=True)
+
+    def save_matrix(self):
+        with io.BytesIO() as f:
+            info, matrix = self.map.get_matrix(self.model_number)
+            np.save(f, matrix)
+            self.matrix = File(f, name=f'matrix{self.model_number}.npy')
+            self.info = info
+            self.save(update_fields=['matrix', 'info'])
 
     def __str__(self):
-        return f'{self.map.filename} - {self.number}'
-
-
-class NGLColorScheme(models.Model):
-
-    name = models.CharField(max_length=20, unique=True)
-    keyword = models.CharField(max_length=20, unique=True)
-    options = models.TextField(null=True, blank=True)
-    help = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.keyword
-
-
-class NGLRepresentation(models.Model):
-
-    name = models.CharField(max_length=20, unique=True)
-    keyword = models.CharField(max_length=20, unique=True)
-    options = models.TextField(null=True, blank=True)
-    help = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.keyword
-
-
-class Representation(models.Model):
-
-    map = models.ForeignKey(Map, on_delete=models.CASCADE)
-    name = models.CharField(max_length=20)
-    color = models.ForeignKey(NGLColorScheme, on_delete=models.SET_DEFAULT, default=1)
-    representation = models.ForeignKey(NGLRepresentation, on_delete=models.SET_DEFAULT, default=1)
-    selection = models.CharField(max_length=200, default='all')
-    options = models.TextField(null=True, blank=True)
-
-    def __str__(self):
-        return f'{self.map.id} - {self.name}'
+        status = dict(self.StatusChoices.choices).get(self.status, 'Unknown')
+        return f'{self.map.filename}:{self.model_number} [{status}]'
