@@ -9,3 +9,4 @@ Dropzone.options.dropzone = {
         $table.html(data.table);
     }
 };
+

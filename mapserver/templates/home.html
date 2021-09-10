@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load django_tables2 %}
+{% load crispy_forms_tags %}
 
 {% block css %}
     {{  block.super }}
@@ -11,42 +12,35 @@
 {% block content %}
     {% include 'modal.html' %}
     <div class="container-fluid col-10 offset-1">
+        <div class="row py-lg-5">
 
-        <div class="dropzone-container py-3">
-            <form method="post" action="{% url 'home' %}" id="dropzone" class="dropzone shadow">
-                {% csrf_token %}
-            </form>
-            <div class="h5 text-center">
-                <h5 class="text-muted text-center my-3">or</h5>
-
-                <div class="btn-group">
-                    <a href="{% url 'rcsb' %}" class="btn btn-primary" data-toggle="modal" data-target="#modal">
-                        Download structure from the RCSB.org
-                    </a>
-                    <a class="btn btn-outline-primary" data-target="#collapse" data-toggle="collapse">
-                        <i class="fas fa-cog"></i>
-                    </a>
+            <div class="dropzone-container col-xl-6 d-flex flex-column justify-content-between">
+                <form method="post" action="{% url 'home' %}" id="dropzone"
+                      class="dropzone shadow flex-grow-1 d-flex flex-column justify-content-center">
+                    {% csrf_token %}
+                </form>
+                <div>
+                    <h5 class="text-muted text-center my-3">or</h5>
+                    <div class="btn-group btn-block">
+                        <a href="{% url 'rcsb' %}" class="btn btn-primary" data-toggle="modal" data-target="#modal">
+                            Download structure from the RCSB.org
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="collapse" id="collapse">
-            <div class="card shadow">
-                <div class="card-header">
-                    Advanced options
-                </div>
-                <div class="card-body">
-                    {% include 'options.html' %}
-                </div>
+            <div class="col-xl-6">
+                {% crispy options_form %}
             </div>
+
         </div>
 
         <div class="table-responsive">
-            <h5 class="pt-5 pb-3 text-muted">Your files:</h5>
+            <h5 class="text-muted">Your files:</h5>
             {% if table.rows %}
                 {% render_table table %}
             {% else %}
-                <div class="alert alert-warning">
+                <div class="alert alert-danger">
                     Drag and drop pdb files or use the link above to download structure from the RCSB.org
                 </div>
             {% endif %}

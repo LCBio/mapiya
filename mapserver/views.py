@@ -13,6 +13,11 @@ class Home(SingleTableView):
     table_class = tables.MapTable
     template_name = 'home.html'
 
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        data['options_form'] = forms.OptionsForm()
+        return data
+
     def get_queryset(self):
         return models.Map.objects.filter(identity=get_identity(self.request))
 
@@ -79,3 +84,8 @@ class RCSB(generic.FormView):
         except atom.InvalidPdbCode as e:
             form.add_error('code', e)
             return self.form_invalid(form)
+
+
+def update_options(request):
+    identity = get_identity(request)
+    return JsonResponse({'success': True})
