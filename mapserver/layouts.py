@@ -13,3 +13,9 @@ class RowField(layout.Field):
         kwargs['wrapper_class'] = f'{kwargs.get("wrapper_class", "")} {self.WRAPPER_CLASSES}'
         kwargs['css_class'] = f'{kwargs.get("css_class", "")} {self.CSS_CLASSES}'
         super().__init__(*args, **kwargs)
+
+
+class ButtonLink(layout.HTML):
+
+    def __init__(self, href, text, css_class):
+        super().__init__(html=f'<a href="{href}" class="{css_class}">{text}</a>')

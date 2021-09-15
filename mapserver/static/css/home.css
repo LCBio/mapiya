@@ -13,6 +13,6 @@ form.dropzone {
     font-weight: bold;
 }
 
-.form-group {
-    margin-bottom: 0.5rem;
+#optionsForm .form-group {
+    margin-bottom: 0.25rem;
 }

@@ -1,3 +1,5 @@
+import json
+from django.shortcuts import redirect
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.views import generic
@@ -15,7 +17,7 @@ class Home(SingleTableView):
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
-        data['options_form'] = forms.OptionsForm()
+        data['options_form'] = forms.OptionsForm(identity=get_identity(self.request))
         return data
 
     def get_queryset(self):
@@ -88,4 +90,15 @@ class RCSB(generic.FormView):
 
 def update_options(request):
     identity = get_identity(request)
-    return JsonResponse({'success': True})
+    data = {key: request.POST[key] for key in request.POST if key != 'csrfmiddlewaretoken'}
+    identity.config = json.dumps(data)
+    identity.save(update_fields=['config'])
+    return JsonResponse({'success': True, 'message': 'Config updated'})
+
+
+def reset_options(request):
+    # TODO: update form only, without homepage reload
+    identity = get_identity(request)
+    identity.config = json.dumps(forms.OptionsForm.DEFAULTS)
+    identity.save(update_fields=['config'])
+    return redirect('home')
