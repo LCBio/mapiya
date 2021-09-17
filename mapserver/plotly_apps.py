@@ -13,6 +13,8 @@ from .models import Map, MapModel
 from mollib.patterns import calc_patterns, calc_entropy
 from mollib.chord import *
 
+from datetime import datetime	#to be removed
+
 #    np.set_printoptions(threshold=sys.maxsize)				### testing mode
 #    print('Start... ', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))	### testing mode
 
@@ -58,10 +60,10 @@ app.css.append_css({'external_url': '/static/css/app.css'})
 
 app.layout = html.Div([
     dcc.Input(id="input-pk", value='', type='hidden'),		# current object pk - initial input from django
-    dcc.Input(id="con-intra", value='', type='hidden'),		# intramolecular contacts (options1) --> to be moved to django: model.intra (field similar to info)
-    dcc.Input(id="con-inter", value='', type='hidden'),		# intermolecular contacts (options2) --> to be moved to django: model.inter (field similar to info)
+    dcc.Input(id="con-intra", value='', type='hidden'),		# intramolecular contacts (options1)
+    dcc.Input(id="con-inter", value='', type='hidden'),		# intermolecular contacts (options2)
     dcc.Input(id="contacts", value='', type='hidden'),		# list of objects + matrix of contacts counts
-    dcc.Input(id="data_1D", value='', type='hidden'),		# dict of features for 1D plots      --> to be moved to django and saved in media dir as 'patterns'
+    dcc.Input(id="data_1D", value='', type='hidden'),		# dict of features for 1D plots
     dcc.Input(id="selected", value='', type='hidden'),		# selected object or interaction - plotly required variable
     dcc.Input(id="data_Dist", value='', type='hidden'),		# list = [desc_d, residuesA, residuesB, objA, objB] - submatrix for selected interactions - plotly required variable
     dcc.Input(id="data_Con", value='', type='hidden'),		# list = [distances, desc_c, cutoff] - contacts for selected cutoff - plotly required variable
@@ -81,8 +83,8 @@ def load_basic_data(pk):
 
     model = MapModel.objects.get(map_id=pk)
     info = json.loads(model.info)		# dict = {'protein-A':[['AA:200','AA:201', ...],[from:to]]}
-    options1=[]
-    options2=[]
+    options1={}
+    options2={}
     objects=[]
     contacts=np.zeros(shape=(len(info),len(info)), dtype=int)
 
@@ -102,10 +104,10 @@ def load_basic_data(pk):
             if counts > 0:
               if num1==num2:
                 val = i+":"+str(r1[0])+":"+str(r1[1])+":"+str(counts)
-                options1.append({'label': i, 'value': val})
+                options1[i] = val
               else:
                 val = i+":"+str(r1[0])+":"+str(r1[1])+"|"+j+":"+str(r2[0])+":"+str(r2[1])+"|"+str(counts)
-                options2.append({'label': i+":"+j, 'value': val})
+                options2[i+":"+j] = val
           except ValueError:
             pass
           contacts[num1][num2] = counts
@@ -122,7 +124,7 @@ def calc_1D_data(pk):
     data_1D = {}
     for i in info:
       if i.startswith('protein'):
-        residues = list(i.split(':')[0] for i in info[i][0])
+        residues = list(j.split(':')[0] for j in info[i][0])
         patterns = calc_patterns(residues)
         for z in patterns:
           data_1D[i+':'+z] = patterns[z]
@@ -138,15 +140,18 @@ def identify_objects_in_contact_and_render_content(tab, intra, inter):
         return html.Div([
             html.Div([
               html.Div([
-                html.Label('to see Intermolecular Map', style=labs),
-                dcc.Dropdown(id='object_selected', placeholder="Select Object", clearable=False, optionHeight = 30,
-                  options=intra, value='')], style=drops,),
-              html.Div([
                 html.Label('to see Intramolecular Map', style=labs),
+                dcc.Dropdown(id='object_selected', placeholder="Select Object", clearable=False, optionHeight = 30,
+                  options=[{'label': i, 'value': intra[i]} for i in intra], value='')], style=drops,),
+              html.Div([
+                html.Label('to see Intermolecular Map', style=labs),
                 dcc.Dropdown(id='interaction_selected', placeholder="Select Interaction", clearable=False, optionHeight = 30,
-                  options=inter, value='')], style={**drops, 'margin-left': '2.5vw'},),
-            ]),
+                  options=[{'label': i, 'value': inter[i]} for i in inter], value='')], style={**drops, 'margin-left': '2.5vw'},),
+            ], style={'width':'45vw', 'display':'inline-block'},),
+            html.Div([html.P('or hover & click on the selected ribbon', style={'color': 'gray','text-align': 'left', })], 
+                       style={'width':'40vw', 'display':'inline-block', 'vertical-align': 'bottom'},),
             html.Div(id='dashbio-circos', style={'width':'90vw', 'marginLeft':'0vw'}),
+            dcc.Input(id='click-data', type='hidden'),
         ])
 
     elif tab == 'tab-2':
@@ -193,6 +198,7 @@ def identify_objects_in_contact_and_render_content(tab, intra, inter):
                 dcc.Loading(id='loading-map', children=[html.Div(dcc.Graph(id='graph_map', style={'height': '94vh', 'margin-top': '0'}, 
             config={'toImageButtonOptions': {'format':'svg', 'width':1400, 'height':800, 'scale':1.5}, 'responsive': True}, ))], type='circle'),
             ], className='graph-parent'),
+            dcc.Input(id='click-map', type='hidden'),			# return info of clicked point on the map; maybe useful for interactivity with molstar
         ])
 
     elif tab == 'tab-3':
@@ -249,15 +255,39 @@ def display_circos(data):
     data = go.Data(ideograms+ribbon_info)
     fig = go.Figure(data=data, layout=layout)
 
-    return dcc.Graph(figure=fig)
+    return dcc.Graph(id='graph-circos', figure=fig)
 
 
-@app.expanded_callback([Output('tabs-list', 'value'), Output('selected', 'value')], [Input('object_selected', 'value'), Input('interaction_selected', 'value')])
-def switch_to_map_tab(obj, interaction):
+@app.expanded_callback(Output('click-data', 'value'), Input('graph-circos', 'clickData'))
+def display_click_data(data):
+    if data != None:
+      data = data["points"][0]
+      if 'text' in data:
+        data = data['text'].split()
+        if len(data) == 5 and data[3] == 'intramolecular':
+          data = data[0]
+        elif len(data) == 7 and data[3] == 'intermolecular':
+          data = data[0]+':'+data[6]
+      return data
+    else:
+      return ''
+
+
+@app.expanded_callback([Output('tabs-list', 'value'), Output('selected', 'value')], [Input('object_selected', 'value'), Input('interaction_selected', 'value'), Input('click-data', 'value'), Input('con-intra', 'value'), Input('con-inter', 'value')])
+def switch_to_map_tab(obj, interaction, click, intra, inter):
     if obj != '':
       return ['tab-2', str(obj)]
     elif interaction != '':
       return ['tab-2', str(interaction)]
+    elif click != '':
+      if len(click.split(':')) == 1:
+        return ['tab-2', intra[click]]
+      else:
+        if click in inter:
+          return ['tab-2', inter[click]]
+        else:
+          click = click.split(':')
+          return ['tab-2', inter[click[1]+':'+click[0]]]
     else:
       raise PreventUpdate
 
@@ -320,11 +350,12 @@ def prepare_contact_data(cutoff, dataDist):
     dataCon = [distances, desc_c, cutoff]
     return dataCon
 
+@app.expanded_callback(Output('click-map', 'value'), Input('graph_map', 'clickData'))
+def display_click_map(data):
+    return json.dumps(data, indent=2)
 
 @app.expanded_callback(Output('graph_map', 'figure'), [Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'), Input('1dy', 'value'), Input('1dx', 'value'), Input('data_1D', 'value'), Input('data_Dist', 'value'), Input('data_Con', 'value')])
 def display_contact_map(feature, cs, rv, y_val, x_val, data1D, dataDist, dataCon):
-
-
 
     if len(rv) > 0 and rv[0] == '_r':
       cs = cs+rv[0]

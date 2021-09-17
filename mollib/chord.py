@@ -240,7 +240,7 @@ def make_shapes_and_info(matrix, contacts, labels, ideo_colors, radii_sribb):
             if j==k:
                 z=0.9*np.exp(1j*(l[0]+l[1])/2)
                 #the text below will be displayed when hovering the mouse over the ribbon
-                text=labels[k]+' has '+ '{:d}'.format(contacts[k][k])+' intermolecular contacts',
+                text=labels[k]+' has '+ '{:d}'.format(contacts[k][k])+' intramolecular contacts',
                 if L > 1:
                     ribbon_info.append(go.Scatter(x=[z.real],
                         y=[z.imag],
@@ -273,8 +273,8 @@ def make_shapes_and_info(matrix, contacts, labels, ideo_colors, radii_sribb):
                 zf=0.9*np.exp(1j*(r[0]+r[1])/2)
                 #texti and textf are the strings that will be displayed when hovering the mouse 
                 #over the two ribbon ends
-                texti=labels[k]+' has '+ '{:d}'.format(contacts[k][j])+' intramolecular contacts with '+labels[j]+ ' ',
-                textf=labels[j]+' has '+ '{:d}'.format(contacts[j][k])+' intramolecular contacts with '+labels[k]+ ' ',
+                texti=labels[k]+' has '+ '{:d}'.format(contacts[k][j])+' intermolecular contacts with '+labels[j]+ ' ',
+                textf=labels[j]+' has '+ '{:d}'.format(contacts[j][k])+' intermolecular contacts with '+labels[k]+ ' ',
                 ribbon_info.append(go.Scatter(x=[zi.real],
                     y=[zi.imag],
                     mode='markers',
