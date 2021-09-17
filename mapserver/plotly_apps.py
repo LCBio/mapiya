@@ -277,7 +277,7 @@ def switch_to_map_tab(obj, interaction, click, intra, inter):
       return ['tab-2', str(obj)]
     elif interaction != '':
       return ['tab-2', str(interaction)]
-    elif click != '':
+    elif click != '' and click != None:
       if len(click.split(':')) == 1:
         return ['tab-2', intra[click]]
       else:
