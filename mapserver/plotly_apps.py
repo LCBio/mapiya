@@ -1,7 +1,5 @@
 import os
 import json
-import numpy as np
-import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
@@ -9,7 +7,7 @@ from dash.dependencies import Input, Output
 from dash.exceptions import PreventUpdate
 from django_plotly_dash import DjangoDash
 
-from .models import Map, MapModel
+from .models import MapModel
 from mollib.patterns import calc_patterns, calc_entropy
 from mollib.chord import *
 

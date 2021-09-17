@@ -1,0 +1,148 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/options.css' %}"/>
+<div class="row">
+    <div class="col-lg-6">
+        <h5 class="text-muted mb-md-4">Fix PDB with PDBfixer:</h5>
+        <div class="feature col-lg-12 row">
+            <div class="opt-label">add atoms<span class="tooltiptext">Select which missing atoms to add:<br><i>all</i>, <i>heavy</i>, <i>hydrogen</i>, or <i>none.</i><br>default: <i>all</i></span>
+            </div>
+            <div class="dropdown"><select required class='dropbtn' id='atoms' onchange="getVal(this);"
+                                          onclick="return_pH_box();">
+                <option class="opt" value="" disabled selected hidden>select option &nbsp;&nbsp; ▼</option>
+                <option class="opt" value="all">all atoms *</option>
+                <option class="opt" value="heavy">heavy (all)</option>
+                <option class="opt" value="standard">standard heavy</option>
+                <option class="opt" value="terminal">tail's heavy</option>
+                <option class="opt" value="hydrogen">hydrogens</option>
+                <option class="opt" value="none">none</option>
+            </select></div>
+            <div class="field-foldable" id="ph-drop" style="display:none;"></div>
+        </div>
+        <div class="feature col-lg-12 row">
+            <div class="opt-label">add residues<span class="tooltiptext">Add residues that are missing from the ATOM data section but included in the SEQRES records of the PDB header.</span>
+            </div>
+            <div class="dropdown"><select required class='dropbtn' id='resids' onchange="getVal(this);"
+                                          onclick="return_res_gap();">
+                <option class="opt" value="" disabled selected hidden>select option &nbsp;&nbsp; ▼</option>
+                <option class="opt" value="all">all residues</option>
+                <option class="opt" value="internal">internal residues</option>
+                <option class="opt" value="terminal">tail's residues</option>
+                <option class="opt" value="none">none *</option>
+            </select></div>
+            <div class="field-foldable" id="res-gap" style="display:none;"></div>
+        </div>
+        <div class="feature col-lg-12 row">
+            <div class="opt-label">keep heterogens<span
+                    class="tooltiptext">Select which heterogens to keep:<br><i>all</i>, <i>water</i>, or <i>none.</i><br>default: <i>all</i>
+            <br>A heterogen is any residue other than a standard amino acid or nucleotide.</span></div>
+            <div class="dropdown"><select required class='dropbtn' id='hetero' onchange="getVal(this);">
+                <option class="opt" value="" disabled selected hidden>select option &nbsp;&nbsp; ▼</option>
+                <option class="opt" value="all">all heterogens *</option>
+                <option class="opt" value="water">water molecules</option>
+                <option class="opt" value="none">none</option>
+            </select></div>
+        </div>
+        <div class="feature col-lg-12 row">
+            <div class="opt-label">replace nonstandard<span class="tooltiptext">Replace non-standard residues with standard equivalents.</span>
+            </div>
+            <div class="dropdown"><select required class='dropbtn' id='nonstand' onchange="getVal(this);">
+                <option class="opt" value="" disabled selected hidden>select option &nbsp;&nbsp; ▼</option>
+                <option class="opt" value="true">YES *</option>
+                <option class="opt" value="false">NO</option>
+            </select></div>
+        </div>
+        <div class="feature col-lg-12 row">
+            <div class="opt-label">apply mutations<span class="tooltiptext">Perform point mutations for selected residues.</span>
+            </div>
+            <div class="dropdown"><select required class='dropbtn' id='mutations' onchange="getVal(this);"
+                                          onclick="return_mutations();">
+                <option class="opt" value="" disabled selected hidden>select option &nbsp;&nbsp; ▼</option>
+                <option class="opt" value="true">YES *</option>
+                <option class="opt" value="false">NO</option>
+            </select></div>
+            <div class="field-foldable" id="mutant" style="display:none;"></div>
+        </div>
+        <div class="feature col-lg-12 row">
+            <div class="opt-label">add environment<span
+                    class="tooltiptext">Add a solvent box surrounding the structure.</span></div>
+            <div class="dropdown"><select required class='dropbtn' id='envir' onchange="getVal(this)"
+                                          onclick="return_envir();">
+                <option class="opt" value="" disabled selected hidden>select option &nbsp;&nbsp; ▼</option>
+                <option class="opt" value="solvent">solvent</option>
+                <option class="opt" value="membrane">membrane</option>
+                <option class="opt" value="none">none *</option>
+            </select></div>
+            <div class="field-foldable" id="envir2" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <h5 class="text-muted mb-md-4">Get structural & surface properties:</h5>
+        <div class="feature col-lg-12 row">
+            <div class="opt-label">contact cutoff<span class="tooltiptext">Calculate contacts for selected cutoff of distance between atoms.</span>
+            </div>
+            <div class="dropdown">
+                <button class="dropbtn" id="dist-btn"><i>enter value </i> &nbsp;&nbsp; ▼</button>
+                <div class="dropdown-content">
+                    <input type="number" id="dist" value="8.0" min="0.0" max="200" step="0.1"
+                           onchange="selectionChanged(this,'dist-btn'), getVal(this);"/><label for="dist"><i>default:
+                    8Å</i></label>
+                </div>
+            </div>
+        </div>
+        <div class="feature col-lg-12 row">
+            <div class="opt-label">secondary structure<span class="tooltiptext">Report secondary  structure  assignment in 8-letter notation.
+            <br>STRIDE is a program to recognize secondary structural elements in proteins from their atomic coordinates. It performs the same task as
+                DSSP by Kabsch and Sander but utilizes both hydrogen bond energy and main chain dihedral angles rather than hydrogen bonds alone.</span>
+            </div>
+            <div class="dropdown"><select required class='dropbtn' id='ss' onchange="getVal(this);">
+                <option class="opt" value="" disabled selected hidden>select software &nbsp;&nbsp; ▼</option>
+                <option class="opt" value="stride">STRIDE *</option>
+                <option class="opt" value="dssp">DSSP</option>
+                <option class="opt" value="off">off</option>
+            </select></div>
+        </div>
+        <div class="feature col-lg-12 row">
+            <div class="opt-label">solvent accessibility<span class="tooltiptext">Calculate per residue solvent accessible surface area.
+            <br></span></div>
+            <div class="dropdown"><select required class='dropbtn' id='sa' onchange="getVal(this);">
+                <option class="opt" value="" disabled selected hidden>select software &nbsp;&nbsp; ▼</option>
+                <option class="opt" value="stride">STRIDE *</option>
+                <option class="opt" value="dssp">DSSP</option>
+                <option class="opt" value="off">off</option>
+            </select></div>
+        </div>
+        <div class="feature col-lg-12 row">
+            <div class="opt-label">hydrogen bonds<span class="tooltiptext">Calculate the network of hdrogen bonds.
+            <br>STRIDE provides backbone hydrogen bonds only, while EDHB calculates complete HB network (including side chains and C-H...X).</span>
+            </div>
+            <div class="dropdown"><select required class='dropbtn' id='hb' onchange="getVal(this);">
+                <option class="opt" value="" disabled selected hidden>select software &nbsp;&nbsp; ▼</option>
+                <option class="opt" value="stride">STRIDE</option>
+                <option class="opt" value="edhb">EDHB *</option>
+                <option class="opt" value="off">off</option>
+            </select></div>
+        </div>
+        <div class="feature col-lg-12 row">
+            <div class="opt-label">electrostatics<span class="tooltiptext">Calculate electrostatic and slovation effects using APBS.
+            <br>The surface potentials include: ...</span></div>
+            <div class="dropdown"><select required class='dropbtn' id='elest' onchange="getVal(this);">
+                <option class="opt" value="" disabled selected hidden>select software &nbsp;&nbsp; ▼</option>
+                <option class="opt" value="apbs">APBS *</option>
+                <option class="opt" value="off">off</option>
+            </select></div>
+        </div>
+        <div class="feature col-lg-12 row">
+            <div class="opt-label">Ramachandran angles<span class="tooltiptext">Calculate protein main chain dihedral angles (Phi & Psi) using STRIDE.</span>
+            </div>
+            <div class="dropdown"><select required class='dropbtn' id='rama' onchange="getVal(this);">
+                <option class="opt" value="" disabled selected hidden>select software &nbsp;&nbsp; ▼</option>
+                <option class="opt" value="stride">STRIDE *</option>
+                <option class="opt" value="off">off</option>
+            </select></div>
+        </div>
+
+    </div>
+</div>
+
+<script src="{% static 'js/external.js' %}"></script>

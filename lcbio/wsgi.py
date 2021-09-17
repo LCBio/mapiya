@@ -1,5 +1,5 @@
 """
-WSGI config for lcbio project.
+WSGI config for mapserver project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

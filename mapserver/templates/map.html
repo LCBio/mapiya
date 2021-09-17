@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load django_tables2 %}
+
+{% block css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/pdbe-molstar-light-1.1.0.css' %}">
+{% endblock css %}
+
+{% block content %}
+    <div class="row viewport-container">
+        <div class="col-xl-6">
+          <div class="plotly-app">
+            {% load plotly_dash %}
+            {% plotly_app name="ContactMap" initial_arguments=plotly %}
+          </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="molStarViewport" id="molStarViewport"></div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block js %}
+    {{ block.super }}
+
+    <!-- Molstar -->
+    <script src="{% static 'js/pdbe-molstar-plugin-1.1.0.js' %}"></script>
+    <script src="{% static 'js/molstar.js' %}"></script>
+    <script>
+        initMolStarViewer('{{ object.pdb.url }}', 'molStarViewport');
+    </script>
+{% endblock js %}

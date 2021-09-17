@@ -1,0 +1,59 @@
+<label for="selectOne">Choose an option:</label>
+
+<select name="options" id="selectOne">
+    <option value="">--Please choose an option--</option>
+    <option value="value1">Val1</option>
+    <option value="value2">Val2</option>
+</select>
+
+{
+    "label": "Choose an option",
+    "id": "selectOne",
+    "type": "string",
+    "options": [
+        {
+            "label": "--Please choose an option--",
+            "value": ""
+        },
+        {
+            "label": "Val1",
+            "value": "value1"
+        },
+        {
+            "label": "Val2",
+            "value": "value2"
+        }
+    ]
+}
+
+################################################################
+
+
+<label for="selectTwo">Choose an option:</label>
+
+<select name="options" id="selectTwo" required>
+    <option value="1" selected>1</option>
+    <option value="2">2</option>
+</select>
+
+{
+    "label": "Choose an option",
+    "id": "selectTwo",
+    "type": "int",
+    "attrs": {
+        "required": true
+    },
+    "options": [
+        {
+            "label": "1",
+            "value": 1,
+            "attrs": {
+                "selected": true
+            }
+        },
+        {
+            "label": "Val2",
+            "value": "value2"
+        }
+    ]
+}

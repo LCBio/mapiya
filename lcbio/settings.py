@@ -1,10 +1,29 @@
 import os
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '0sdys*-h6wn3fk2)!cjnmu(c%^p-%*c4m13)s2xk2ou5u_g0_x'
 DEBUG = True
-ALLOWED_HOSTS = ['lcbio.pl', 'localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = []
 ROOT_URLCONF = 'lcbio.urls'
 WSGI_APPLICATION = 'lcbio.wsgi.application'
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+AUTH_USER_MODEL = 'users.User'
+LOGIN_REDIRECT_URL = '/'
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'CET'
+USE_I18N = True
+USE_L10N = True
+USE_TZ = True
+
+QUEUE_WORKERS_COUNT = 4
+QUEUE_MANAGER_TIMEOUT_SECONDS = 10
+# MOLLIB_PDB_CACHE = '/srv/mapserver/PDBCache'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -14,9 +33,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_tables2',
-    'django_plotly_dash.apps.DjangoPlotlyDashConfig',
     'crispy_forms',
-    'mapserver.apps.MapserverConfig',
+    'django_plotly_dash',
+    'users',
+    'mapserver',
 ]
 
 MIDDLEWARE = [
@@ -58,22 +78,3 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
-
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'CET'
-USE_I18N = True
-USE_L10N = True
-USE_TZ = True
-
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
-
-STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-X_FRAME_OPTIONS = 'SAMEORIGIN'
-
-AUTH_USER_MODEL = 'mapserver.User'
-LOGIN_REDIRECT_URL = '/'
-#PDB_CACHE = '/srv/mapserver/PDBCache'

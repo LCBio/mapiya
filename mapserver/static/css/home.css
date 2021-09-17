@@ -1,0 +1,18 @@
+form.dropzone {
+    background-color: rgba(0, 123, 247, 0.2);
+    border-style: dashed;
+    border-radius: 1px;
+    font-size: x-large
+}
+
+.pagination li {
+    margin-left: 1rem;
+}
+
+.pagination li.active a{
+    font-weight: bold;
+}
+
+#optionsForm .form-group {
+    margin-bottom: 0.25rem;
+}
