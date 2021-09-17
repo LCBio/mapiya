@@ -9,7 +9,7 @@ def normalize_contact_counts(contacts):
     m=np.copy(contacts)
     m[m == 0]=999999999999
     m[m < 5]=5
-    m[m == 999999999999]=0
+    m[m == 999999999999]=1
     m=np.log2(m)
     m[np.isneginf(m)]=0
     return m.astype(int)

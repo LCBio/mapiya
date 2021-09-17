@@ -79,7 +79,14 @@ app.layout = html.Div([
 @app.expanded_callback([Output('con-intra', 'value'), Output('con-inter', 'value'), Output('contacts', 'value')], [Input('input-pk', 'value')])
 def load_basic_data(pk):
 
-    model = MapModel.objects.get(map_id=pk)
+    models = []
+    model_ix = 0
+    for i in list(MapModel.objects.all()):
+      if i.map_id == pk:
+        models.append(i)
+    if len(models) > 1:
+      model_ix = 1
+    model = MapModel.objects.get(map_id=pk, model_number=model_ix)
     info = json.loads(model.info)		# dict = {'protein-A':[['AA:200','AA:201', ...],[from:to]]}
     options1={}
     options2={}
