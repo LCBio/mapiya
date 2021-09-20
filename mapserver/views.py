@@ -65,6 +65,8 @@ class RCSB(generic.FormView):
     form_class = forms.RCSBForm
     success_url = reverse_lazy('home')
 
+    # TODO: disable submit button after click
+
     def form_valid(self, form):
         try:
             pdb_code = form.cleaned_data['code']

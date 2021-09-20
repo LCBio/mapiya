@@ -4,6 +4,10 @@ $modal.on('show.bs.modal', function (event) {
     $(this).find('.modal-content').load(event.relatedTarget.href);
 });
 
+$modal.on('shown.bs.modal', function (event) {
+    $(this).find('input').focus();
+});
+
 $modal.on('submit', 'form#rcsbForm', function (event) {
     event.preventDefault();
     let $form = $(this);

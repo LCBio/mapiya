@@ -43,8 +43,9 @@ class OptionsForm(forms.Form):
         "add_environment": 2,
         "positive_ion": 0,
         "negative_ion": 0,
+        "ionic_strength": 1.0,
         "water_box": 0,
-        "box_dimensions": (5, 5, 5)
+        "box_dimensions": "5, 5, 5"
     }
 
     contact_cutoff = forms.FloatField(
