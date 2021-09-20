@@ -1,6 +1,7 @@
 import json
 from django.shortcuts import redirect
 from django.http import JsonResponse
+from django.utils.html import format_html
 from django.urls import reverse_lazy
 from django.views import generic
 from django.core.files import File
@@ -57,6 +58,16 @@ class Delete(generic.DeleteView):
     model = models.Map
     template_name = 'delete.html'
     success_url = reverse_lazy('home')
+
+
+def map_status(request, pk):
+    # TODO: check authorization
+    identity = get_identity(request)
+    current_map = identity.map_set.get(pk=pk)
+    data = {} if current_map.mapmodel_set.exclude(status='F').exists() else {
+        'html': format_html(f'<a href="{current_map.get_absolute_url()}">{current_map}</a>')
+    }
+    return JsonResponse(data)
 
 
 class RCSB(generic.FormView):

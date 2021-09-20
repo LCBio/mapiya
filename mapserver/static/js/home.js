@@ -48,3 +48,24 @@ let initOptionsForm = function () {
         });
     });
 };
+
+// Files table
+let isMapReady = function ($element) {
+    let map_pk = $element.data('pk');
+    $.ajax({
+        url: `/map/${map_pk}/status/`,
+        success: function (data) {
+            if (data.html) {
+                $element.replaceWith(data.html);
+            } else {
+                setTimeout(isMapReady, 5000, $element);
+            }
+        }
+    });
+};
+
+let initMapTable = function () {
+    $('div.disabled-link').each(function () {
+        isMapReady($(this));
+    });
+};
