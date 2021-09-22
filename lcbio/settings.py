@@ -3,7 +3,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '0sdys*-h6wn3fk2)!cjnmu(c%^p-%*c4m13)s2xk2ou5u_g0_x'
 DEBUG = True
-ALLOWED_HOSTS = ['0.0.0.0']
+ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1']
 ROOT_URLCONF = 'lcbio.urls'
 WSGI_APPLICATION = 'lcbio.wsgi.application'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
@@ -23,7 +23,6 @@ USE_TZ = True
 
 QUEUE_WORKERS_COUNT = 4
 QUEUE_MANAGER_TIMEOUT_SECONDS = 10
-# MOLLIB_PDB_CACHE = '/srv/mapserver/PDBCache'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
