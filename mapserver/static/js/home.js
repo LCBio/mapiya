@@ -7,6 +7,7 @@ Dropzone.options.dropzone = {
             $alert.replaceWith(data.table);
         }
         $table.html(data.table);
+        initMapTable();
     }
 };
 
