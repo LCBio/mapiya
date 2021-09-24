@@ -45,6 +45,12 @@ class Map(models.Model):
     def atoms(self):
         return Atoms.from_fileobject(self.pdb.open('rt'))
 
+    @property
+    def progress(self):
+        total = self.mapmodel_set.count()
+        incomplete = self.mapmodel_set.exclude(status='F').count()
+        return total - incomplete, total
+
     def get_matrix(self, model_number):
         model = self.atoms.models[model_number] if model_number else self.atoms
         atoms = model.drop('WATER or HYDRO')

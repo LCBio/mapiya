@@ -1,16 +1,3 @@
-Dropzone.options.dropzone = {
-    uploadMultiple: true,
-    success: function (file, data) {
-        let $table = $('table');
-        if (! $table.exists()) {
-            let $alert = $('.table-responsive .alert');
-            $alert.replaceWith(data.table);
-        }
-        $table.html(data.table);
-        initMapTable();
-    }
-};
-
 // Options form
 // TODO: this code should be optimized to check every dependency just once
 let shouldShow = function ($input) {
@@ -51,22 +38,61 @@ let initOptionsForm = function () {
 };
 
 // Files table
-let isMapReady = function ($element) {
-    let map_pk = $element.data('pk');
+let updateLabel = function ($label, complete, total) {
+    console.log(complete, total);
+    if (complete < total) {
+        $label.find('span.complete-entry').html(`${complete}`);
+    } else {
+        let verbose = total > 1 ? 'models' : 'model';
+        $label.replaceWith(`<small class="text-success">${total} ${verbose} ready!</small>`);
+    }
+};
+
+let updateLink = function ($row, mapPk) {
+    let $tempLabel = $row.find('.temp-label');
+    if ($tempLabel.length > 0) {
+        let link_txt = $tempLabel.html();
+        let link_html = `<a href="/map/${mapPk}/">${link_txt}</a>`;
+        $tempLabel.replaceWith(link_html);
+    }
+};
+
+let updateRow = function ($label) {
+    let mapPk = $label.data('map-pk');
+    let $row = $label.parents('tr');
     $.ajax({
-        url: `/map/${map_pk}/status/`,
+        url: `/map/${mapPk}/status/`,
         success: function (data) {
-            if (data.html) {
-                $element.replaceWith(data.html);
+            let progress = JSON.parse(data.progress);
+            if (progress[0] > 0) {
+                updateLink($row, mapPk);
+                updateLabel($label, progress[0], progress[1]);
+                if (progress[0] < progress[1]) {
+                    setTimeout(updateRow, 1000, $label);
+                }
             } else {
-                setTimeout(isMapReady, 5000, $element);
+                setTimeout(updateRow, 1000, $label);
             }
         }
     });
 };
 
 let initMapTable = function () {
-    $('div.disabled-link').each(function () {
-        isMapReady($(this));
+    $('.progress-label').each(function () {
+        updateRow($(this));
     });
+};
+
+// Dropzone
+Dropzone.options.dropzone = {
+    uploadMultiple: true,
+    success: function (file, data) {
+        let $table = $('table');
+        if (! $table.exists()) {
+            let $alert = $('.table-responsive .alert');
+            $alert.replaceWith(data.table);
+        }
+        $table.html(data.table);
+        initMapTable();
+    }
 };

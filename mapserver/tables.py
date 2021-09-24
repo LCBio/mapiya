@@ -30,10 +30,15 @@ class MapTable(RowNumberTable):
     class Meta:
         model = models.Map
         fields = ('row_number', 'filename')
-        attrs = {'class': 'table table-sm table-striped table-borderless'}
+        attrs = {
+            'id': 'mapTable',
+            'class': 'table table-sm table-striped table-borderless'
+        }
 
-    filename = tables.Column(
-        accessor='pk'
+    filename = tables.Column()
+
+    progress = tables.Column(
+        orderable=False
     )
 
     buttons = tables.Column(
@@ -47,18 +52,24 @@ class MapTable(RowNumberTable):
     )
 
     @staticmethod
-    def render_filename(value):
-        current_map = models.Map.objects.get(pk=value)
-        if current_map.mapmodel_set.exclude(status='F').exists():
-            html = f'''
-                <div class="disabled-link text-danger" data-pk="{current_map.pk}">
-                    {current_map}
-                    <span class="small">In progress ...</span>
-                    <div class="spinner-grow spinner-grow-sm" role="status"></div>
-                </div>
+    def render_filename(record):
+        complete, total = record.progress
+        html = f'<a href={record.get_absolute_url()}>{record.filename}</a>' if complete else \
+            f'<span class="text-danger temp-label">{record.filename}</span>'
+        return format_html(html)
+
+    @staticmethod
+    def render_progress(record):
+        complete, total = record.progress
+        verbose = 'models' if total > 1 else 'model'
+        html = f'<small class="text-success">{total} {verbose} ready!</small>' \
+            if complete == total else \
+            f'''
+                <small class="text-danger progress-label" data-map-pk="{record.pk}">
+                    Processing models <span class="complete-entry">{complete}</span>/{total}
+                    <span class="spinner-grow spinner-grow-sm text-danger"></span>
+                </small>
             '''
-        else:
-            html = f'<a href="{current_map.get_absolute_url()}">{current_map}</a>'
         return format_html(html)
 
     @staticmethod

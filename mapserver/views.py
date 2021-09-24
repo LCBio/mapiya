@@ -61,13 +61,9 @@ class Delete(generic.DeleteView):
 
 
 def map_status(request, pk):
-    # TODO: check authorization
     identity = get_identity(request)
     current_map = identity.map_set.get(pk=pk)
-    data = {} if current_map.mapmodel_set.exclude(status='F').exists() else {
-        'html': format_html(f'<a href="{current_map.get_absolute_url()}">{current_map}</a>')
-    }
-    return JsonResponse(data)
+    return JsonResponse({'progress': json.dumps(current_map.progress)})
 
 
 class RCSB(generic.FormView):
