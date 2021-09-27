@@ -2,7 +2,7 @@ import json
 
 from django import forms
 from django.urls import reverse
-from crispy_forms import layout, helper, bootstrap
+from crispy_forms import layout, helper
 from users.forms import CrispyFormMixin
 from . import layouts
 
@@ -45,7 +45,8 @@ class OptionsForm(forms.Form):
         "negative_ion": 0,
         "ionic_strength": 1.0,
         "water_box": 0,
-        "box_dimensions": "5, 5, 5"
+        "box_dimensions": "5, 5, 5",
+        "membrane_position": "0, 1"
     }
 
     contact_cutoff = forms.FloatField(
@@ -209,8 +210,8 @@ class OptionsForm(forms.Form):
         label='&#8627; lipid type',
     )
 
-    membrane_position = forms.FloatField(
-        widget=forms.NumberInput(attrs={
+    membrane_position = forms.CharField(
+        widget=forms.TextInput(attrs={
             'data-requirements': json.dumps({'add_environment': [1]})
         }),
         label='&#8627; membrane position',

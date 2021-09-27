@@ -8,7 +8,7 @@
     <h5>Are you sure you want to delete <strong>{{ object }}</strong>?</h5>
     <small class="text-danger font-weight-bold">This cannot be undone.</small>
 </div>
-<form action="{% url 'map-delete' object.pk %}" method="post">
+<form action="{% url 'project-delete' object.pk %}" method="post">
     {% csrf_token %}
     <div class="modal-footer">
         <button class="btn btn-sm btn-danger mr-auto" type="submit">Delete</button>

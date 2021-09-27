@@ -5,7 +5,7 @@ from django.core.files.storage import default_storage as storage
 import json
 
 
-@receiver(signals.pre_delete, sender=models.Map)
+@receiver(signals.pre_delete, sender=models.Project)
 def delete_media(**kwargs):
     instance = kwargs.get('instance')
     if storage.exists(instance.media_dir):
@@ -14,8 +14,8 @@ def delete_media(**kwargs):
         storage.delete(instance.media_dir)
 
 
-@receiver(signals.post_save, sender=models.Map)
-def map_init_extras(**kwargs):
+@receiver(signals.post_save, sender=models.Project)
+def project_init_extras(**kwargs):
     if kwargs['created']:
         instance = kwargs.get('instance')
         instance.info = json.dumps({
@@ -24,7 +24,7 @@ def map_init_extras(**kwargs):
         })
         instance.save(update_fields=['info'])
         for model_number in instance.atoms.models:
-            models.MapModel.objects.create(
-                map=instance,
+            models.Job.objects.create(
+                project=instance,
                 model_number=model_number if model_number else 0
             )

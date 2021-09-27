@@ -1,7 +1,6 @@
 import json
 from django.shortcuts import redirect
 from django.http import JsonResponse
-from django.utils.html import format_html
 from django.urls import reverse_lazy
 from django.views import generic
 from django.core.files import File
@@ -13,7 +12,7 @@ from mollib import atom
 
 class Home(SingleTableView):
 
-    table_class = tables.MapTable
+    table_class = tables.ProjectTable
     template_name = 'home.html'
 
     def get_context_data(self, **kwargs):
@@ -22,12 +21,12 @@ class Home(SingleTableView):
         return data
 
     def get_queryset(self):
-        return models.Map.objects.filter(identity=get_identity(self.request))
+        return models.Project.objects.filter(identity=get_identity(self.request))
 
     def post(self, request, *args, **kwargs):
         identity = get_identity(self.request)
         for file_id in request.FILES:
-            models.Map.objects.create(
+            models.Project.objects.create(
                 identity=identity,
                 pdb=File(
                     file=request.FILES[file_id].file,
@@ -44,7 +43,7 @@ class Home(SingleTableView):
 
 class Detail(generic.DetailView):
 
-    model = models.Map
+    model = models.Project
     template_name = 'map.html'
 
     def get_context_data(self, **kwargs):
@@ -55,15 +54,15 @@ class Detail(generic.DetailView):
 
 class Delete(generic.DeleteView):
 
-    model = models.Map
+    model = models.Project
     template_name = 'delete.html'
     success_url = reverse_lazy('home')
 
 
-def map_status(request, pk):
+def project_status(request, pk):
     identity = get_identity(request)
-    current_map = identity.map_set.get(pk=pk)
-    return JsonResponse({'progress': json.dumps(current_map.progress)})
+    project = identity.project_set.get(pk=pk)
+    return JsonResponse({'progress': json.dumps(project.progress)})
 
 
 class RCSB(generic.FormView):
@@ -78,7 +77,7 @@ class RCSB(generic.FormView):
         try:
             pdb_code = form.cleaned_data['code']
             pdb_file = atom.PdbFile(pdb_code)
-            models.Map.objects.create(
+            models.Project.objects.create(
                 identity=get_identity(self.request),
                 pdb=File(
                     name=pdb_code,

@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
-from os.path import exists
 import subprocess
 import tempfile
 import pandas as pd
-import json
 
 import openmm as mm
 from openmm.app import PDBFile
@@ -12,7 +10,7 @@ import simtk.unit as unit
 from pdbfixer import PDBFixer
 
 
-### const/default variables
+# const/default variables
 SS = {'B': 'Bridge', 'C': 'Coil', 'E': 'Strand', 'G': '310Helix', 'H': 'AlphaHelix', 'T': 'Turn'}
 
 opts = {"contact_cutoff": "8.0", "add_atoms": "all", "protonation_ph": "7.0", "add_residues": "none", "max_loop_length": "5", "keep_heterogens": "all", "replace_non_standard": "True", 
@@ -20,14 +18,14 @@ opts = {"contact_cutoff": "8.0", "add_atoms": "all", "protonation_ph": "7.0", "a
         "box_dimensions": "5,5,5", "lipid_type": "POPC", "membrane_position":"0,1"}
 
 
-def convert_options_values(json_from_db):
-    '''Convert int-like values of config options taken from db to dict containing exact values.
-       return updated copy of "opts" dictionary (like the one defined above).'''
-    options = {}
-    # do sth
-    # ...
-
-    return options
+# def convert_options_values(json_from_db):
+#     '''Convert int-like values of config options taken from db to dict containing exact values.
+#        return updated copy of "opts" dictionary (like the one defined above).'''
+#     options = {}
+#     # do sth
+#     # ...
+#
+#     return options
 
 
 def fix_pdb_with_pdbfixer(filename, chains='all', params=opts):
@@ -42,9 +40,9 @@ def fix_pdb_with_pdbfixer(filename, chains='all', params=opts):
 
     # Create fixer object
     if filename.endswith('.pdb'):
-        fixer = PDBFixer(filename=filename)		#e.g., 2gb1.pdb
+        fixer = PDBFixer(filename=filename)		# e.g., 2gb1.pdb
     elif filename.startswith('http://'):
-        fixer = PDBFixer(url=filename)			#e.g., fixer = 'http://www.rcsb.org/pdb/files/1VII.pdb'
+        fixer = PDBFixer(url=filename)			# e.g., fixer = 'http://www.rcsb.org/pdb/files/1VII.pdb'
     elif isinstance(filename, io.IOBase):
         fixer = PDBFixer(pdbfile=filename)		# e.g., with open(filename) as filename:
     elif len(filename) == 4:
@@ -295,8 +293,8 @@ def run_external_software(filename, chains='all', params=opts):
 #opts = convert_options_values(model.config) # or sth like that :)	# teplate function 'convert_options_values' is on the top of this file
 #media_path = <path_to_media_dir>
 
-myfile = os.getcwd()+'/3dcg.pdb'	# path to SINGLE(!) model of user-loaded PDB file (~/media/user/session/...)
-pdbfixer_log, ss_elements, structural_data, HB = run_external_software(myfile, 'all', opts)
+# myfile = os.getcwd()+'/3dcg.pdb'	# path to SINGLE(!) model of user-loaded PDB file (~/media/user/session/...)
+# pdbfixer_log, ss_elements, structural_data, HB = run_external_software(myfile, 'all', opts)
 
 #model.fixer_log = json.dumps(pdbfixer_log)
 #model.ss_elements = json.dumps(ss_elements)

@@ -25,13 +25,13 @@ class RowNumberTable(tables.Table):
 
 
 # for the homepage
-class MapTable(RowNumberTable):
+class ProjectTable(RowNumberTable):
 
     class Meta:
-        model = models.Map
+        model = models.Project
         fields = ('row_number', 'filename')
         attrs = {
-            'id': 'mapTable',
+            'id': 'projectTable',
             'class': 'table table-sm table-striped table-borderless'
         }
 
@@ -65,7 +65,7 @@ class MapTable(RowNumberTable):
         html = f'<small class="text-success">{total} {verbose} ready!</small>' \
             if complete == total else \
             f'''
-                <small class="text-danger progress-label" data-map-pk="{record.pk}">
+                <small class="text-danger progress-label" data-pk="{record.pk}">
                     Processing models <span class="complete-entry">{complete}</span>/{total}
                     <span class="spinner-grow spinner-grow-sm text-danger"></span>
                 </small>
@@ -75,7 +75,7 @@ class MapTable(RowNumberTable):
     @staticmethod
     def render_buttons(value):
         return format_html(f'''
-            <a href="{reverse('map-delete', args=[value])}" data-toggle="modal" data-target="#modal"
+            <a href="{reverse('project-delete', args=[value])}" data-toggle="modal" data-target="#modal"
                class="text-danger" title="Delete file">
                 <i class="fa fa-sm fa-trash-alt"></i>
             </a>

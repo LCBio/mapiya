@@ -1,6 +1,5 @@
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import html, dcc
 import json
 import os
 import plotly.graph_objects as go
@@ -12,7 +11,7 @@ from django_plotly_dash import DjangoDash
 
 from mollib.chord import *
 from mollib.patterns import calc_patterns, calc_entropy
-from .models import MapModel
+from .models import Job
 
 #    np.set_printoptions(threshold=sys.maxsize)				### testing mode
 #    print('Start... ', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))	### testing mode
@@ -195,7 +194,7 @@ app.clientside_callback(
 def load_models(pk, n, model_ix):
     models = {}
     status = 0
-    for i in list(MapModel.objects.all()):
+    for i in list(Job.objects.all()):
         if i.map_id == pk:
             models[i.model_number] = i.status
     n_models = len(models)
@@ -256,11 +255,11 @@ def select_model(btn, pk, ix):
     if btn == '' or btn == ix:
         raise PreventUpdate
     elif btn == 0:
-        model = MapModel.objects.get(map_id=pk)
-        return [btn, [model.map.filename, model.matrix.url, model.info]]
+        model = Job.objects.get(map_id=pk)
+        return [btn, [model.project.filename, model.matrix.url, model.info]]
     elif btn >= 1:
-        model = MapModel.objects.get(map_id=pk, model_number=btn)
-        return [btn, [model.map.filename, model.matrix.url, model.info]]
+        model = Job.objects.get(map_id=pk, model_number=btn)
+        return [btn, [model.project.filename, model.matrix.url, model.info]]
 
 
 @app.expanded_callback([Output('con-intra', 'value'), Output('con-inter', 'value'), Output('contacts', 'value')],

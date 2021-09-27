@@ -2,6 +2,6 @@ from django.contrib import admin
 from . import models
 
 admin.site.register([
-    models.Map,
-    models.MapModel
+    models.Project,
+    models.Job
 ])

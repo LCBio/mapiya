@@ -11,21 +11,21 @@ import io
 import json
 
 
-def pdb_path(instance, filename):
+def project_pdb_path(instance, filename):
     suffix = '' if filename.endswith('.pdb') else '.pdb'
     return f'{instance.media_dir}/{filename}{suffix}'
 
 
 def get_map_id():
     while True:
-        map_id = get_random_string(Map.ID_LENGTH)
+        map_id = get_random_string(Project.ID_LENGTH)
         try:
-            Map.objects.get(id=map_id)
-        except Map.DoesNotExist:
+            Project.objects.get(id=map_id)
+        except Project.DoesNotExist:
             return map_id
 
 
-class Map(models.Model):
+class Project(models.Model):
 
     ID_LENGTH = 12
 
@@ -34,7 +34,7 @@ class Map(models.Model):
     id = models.CharField(max_length=ID_LENGTH, primary_key=True, default=get_map_id)
     identity = models.ForeignKey(Identity, on_delete=models.CASCADE)
     filename = models.CharField(max_length=50)
-    pdb = models.FileField(upload_to=pdb_path)
+    pdb = models.FileField(upload_to=project_pdb_path)
     info = models.TextField(null=True, blank=True)
 
     @property
@@ -47,8 +47,8 @@ class Map(models.Model):
 
     @property
     def progress(self):
-        total = self.mapmodel_set.count()
-        incomplete = self.mapmodel_set.exclude(status='F').count()
+        total = self.job_set.count()
+        incomplete = self.job_set.exclude(status='F').count()
         return total - incomplete, total
 
     def get_matrix(self, model_number):
@@ -79,17 +79,17 @@ class Map(models.Model):
         return json.dumps(objects), distances
 
     def get_absolute_url(self):
-        return reverse('map-detail', args=[self.id])
+        return reverse('project-detail', args=[self.id])
 
     def __str__(self):
         return self.filename
 
 
 def matrix_path(instance, filename):
-    return f'{instance.map.media_dir}/{filename}'
+    return f'{instance.project.media_dir}/{filename}'
 
 
-class MapModel(models.Model):
+class Job(models.Model):
 
     class StatusChoices(models.TextChoices):
 
@@ -98,7 +98,7 @@ class MapModel(models.Model):
         ERROR = 'E'
         FINISHED = 'F'
 
-    map = models.ForeignKey(Map, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     model_number = models.SmallIntegerField()
     matrix = models.FileField(upload_to=matrix_path, null=True, blank=True)
     info = models.TextField(null=True, blank=True)
@@ -107,7 +107,7 @@ class MapModel(models.Model):
 
     def save_matrix(self):
         with io.BytesIO() as f:
-            info, matrix = self.map.get_matrix(self.model_number)
+            info, matrix = self.project.get_matrix(self.model_number)
             np.save(f, matrix)
             self.matrix = File(f, name=f'matrix{self.model_number}.npy')
             self.info = info
@@ -115,4 +115,4 @@ class MapModel(models.Model):
 
     def __str__(self):
         status = dict(self.StatusChoices.choices).get(self.status, 'Unknown')
-        return f'{self.map.filename}:{self.model_number} [{status}]'
+        return f'{self.project.filename}:{self.model_number} [{status}]'

@@ -8,33 +8,33 @@ import json
 import traceback
 
 
-def map_worker(queue):
+def project_worker(queue):
     while queue:
-        map_model = queue.popleft()
-        map_model.status = 'R'
-        map_model.save(update_fields=['status'])
+        job = queue.popleft()
+        job.status = 'R'
+        job.save(update_fields=['status'])
         try:
-            map_model.save_matrix()
-            map_model.status = 'F'
-            map_model.save(update_fields=['status'])
+            job.save_matrix()
+            job.status = 'F'
+            job.save(update_fields=['status'])
         except Exception:
-            info = json.loads(map_model.info) if map_model.info else {}
+            info = json.loads(job.info) if job.info else {}
             errors = info.get('errors', [])
             with io.StringIO() as f:
                 traceback.print_exc(file=f)
                 f.seek(0)
                 errors.append(f.read())
             info['errors'] = errors
-            map_model.info = json.dumps(info)
-            map_model.status = 'E'
-            map_model.save(update_fields=['status', 'info'])
+            job.info = json.dumps(info)
+            job.status = 'E'
+            job.save(update_fields=['status', 'info'])
 
 
 def queue_manager():
     while True:
-        queue = deque(models.MapModel.objects.filter(status='Q').order_by('date_init'))
+        queue = deque(models.Job.objects.filter(status='Q').order_by('date_init'))
         max_workers = min(settings.QUEUE_WORKERS_COUNT, len(queue))
-        workers = [threading.Thread(target=map_worker, args=[queue]) for _ in range(max_workers)]
+        workers = [threading.Thread(target=project_worker, args=[queue]) for _ in range(max_workers)]
 
         for worker in workers:
             worker.start()

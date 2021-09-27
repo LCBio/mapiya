@@ -9,3 +9,4 @@ class MapserverConfig(AppConfig):
         if os.environ.get('RUN_MAIN', None) == 'true':
             from . import signals
             from . import queue
+            from . import plotly

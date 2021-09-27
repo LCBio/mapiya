@@ -39,7 +39,6 @@ let initOptionsForm = function () {
 
 // Files table
 let updateLabel = function ($label, complete, total) {
-    console.log(complete, total);
     if (complete < total) {
         $label.find('span.complete-entry').html(`${complete}`);
     } else {
@@ -48,24 +47,24 @@ let updateLabel = function ($label, complete, total) {
     }
 };
 
-let updateLink = function ($row, mapPk) {
+let updateLink = function ($row, pk) {
     let $tempLabel = $row.find('.temp-label');
     if ($tempLabel.length > 0) {
         let link_txt = $tempLabel.html();
-        let link_html = `<a href="/map/${mapPk}/">${link_txt}</a>`;
+        let link_html = `<a href="/project/${pk}/">${link_txt}</a>`;
         $tempLabel.replaceWith(link_html);
     }
 };
 
 let updateRow = function ($label) {
-    let mapPk = $label.data('map-pk');
+    let pk = $label.data('pk');
     let $row = $label.parents('tr');
     $.ajax({
-        url: `/map/${mapPk}/status/`,
+        url: `/project/${pk}/status/`,
         success: function (data) {
             let progress = JSON.parse(data.progress);
             if (progress[0] > 0) {
-                updateLink($row, mapPk);
+                updateLink($row, pk);
                 updateLabel($label, progress[0], progress[1]);
                 if (progress[0] < progress[1]) {
                     setTimeout(updateRow, 1000, $label);
