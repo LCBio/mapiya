@@ -2,59 +2,38 @@
 import os
 import subprocess
 import tempfile
-import pandas as pd
 
 import openmm as mm
-from openmm.app import PDBFile
+import pandas as pd
 import simtk.unit as unit
+from openmm.app import PDBFile
 from pdbfixer import PDBFixer
-
 
 # const/default variables
 SS = {'B': 'Bridge', 'C': 'Coil', 'E': 'Strand', 'G': '310Helix', 'H': 'AlphaHelix', 'T': 'Turn'}
 
-opts = {"contact_cutoff": "8.0", "add_atoms": "all", "protonation_ph": "7.0", "add_residues": "none", "max_loop_length": "5", "keep_heterogens": "all", "replace_non_standard": "True", 
-        "apply_mutations": "False", "specify_mutations": "", "add_environment": "none", "positive_ion": "Na+", "negative_ion": "Cl-",'ionic_strength':'0.0', "water_box": "maxsize", 
-        "box_dimensions": "5,5,5", "lipid_type": "POPC", "membrane_position":"0,1"}
 
+def fix_pdb_with_pdbfixer(filename, chains='all', params=None):
+    """Fix PDB using pdbfixer library. Function called by "run_external_software" defined below.
 
-# def convert_options_values(json_from_db):
-#     '''Convert int-like values of config options taken from db to dict containing exact values.
-#        return updated copy of "opts" dictionary (like the one defined above).'''
-#     options = {}
-#     # do sth
-#     # ...
-#
-#     return options
-
-
-def fix_pdb_with_pdbfixer(filename, chains='all', params=opts):
-    '''Fix PDB using pdbfixer library. Function called by "run_external_software" defined below.
-       
        filename - full length path to input PDB
        chains - keep chains: 'all' or list of chain ids, e.g. ['A', 'B', 'C']
        params - dict of key-value options required by pdbfixer and APBS, by default "opts" dictionary
-    '''
+    """
     prefix = filename.split('/')[-1].split('.')[0]
     log = []
 
-    # Create fixer object
-    if filename.endswith('.pdb'):
-        fixer = PDBFixer(filename=filename)		# e.g., 2gb1.pdb
-    elif filename.startswith('http://'):
-        fixer = PDBFixer(url=filename)			# e.g., fixer = 'http://www.rcsb.org/pdb/files/1VII.pdb'
-    elif isinstance(filename, io.IOBase):
-        fixer = PDBFixer(pdbfile=filename)		# e.g., with open(filename) as filename:
-    elif len(filename) == 4:
-        fixer = PDBFixer(pdbid=filename)		# e.g, PDB code: 2GB1
+    fixer = PDBFixer(filename=filename)
 
     # Remove chains
     if chains != 'all':
-        remove_ch = [chain.id for chain in fixer.topology.chains() if not chain.id in chains]
+        remove_ch = [chain.id for chain in fixer.topology.chains() if chain.id not in chains]
         fixer.removeChains(chainIds=remove_ch)
-        log.append("INFO: removed chains: "+str(remove_ch)+"\n      kept chains: "+str([chain.id for chain in fixer.topology.chains()]))
+        log.append(
+            f'INFO: removed chains: {remove_ch}\n      kept chains: {[chain.id for chain in fixer.topology.chains()]}'
+        )
     else:
-        log.append("INFO: kept all chains: "+str([chain.id for chain in fixer.topology.chains()]))
+        log.append(f'INFO: kept all chains: {[chain.id for chain in fixer.topology.chains()]}')
 
     # Remove heterogens
     if params['keep_heterogens'] != 'all':
@@ -68,9 +47,9 @@ def fix_pdb_with_pdbfixer(filename, chains='all', params=opts):
             log.append("INFO: kept all heterogens including water.")
 
     # Apply mutations
-    if params['apply_mutations'] == 'true':
+    if params['apply_mutations']:
         mutations = {}
-        for i in params['specify_mutations'].strip().split(','):	# e.g, 'VAL-3-ILE:A,ILE-7-VAL:A'
+        for i in params['specify_mutations'].strip().split(','):  # e.g, 'VAL-3-ILE:A,ILE-7-VAL:A'
             mutant = i.split(':')
             if not mutant[1] in mutations.keys():
                 mutations[mutant[1]] = [mutant[0]]
@@ -79,32 +58,36 @@ def fix_pdb_with_pdbfixer(filename, chains='all', params=opts):
         for chain in mutations:
             try:
                 fixer.applyMutations(mutations[chain], chain)
-                log.append("INFO: applied mutations in chain "+chain+' : '+mutations[chain])
+                log.append(f"INFO: applied mutations in chain {chain} : {mutations[chain]}")
             except:
-                log.append("ERROR: mutation in chain "+chain+' is not possible because at least one residue on your list: '+str(mutations[chain])+' does not exist.')
+                log.append(
+                    f"ERROR: mutation in chain {chain} is not possible because at least one residue "
+                    f"on your list: {mutations[chain]} does not exist."
+                )
     else:
         log.append("INFO: applied none mutation.")
 
     # Replace nonstandard residues
-    if params['replace_non_standard'] == 'true':
+    if params['replace_non_standard']:
         fixer.findNonstandardResidues()
-        log.append("INFO: replaced nonstandard residues: "+str(fixer.nonstandardResidues))
+        log.append("INFO: replaced nonstandard residues: " + str(fixer.nonstandardResidues))
         fixer.replaceNonstandardResidues()
     else:
         fixer.findNonstandardResidues()
-        log.append("INFO: nonstandard residues were NOT replaced: "+str(fixer.nonstandardResidues))
+        log.append("INFO: nonstandard residues were NOT replaced: " + str(fixer.nonstandardResidues))
 
     # Rebuild missing residues, the residues actually get added when you call addMissingAtoms()
-    n=0
+    n = 0
     if params['add_residues'] != 'none':
         fixer.findMissingResidues()
         if len(fixer.missingResidues):
-            s='\n'
+            s = '\n'
         else:
-            s=' []'
+            s = ' []'
         for key in fixer.missingResidues:
-            s+="\tchain: "+list(fixer.topology.chains())[key[0]-1].id+" at position: "+str(key[1])+": "+str(fixer.missingResidues[key])+"\n"
-        log.append("INFO: missing residues are: "+s)
+            s += "\tchain: " + list(fixer.topology.chains())[key[0] - 1].id + " at position: " + str(
+                key[1]) + ": " + str(fixer.missingResidues[key]) + "\n"
+        log.append("INFO: missing residues are: " + s)
         keys = list(fixer.missingResidues)
         chains = list(fixer.topology.chains())
         for key in keys:
@@ -119,14 +102,17 @@ def fix_pdb_with_pdbfixer(filename, chains='all', params=opts):
         for key in keys:
             if len(fixer.missingResidues[key]) > int(params['max_loop_length']):
                 del fixer.missingResidues[key]
-        s='\n'
+        s = '\n'
         for key in fixer.missingResidues:
-            n+=len(fixer.missingResidues[key])
-            s+="\tchain: "+list(fixer.topology.chains())[key[0]-1].id+" at position: "+str(key[1])+": "+str(fixer.missingResidues[key])+"\n"
+            n += len(fixer.missingResidues[key])
+            s += "\tchain: " + list(fixer.topology.chains())[key[0] - 1].id + " at position: " + str(
+                key[1]) + ": " + str(fixer.missingResidues[key]) + "\n"
     else:
         fixer.missingResidues = {}
-        s=' []'
-    log.append("INFO: rebuilt "+params['add_residues']+" ("+str(n)+") residues in loops shorther than "+params['max_loop_length']+": "+s)
+        s = ' []'
+    log.append(
+        f"INFO: rebuilt {params['add_residues']} ({n}) residues in loops shorter than {params['max_loop_length']}: {s}"
+    )
 
     # Retrieve missing atoms.
     if params['add_atoms'] != 'none' and params['add_atoms'] != 'hydrogen':
@@ -136,20 +122,22 @@ def fix_pdb_with_pdbfixer(filename, chains='all', params=opts):
         elif params['add_atoms'] == 'terminal':
             fixer.findMissingAtoms = {}
         if len(fixer.missingAtoms):
-            s='\n'
+            s = '\n'
             for key in fixer.missingAtoms:
                 for at in fixer.missingAtoms[key]:
-                    s+="\tchain: "+key.chain.id+" in residue: "+key.name+"-"+key.id+": "+at.name+"-"+at.id+"\n"
+                    s += "\tchain: " + key.chain.id + " in residue: " + key.name + "-" + key.id + ": " \
+                         + at.name + "-" + at.id + "\n"
         else:
-            s=' []'
-        log.append("INFO: added missing standard atoms: "+s)
+            s = ' []'
+        log.append("INFO: added missing standard atoms: " + s)
         if len(fixer.missingTerminals):
-            s='\n'
+            s = '\n'
             for key in fixer.missingTerminals:
-                s+="\tchain: "+key.chain.id+" in residue: "+key.name+"-"+key.id+": "+fixer.missingTerminals[key][0]+"\n"
+                s += "\tchain: " + key.chain.id + " in residue: " + key.name + "-" + key.id + ": " + \
+                     fixer.missingTerminals[key][0] + "\n"
         else:
-            s=' []'
-        log.append("INFO: added missing terminal atoms: "+s)
+            s = ' []'
+        log.append("INFO: added missing terminal atoms: " + s)
         fixer.addMissingAtoms()
     elif params['add_atoms'] == 'none':
         log.append("INFO: no atoms added")
@@ -168,52 +156,62 @@ def fix_pdb_with_pdbfixer(filename, chains='all', params=opts):
             if params['water_box'] == 'unitcell':
                 boxSize = boxSize
             elif params['water_box'] == 'maxsize':
-                maxSize = max(max((pos[i] for pos in fixer.positions))-min((pos[i] for pos in fixer.positions)) for i in range(3))
+                maxSize = max(
+                    max((pos[i] for pos in fixer.positions)) - min((pos[i] for pos in fixer.positions))
+                    for i in range(3)
+                )
                 boxSize = maxSize*mm.Vec3(1, 1, 1)
             elif params['water_box'] == 'custom':
                 bs = [float(i) for i in params['box_dimensions'].split(',')]
                 boxSize = mm.Vec3(bs[0], bs[1], bs[2]) * unit.nanometers
             try:
-                fixer.addSolvent(boxSize, positiveIon=ions[0], negativeIon=ions[1], ionicStrength=float(ions[2]) * unit.molar)
-                log.append("INFO: added solvent: water box dimensions: "+str(boxSize)+"; ion(+)="+ions[0]+"; ion(-)="+ions[1]+"; ionic strength: "+str(ions[2])+" molar")
+                fixer.addSolvent(
+                    boxSize, positiveIon=ions[0], negativeIon=ions[1], ionicStrength=float(ions[2]) * unit.molar
+                )
+                log.append(
+                    "INFO: added solvent: water box dimensions: " + str(boxSize) + "; ion(+)=" + ions[0] + "; ion(-)=" +
+                    ions[1] + "; ionic strength: " + str(ions[2]) + " molar"
+                )
                 PDBFile.writeFile(fixer.topology, fixer.positions, open(prefix+'_fixed_envir.pdb', 'w'))
             except Exception as e:
-                log.append("INFO: adding solvent failed due to an error: "+e)
+                log.append(f"INFO: adding solvent failed due to an error: {e}")
 
         elif params['add_environment'] == 'membrane':
             mem = [params['lipid_type']]
             mem.extend(params['membrane_position'].split(','))
             try:
-                fixer.addMembrane(lipidType=mem[0], membraneCenterZ=float(mem[1]), minimumPadding=float(mem[2]), positiveIon=ions[0], negativeIon=ions[1], ionicStrength=float(ions[2]) * unit.molar)
-                log.append("INFO: added membrane: lipid type: "+mem[0]+"; ion(+)="+ions[0]+"; ion(-)="+ions[1]+"; ionic strength: "+str(ions[2])+" molar")
+                fixer.addMembrane(lipidType=mem[0], membraneCenterZ=float(mem[1]), minimumPadding=float(mem[2]),
+                                  positiveIon=ions[0], negativeIon=ions[1], ionicStrength=float(ions[2]) * unit.molar)
+                log.append("INFO: added membrane: lipid type: " + mem[0] + "; ion(+)=" + ions[0] + "; ion(-)=" + ions[
+                    1] + "; ionic strength: " + str(ions[2]) + " molar")
                 PDBFile.writeFile(fixer.topology, fixer.positions, open(prefix+'_fixed_envir.pdb', 'w'))
             except Exception as e:
-                log.append("INFO: adding membrane failed due to an error: "+e)
+                log.append(f"INFO: adding membrane failed due to an error: {e}")
     else:
         log.append("INFO: no solvent or membrane added")
     return log
 
 
-
-#***** RUN EXTERNAL SOFTWARE *****#
-def run_external_software(filename, chains='all', params=opts):
-    '''Run external software to get data used by mapserver.
+#  ***** RUN EXTERNAL SOFTWARE *****#
+def run_external_software(filename, chains='all', params=None):
+    """Run external software to get data used by mapserver.
 
        filename - full path to PDB file (most probably in ~/media/)
        chains - 'all' or list of chains ids to be kept for analysis
        params - dict of key-value options required by pdbfixer and APBS
-    '''
+    """
 
     path = os.getcwd()					# parent dir for temporary dir
-    prefix = filename.split('/')[-1].split('.')[0]	# PDB code + model index, e.g., prefix = 2GB1_1 when filename = <path_to_media_user_project>/2GB1_1.pdb
+    prefix = filename.split('/')[-1].split('.')[0]  # PDB code + model index, e.g., prefix = 2GB1_1 when filename = <path_to_media_user_project>/2GB1_1.pdb
     dirpath = os.path.dirname(filename)			# derived <path_to_media_user_project>
 
-    with tempfile.TemporaryDirectory(dir = path) as tmp_dir:
+    with tempfile.TemporaryDirectory(dir=path) as tmp_dir:
         os.chdir(tmp_dir)
 
         pdbfixer_log = fix_pdb_with_pdbfixer(filename, chains, params)		### run PDBfixer: save filename_fixed.pdb (always) and filename_fixed_envir.pdb (if requested)
         os.system('stride -h -f'+prefix+'.stride '+prefix+'_fixed.pdb')		### run STRIDE to get: secondary structure, solvent accessibility, ramachandran angles
-        os.system('pdb2pqr --ff=PARSE --apbs-input '+prefix+'.in --titration-state-method=propka --with-ph='+params['protonation_ph']+' '+prefix+'_fixed.pdb '+prefix+'.pqr 2> apbs.out')
+        os.system(f"pdb2pqr --ff=PARSE --apbs-input {prefix}.in --titration-state-method=propka "
+                  f"--with-ph={params['protonation_ph']} {prefix}_fixed.pdb {prefix}.pqr 2> apbs.out")
         os.system('apbs --output-file=apbs.config '+prefix+'.in >> apbs.out')	### run APBS to get electrostatics
         p = subprocess.Popen(['whereis', 'edhb'], stdout=subprocess.PIPE)	### (!) make sure that the venv is activated: 'conda activate venv'
         venvdir = str(p.stdout.read().decode('ascii')).strip().split()[1].strip().replace('edhb','')
@@ -221,8 +219,8 @@ def run_external_software(filename, chains='all', params=opts):
         os.system('ln -s '+venvdir+'init.txt ./')				### (!) required in the current path for edhb
         os.system('edhb '+prefix+'_fixed.pdb -c -a -B -R')			### run EDHB to get hydrogen bonds
         ### save important outputs in ~/media/ dir
-        os.system('cp {'+prefix+'_fixed.pdb '+prefix+'_fixed_envir.pdb '+prefix+'.pqr '+prefix+'.pqr.dx} '+dirpath)
-        os.system('cp apbs.config '+dirpath+prefix+'.apbs')
+        os.system('cp '+prefix+'_fixed.pdb '+prefix+'_fixed_envir.pdb '+prefix+'.pqr '+prefix+'.pqr.dx '+dirpath)
+        os.system(f'cp apbs.config {dirpath}/{prefix}.apbs')
 
 #        print(os.listdir(tmp_dir))
 
@@ -300,5 +298,3 @@ def run_external_software(filename, chains='all', params=opts):
 #model.ss_elements = json.dumps(ss_elements)
 #structural_data.to_csv(media_path+'/struct_data_'+model_index+'.csv', sep='\t')	# or model.structural_data = structural_data.to_json() to store pandas dataframe in DB
 #HB.to_csv(media_path+'/hydrogen_bonds_'+model_index+'.csv', sep='\t')			# or model.hydrogen_bonds = HB.to_json() to store pandas dataframe in DB
-
-

@@ -32,6 +32,7 @@ class Home(SingleTableView):
                     file=request.FILES[file_id].file,
                     name=request.FILES[file_id].name
                 ),
+                config=identity.config,
                 filename=request.FILES[file_id].name
             )
         table = self.get_table()
@@ -77,12 +78,14 @@ class RCSB(generic.FormView):
         try:
             pdb_code = form.cleaned_data['code']
             pdb_file = atom.PdbFile(pdb_code)
+            identity = get_identity(self.request)
             models.Project.objects.create(
-                identity=get_identity(self.request),
+                identity=identity,
                 pdb=File(
                     name=pdb_code,
                     file=pdb_file.opened_file
                 ),
+                config=identity.config,
                 filename=pdb_code
             )
 

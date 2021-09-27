@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('model_number', models.SmallIntegerField()),
-                ('matrix', models.FileField(blank=True, null=True, upload_to=mapserver.models.matrix_path)),
+                ('matrix', models.FileField(blank=True, null=True, upload_to=mapserver.models.compute_path)),
                 ('info', models.TextField(blank=True, null=True)),
                 ('status', models.CharField(choices=[('Q', 'Queue'), ('R', 'Running'), ('E', 'Error'), ('F', 'Finished')], default='Q', max_length=1)),
                 ('date_init', models.DateTimeField(auto_now_add=True)),
@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.CharField(default=mapserver.models.get_map_id, max_length=12, primary_key=True, serialize=False)),
                 ('filename', models.CharField(max_length=50)),
-                ('pdb', models.FileField(upload_to=mapserver.models.project_pdb_path)),
+                ('pdb', models.FileField(upload_to=mapserver.models.pdb_path)),
                 ('info', models.TextField(blank=True, null=True)),
             ],
         ),

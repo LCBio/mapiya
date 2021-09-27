@@ -14,7 +14,7 @@ def project_worker(queue):
         job.status = 'R'
         job.save(update_fields=['status'])
         try:
-            job.save_matrix()
+            job.run()
             job.status = 'F'
             job.save(update_fields=['status'])
         except Exception:

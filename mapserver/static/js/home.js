@@ -5,7 +5,8 @@ let shouldShow = function ($input) {
 
     for (let requirement in requirements) {
         let values = requirements[requirement];
-        let value = parseInt($('#id_' + requirement).val(), 10);
+        let value = $('#id_' + requirement).val();
+        // console.log(requirement, value, values);
         if (!(values.includes(value))) return false;
     }
     return true;

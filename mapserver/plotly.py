@@ -195,7 +195,7 @@ def load_models(pk, n, model_ix):
     models = {}
     status = 0
     for i in list(Job.objects.all()):
-        if i.map_id == pk:
+        if i.project_id == pk:
             models[i.model_number] = i.status
     n_models = len(models)
     if n_models > 1:
@@ -255,10 +255,10 @@ def select_model(btn, pk, ix):
     if btn == '' or btn == ix:
         raise PreventUpdate
     elif btn == 0:
-        model = Job.objects.get(map_id=pk)
+        model = Job.objects.get(project_id=pk)
         return [btn, [model.project.filename, model.matrix.url, model.info]]
     elif btn >= 1:
-        model = Job.objects.get(map_id=pk, model_number=btn)
+        model = Job.objects.get(project_id=pk, model_number=btn)
         return [btn, [model.project.filename, model.matrix.url, model.info]]
 
 

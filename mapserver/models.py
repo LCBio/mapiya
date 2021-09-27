@@ -6,12 +6,13 @@ from django.urls import reverse
 from mollib.atom import Atoms
 from mollib.utils import DistanceMatrix
 from users.models import Identity
+from . import external
 import numpy as np
 import io
 import json
 
 
-def project_pdb_path(instance, filename):
+def pdb_path(instance, filename):
     suffix = '' if filename.endswith('.pdb') else '.pdb'
     return f'{instance.media_dir}/{filename}{suffix}'
 
@@ -34,8 +35,9 @@ class Project(models.Model):
     id = models.CharField(max_length=ID_LENGTH, primary_key=True, default=get_map_id)
     identity = models.ForeignKey(Identity, on_delete=models.CASCADE)
     filename = models.CharField(max_length=50)
-    pdb = models.FileField(upload_to=project_pdb_path)
+    pdb = models.FileField(upload_to=pdb_path)
     info = models.TextField(null=True, blank=True)
+    config = models.TextField(null=True, blank=True)
 
     @property
     def media_dir(self):
@@ -51,9 +53,40 @@ class Project(models.Model):
         incomplete = self.job_set.exclude(status='F').count()
         return total - incomplete, total
 
-    def get_matrix(self, model_number):
-        model = self.atoms.models[model_number] if model_number else self.atoms
-        atoms = model.drop('WATER or HYDRO')
+    def get_absolute_url(self):
+        return reverse('project-detail', args=[self.id])
+
+    def __str__(self):
+        return self.filename
+
+
+def compute_path(instance, filename):
+    return f'{instance.project.media_dir}/{filename}'
+
+
+class Job(models.Model):
+
+    class StatusChoices(models.TextChoices):
+
+        QUEUE = 'Q'
+        RUNNING = 'R'
+        ERROR = 'E'
+        FINISHED = 'F'
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    model_number = models.SmallIntegerField()
+    matrix = models.FileField(upload_to=compute_path, null=True, blank=True)
+    pdb = models.FileField(upload_to=compute_path, null=True, blank=True)
+    info = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=1, choices=StatusChoices.choices, default=StatusChoices.QUEUE)
+    date_init = models.DateTimeField(auto_now_add=True)
+
+    @cached_property
+    def atoms(self):
+        return Atoms.from_fileobject(self.pdb.open('rt'))
+
+    def get_matrix(self):
+        atoms = self.atoms.drop('WATER or HYDRO')
         residues = []
         objects = {}
         ix_from = 0
@@ -78,40 +111,29 @@ class Project(models.Model):
 
         return json.dumps(objects), distances
 
-    def get_absolute_url(self):
-        return reverse('project-detail', args=[self.id])
-
-    def __str__(self):
-        return self.filename
-
-
-def matrix_path(instance, filename):
-    return f'{instance.project.media_dir}/{filename}'
-
-
-class Job(models.Model):
-
-    class StatusChoices(models.TextChoices):
-
-        QUEUE = 'Q'
-        RUNNING = 'R'
-        ERROR = 'E'
-        FINISHED = 'F'
-
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    model_number = models.SmallIntegerField()
-    matrix = models.FileField(upload_to=matrix_path, null=True, blank=True)
-    info = models.TextField(null=True, blank=True)
-    status = models.CharField(max_length=1, choices=StatusChoices.choices, default=StatusChoices.QUEUE)
-    date_init = models.DateTimeField(auto_now_add=True)
-
     def save_matrix(self):
         with io.BytesIO() as f:
-            info, matrix = self.project.get_matrix(self.model_number)
+            info, matrix = self.get_matrix()
             np.save(f, matrix)
             self.matrix = File(f, name=f'matrix{self.model_number}.npy')
             self.info = info
             self.save(update_fields=['matrix', 'info'])
+
+    def save_pdb(self):
+        atoms = self.project.atoms.models[self.model_number] if self.model_number else self.project.atoms
+        with io.StringIO(atoms.pdb) as f:
+            self.pdb = File(f, name=f'model{self.model_number}.pdb')
+            self.save(update_fields=['pdb'])
+
+    def save_results(self, fixer_log, ss_elements, structural_data, hydrogen_bonds):
+        pass
+
+    def run(self):
+        self.save_pdb()
+        self.save_results(
+            *(external.run_external_software(self.pdb.path, params=json.loads(self.project.identity.config)))
+        )
+        self.save_matrix()
 
     def __str__(self):
         status = dict(self.StatusChoices.choices).get(self.status, 'Unknown')

@@ -32,19 +32,19 @@ class OptionsForm(forms.Form):
 
     DEFAULTS = {
         "contact_cutoff": 8.0,
-        "add_atoms": 5,
+        "add_atoms": 'none',
         "protonation_ph": 7.0,
-        "add_residues": 3,
+        "add_residues": 'none',
         "max_loop_length": 5,
-        "keep_heterogens": 2,
-        "replace_non_standard": 0,
-        "apply_mutations": 0,
+        "keep_heterogens": 'none',
+        "replace_non_standard": False,
+        "apply_mutations": False,
         "specify_mutations": "",
-        "add_environment": 2,
-        "positive_ion": 0,
-        "negative_ion": 0,
+        "add_environment": 'none',
+        "positive_ion": "Na+",
+        "negative_ion": "Cl-",
         "ionic_strength": 1.0,
-        "water_box": 0,
+        "water_box": "unit cell",
         "box_dimensions": "5, 5, 5",
         "membrane_position": "0, 1"
     }
@@ -58,12 +58,12 @@ class OptionsForm(forms.Form):
 
     add_atoms = forms.ChoiceField(
         choices=[
-            (0, 'all'),
-            (1, 'heavy'),
-            (2, 'standard'),
-            (3, 'terminal'),
-            (4, 'hydrogen'),
-            (5, 'none')
+            ('all', 'all'),
+            ('heavy', 'heavy'),
+            ('standard', 'standard'),
+            ('terminal', 'terminal'),
+            ('hydrogen', 'hydrogen'),
+            ('none', 'none')
         ],
         label='add atoms'
     )
@@ -73,17 +73,17 @@ class OptionsForm(forms.Form):
         max_value=14.0,
         widget=forms.NumberInput(attrs={
             'step': 0.1,
-            'data-requirements': json.dumps({'add_atoms': [0, 4]})
+            'data-requirements': json.dumps({'add_atoms': ['all', 'hydrogen']})
         }),
         label='&#8627; protonation pH',
     )
 
     add_residues = forms.ChoiceField(
         choices=[
-            (0, 'all'),
-            (1, 'internal'),
-            (2, 'terminal'),
-            (3, 'none'),
+            ('all', 'all'),
+            ('internal', 'internal'),
+            ('terminal', 'terminal'),
+            ('none', 'none'),
         ],
         label='add residues'
     )
@@ -92,27 +92,27 @@ class OptionsForm(forms.Form):
         min_value=1,
         max_value=20,
         widget=forms.NumberInput(attrs={
-            'data-requirements': json.dumps({'add_residues': [0, 1, 2]})
+            'data-requirements': json.dumps({'add_residues': ['all', 'internal', 'terminal']})
         }),
         label='&#8627; max loop length',
     )
 
     keep_heterogens = forms.ChoiceField(
         choices=[
-            (0, 'all'),
-            (1, 'water'),
-            (2, 'none')
+            ('all', 'all'),
+            ('water', 'water'),
+            ('none', 'none')
         ],
         label='keep heterogens'
     )
 
     replace_non_standard = forms.BooleanField(
-        widget=forms.Select(choices=((0, 'no'), (1, 'yes'))),
+        widget=forms.Select(choices=(('false', 'no'), ('true', 'yes'))),
         label='replace non-standard aa'
     )
 
     apply_mutations = forms.BooleanField(
-        widget=forms.Select(choices=((0, 'no'), (1, 'yes'))),
+        widget=forms.Select(choices=(('false', 'no'), ('true', 'yes'))),
         label='apply mutations'
     )
 
@@ -120,42 +120,42 @@ class OptionsForm(forms.Form):
         label='&#8627; specify mutations',
         widget=forms.TextInput(attrs={
             'placeholder': 'e.g., VAL-3-ILE:A, ILE-7-VAL:A',
-            'data-requirements': json.dumps({'apply_mutations': [1]})
+            'data-requirements': json.dumps({'apply_mutations': ['true']})
         })
     )
 
     add_environment = forms.ChoiceField(
         choices=[
-            (0, 'solvent'),
-            (1, 'membrane'),
-            (2, 'none')
+            ('solvent', 'solvent'),
+            ('membrane', 'membrane'),
+            ('none', 'none')
         ],
         label='add environment'
     )
 
     positive_ion = forms.ChoiceField(
         choices=[
-            (0, 'Na+'),
-            (1, 'Cs+'),
-            (2, 'K+'),
-            (3, 'Li+'),
-            (4, 'Rb+'),
+            ('Na+', 'Na+'),
+            ('Cs+', 'Cs+'),
+            ('K+', 'K+'),
+            ('Li+', 'Li+'),
+            ('Rb+', 'Rb+'),
         ],
         widget=forms.Select(attrs={
-            'data-requirements': json.dumps({'add_environment': [0, 1]})
+            'data-requirements': json.dumps({'add_environment': ['solvent', 'membrane']})
         }),
         label='&#8627; positive ion',
     )
 
     negative_ion = forms.ChoiceField(
         choices=[
-            (0, 'Cl-'),
-            (1, 'Br-'),
-            (2, 'F-'),
-            (3, 'I-'),
+            ('Cl-', 'Cl-'),
+            ('Br-', 'Br-'),
+            ('F-', 'F-'),
+            ('I-', 'I-'),
         ],
         widget=forms.Select(attrs={
-            'data-requirements': json.dumps({'add_environment': [0, 1]})
+            'data-requirements': json.dumps({'add_environment': ['solvent', 'membrane']})
         }),
         label='&#8627; negative ion',
     )
@@ -165,19 +165,19 @@ class OptionsForm(forms.Form):
         max_value=1,
         widget=forms.NumberInput(attrs={
             'step': 0.01,
-            'data-requirements': json.dumps({'add_environment': [0, 1]})
+            'data-requirements': json.dumps({'add_environment': ['solvent', 'membrane']})
         }),
         label='&#8627; ionic strength',
     )
 
     water_box = forms.ChoiceField(
         choices=[
-            (0, 'unit cell'),
-            (1, 'max size'),
-            (2, 'custom'),
+            ('unit cell', 'unit cell'),
+            ('max size', 'max size'),
+            ('custom', 'custom'),
         ],
         widget=forms.Select(attrs={
-            'data-requirements': json.dumps({'add_environment': [0]})
+            'data-requirements': json.dumps({'add_environment': ['solvent']})
         }),
         label='&#8627; water box',
     )
@@ -187,8 +187,8 @@ class OptionsForm(forms.Form):
         widget=forms.TextInput(attrs={
             'placeholder': '5,5,5',
             'data-requirements': json.dumps({
-                'add_environment': [0],
-                'water_box': [2]
+                'add_environment': ['solvent'],
+                'water_box': ['custom']
             })
         }),
         label='&bull; &#8627; box dimensions'
@@ -196,29 +196,29 @@ class OptionsForm(forms.Form):
 
     lipid_type = forms.ChoiceField(
         choices=[
-            (0, 'POPC'),
-            (1, 'POPE'),
-            (2, 'DLPC'),
-            (3, 'DLPE'),
-            (4, 'DMPC'),
-            (5, 'DOPC'),
-            (6, 'DPPC')
+            ('POPC', 'POPC'),
+            ('POPE', 'POPE'),
+            ('DLPC', 'DLPC'),
+            ('DLPE', 'DLPE'),
+            ('DMPC', 'DMPC'),
+            ('DOPC', 'DOPC'),
+            ('DPPC', 'DPPC')
         ],
         widget=forms.Select(attrs={
-            'data-requirements': json.dumps({'add_environment': [1]})
+            'data-requirements': json.dumps({'add_environment': ['membrane']})
         }),
         label='&#8627; lipid type',
     )
 
     membrane_position = forms.CharField(
         widget=forms.TextInput(attrs={
-            'data-requirements': json.dumps({'add_environment': [1]})
+            'data-requirements': json.dumps({'add_environment': ['membrane']})
         }),
         label='&#8627; membrane position',
     )
 
     def __init__(self, *args, **kwargs):
-        identity = kwargs.pop('identity')
+        identity = kwargs.pop('identity', None)
         try:
             initial = json.loads(identity.config)
         except (TypeError, json.JSONDecodeError):
