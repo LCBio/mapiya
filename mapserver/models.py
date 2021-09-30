@@ -1,7 +1,8 @@
+import pandas
 from django.utils.functional import cached_property
 from django.utils.crypto import get_random_string
 from django.db import models
-from django.core.files import File
+from django.core.files.base import File, ContentFile
 from django.urls import reverse
 from mollib.atom import Atoms
 from mollib.utils import DistanceMatrix
@@ -10,6 +11,7 @@ from . import external
 import numpy as np
 import io
 import json
+import pathlib
 
 
 def pdb_path(instance, filename):
@@ -77,13 +79,15 @@ class Job(models.Model):
     model_number = models.SmallIntegerField()
     matrix = models.FileField(upload_to=compute_path, null=True, blank=True)
     pdb = models.FileField(upload_to=compute_path, null=True, blank=True)
+    structural_data = models.FileField(upload_to=compute_path, null=True, blank=True)
+    hydrogen_bonds = models.FileField(upload_to=compute_path, null=True, blank=True)
     info = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=1, choices=StatusChoices.choices, default=StatusChoices.QUEUE)
     date_init = models.DateTimeField(auto_now_add=True)
 
-    @cached_property
+    @property
     def atoms(self):
-        return Atoms.from_fileobject(self.pdb.open('rt'))
+        return Atoms.from_file(self.pdb.path)
 
     def get_matrix(self):
         atoms = self.atoms.drop('WATER or HYDRO')
@@ -109,30 +113,53 @@ class Job(models.Model):
             for j, r2 in enumerate(residues[i + 1:], i + 1):
                 distances[i, j] = distances[j, i] = np.sqrt(DistanceMatrix(r1.numpy, r2.numpy).d2.min())
 
-        return json.dumps(objects), distances
+        return objects, distances
 
     def save_matrix(self):
         with io.BytesIO() as f:
             info, matrix = self.get_matrix()
             np.save(f, matrix)
             self.matrix = File(f, name=f'matrix{self.model_number}.npy')
-            self.info = info
+            info.update(json.loads(self.info) if self.info else {})
+            self.info = json.dumps(info)
             self.save(update_fields=['matrix', 'info'])
 
     def save_pdb(self):
         atoms = self.project.atoms.models[self.model_number] if self.model_number else self.project.atoms
-        with io.StringIO(atoms.pdb) as f:
-            self.pdb = File(f, name=f'model{self.model_number}.pdb')
-            self.save(update_fields=['pdb'])
+        self.pdb = ContentFile(name=f'model{self.model_number}.pdb', content=atoms.pdb)
+        self.save(update_fields=['pdb'])
 
     def save_results(self, fixer_log, ss_elements, structural_data, hydrogen_bonds):
-        pass
+
+        # update self.info
+        info = json.loads(self.info) if self.info else {}
+        info['fixer_log'] = fixer_log
+        info['ss_elements'] = ss_elements
+        self.info = json.dumps(info)
+
+        # update self.pdb
+        path = pathlib.Path(self.pdb.path)
+        filename = path.parent / f'{path.stem}_fixed{path.suffix}'
+        self.pdb.delete(save=False)
+        self.pdb = ContentFile(name=path.name, content=Atoms.from_file(filename).pdb)
+
+        # save additional files
+        self.structural_data = ContentFile(name='data.csv', content=structural_data.to_csv())
+        self.hydrogen_bonds = ContentFile(name='hbonds.csv', content=hydrogen_bonds.to_csv())
+
+        # commit changes
+        self.save()
 
     def run(self):
+        # extract model from uploaded file in self.pdb
         self.save_pdb()
-        self.save_results(
-            *(external.run_external_software(self.pdb.path, params=json.loads(self.project.identity.config)))
-        )
+
+        # run external software and overwrite self.pdb
+        self.save_results(*(external.run_external_software(
+            self.pdb.path, params=json.loads(self.project.identity.config)
+        )))
+
+        # calculate distance matrix from self.pdb
         self.save_matrix()
 
     def __str__(self):
