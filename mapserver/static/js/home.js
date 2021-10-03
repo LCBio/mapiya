@@ -76,15 +76,19 @@ let updateRow = function ($label) {
     $.ajax({
         url: `/project/${pk}/status/`,
         success: function (data) {
-            let progress = JSON.parse(data.progress);
-            if (progress[0] > 0) {
-                updateLink($row, pk);
-                updateLabel($label, progress[0], progress[1]);
-                if (progress[0] < progress[1]) {
+            if (data.error) {
+                $label.replaceWith('<small class="text-danger font-weight-bold">ERROR!</small>');
+            } else {
+                let progress = JSON.parse(data.progress);
+                if (progress[0] > 0) {
+                    updateLink($row, pk);
+                    updateLabel($label, progress[0], progress[1]);
+                    if (progress[0] < progress[1]) {
+                        setTimeout(updateRow, 1000, $label);
+                    }
+                } else {
                     setTimeout(updateRow, 1000, $label);
                 }
-            } else {
-                setTimeout(updateRow, 1000, $label);
             }
         }
     });

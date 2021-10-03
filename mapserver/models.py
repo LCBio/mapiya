@@ -55,6 +55,10 @@ class Project(models.Model):
         incomplete = self.job_set.exclude(status='F').count()
         return total - incomplete, total
 
+    @property
+    def error(self):
+        return self.job_set.filter(status='E').count() > 0
+
     def get_absolute_url(self):
         return reverse('project-detail', args=[self.id])
 
@@ -83,6 +87,7 @@ class Job(models.Model):
     hydrogen_bonds = models.FileField(upload_to=compute_path, null=True, blank=True)
     info = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=1, choices=StatusChoices.choices, default=StatusChoices.QUEUE)
+    error = models.TextField(null=True, blank=True)
     date_init = models.DateTimeField(auto_now_add=True)
 
     @property
@@ -144,8 +149,8 @@ class Job(models.Model):
         self.pdb = ContentFile(name=path.name, content=Atoms.from_file(filename).pdb)
 
         # save additional files
-        self.structural_data = ContentFile(name='data.csv', content=structural_data.to_csv())
-        self.hydrogen_bonds = ContentFile(name='hbonds.csv', content=hydrogen_bonds.to_csv())
+        self.structural_data = ContentFile(name=f'data{self.model_number}.csv', content=structural_data.to_csv())
+        self.hydrogen_bonds = ContentFile(name=f'hbonds{self.model_number}.csv', content=hydrogen_bonds.to_csv())
 
         # commit changes
         self.save()

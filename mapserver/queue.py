@@ -18,16 +18,12 @@ def project_worker(queue):
             job.status = 'F'
             job.save(update_fields=['status'])
         except Exception:
-            info = json.loads(job.info) if job.info else {}
-            errors = info.get('errors', [])
             with io.StringIO() as f:
                 traceback.print_exc(file=f)
                 f.seek(0)
-                errors.append(f.read())
-            info['errors'] = errors
-            job.info = json.dumps(info)
+                job.error = f.read()
             job.status = 'E'
-            job.save(update_fields=['status', 'info'])
+            job.save(update_fields=['status', 'error'])
 
 
 def queue_manager():
