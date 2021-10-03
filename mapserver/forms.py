@@ -31,22 +31,23 @@ class RCSBForm(CrispyFormMixin, forms.Form):
 class OptionsForm(forms.Form):
 
     DEFAULTS = {
-        "contact_cutoff": 8.0,
-        "add_atoms": 'none',
-        "protonation_ph": 7.0,
-        "add_residues": 'none',
-        "max_loop_length": 5,
-        "keep_heterogens": 'none',
-        "replace_non_standard": False,
-        "apply_mutations": False,
-        "specify_mutations": "",
-        "add_environment": 'none',
-        "positive_ion": "Na+",
-        "negative_ion": "Cl-",
-        "ionic_strength": 1.0,
-        "water_box": "unit cell",
-        "box_dimensions": "5, 5, 5",
-        "membrane_position": "0, 1"
+        'contact_cutoff': 8.0,
+        'add_atoms': 'none',
+        'protonation_ph': 7.0,
+        'add_residues': 'none',
+        'max_loop_length': 5,
+        'keep_heterogens': 'none',
+        'replace_non_standard': False,
+        'apply_mutations': False,
+        'specify_mutations': '',
+        'add_environment': 'none',
+        'positive_ion': 'Na+',
+        'negative_ion': 'Cl-',
+        'ionic_strength': 1.0,
+        'water_box': 'unit cell',
+        'box_dimensions': '5, 5, 5',
+        'lipid_type': 'POPC',
+        'membrane_position': '0, 1'
     }
 
     contact_cutoff = forms.FloatField(
@@ -106,21 +107,22 @@ class OptionsForm(forms.Form):
         label='keep heterogens'
     )
 
-    replace_non_standard = forms.BooleanField(
-        widget=forms.Select(choices=(('false', 'no'), ('true', 'yes'))),
+    replace_non_standard = forms.ChoiceField(
+        choices=[(False, 'no'), (True, 'yes')],
         label='replace non-standard aa'
     )
 
-    apply_mutations = forms.BooleanField(
-        widget=forms.Select(choices=(('false', 'no'), ('true', 'yes'))),
+    apply_mutations = forms.ChoiceField(
+        choices=[(False, 'no'), (True, 'yes')],
         label='apply mutations'
     )
 
     specify_mutations = forms.CharField(
+        required=False,
         label='&#8627; specify mutations',
         widget=forms.TextInput(attrs={
             'placeholder': 'e.g., VAL-3-ILE:A, ILE-7-VAL:A',
-            'data-requirements': json.dumps({'apply_mutations': ['true']})
+            'data-requirements': json.dumps({'apply_mutations': ['True']})
         })
     )
 
@@ -217,18 +219,16 @@ class OptionsForm(forms.Form):
         label='&#8627; membrane position',
     )
 
-    def __init__(self, *args, **kwargs):
-        identity = kwargs.pop('identity', None)
-        try:
-            initial = json.loads(identity.config)
-        except (TypeError, json.JSONDecodeError):
-            initial = self.DEFAULTS
+    def clean_replace_non_standard(self):
+        return self.cleaned_data['replace_non_standard'] in ['True', 'true', True]
 
-        kwargs['initial'] = initial
+    def clean_apply_mutations(self):
+        return self.cleaned_data['apply_mutations'] in ['True', 'true', True]
+
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.helper = helper.FormHelper()
-        # self.helper.attrs = {'novalidate': ''}
         self.helper.form_show_errors = True
         self.helper.form_show_labels = True
         self.helper.use_custom_control = True

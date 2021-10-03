@@ -1,3 +1,7 @@
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Options form
 // TODO: this code should be optimized to check every dependency just once
 let shouldShow = function ($input) {
@@ -6,7 +10,6 @@ let shouldShow = function ($input) {
     for (let requirement in requirements) {
         let values = requirements[requirement];
         let value = $('#id_' + requirement).val();
-        // console.log(requirement, value, values);
         if (!(values.includes(value))) return false;
     }
     return true;
@@ -31,8 +34,18 @@ let initOptionsForm = function () {
             url: $form.attr('action'),
             method: 'post',
             data: $form.serialize(),
-            success: function (data) {
+            success: async function (data) {
                 displayOptionsForm();
+                if (data.message) {
+                    await sleep(250);
+                    let $btn = $form.find('.btn-danger');
+                    $btn.toggleClass('btn-danger btn-success');
+                    let btnTxt = $btn.html();
+                    $btn.html(data.message);
+                    await sleep(500);
+                    $btn.html(btnTxt);
+                    $btn.toggleClass('btn-danger btn-success');
+                }
             }
         });
     });

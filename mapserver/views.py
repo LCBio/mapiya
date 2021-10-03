@@ -17,7 +17,11 @@ class Home(SingleTableView):
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
-        data['options_form'] = forms.OptionsForm(identity=get_identity(self.request))
+        identity = get_identity(self.request)
+        if not identity.config:
+            identity.config = json.dumps(forms.OptionsForm.DEFAULTS)
+            identity.save(update_fields=['config'])
+        data['options_form'] = forms.OptionsForm(data=json.loads(identity.config))
         return data
 
     def get_queryset(self):
@@ -101,10 +105,13 @@ class RCSB(generic.FormView):
 
 def update_options(request):
     identity = get_identity(request)
-    data = {key: request.POST[key] for key in request.POST if key != 'csrfmiddlewaretoken'}
-    identity.config = json.dumps(data)
-    identity.save(update_fields=['config'])
-    return JsonResponse({'success': True, 'message': 'Config updated'})
+    form = forms.OptionsForm(data=request.POST)
+    if form.is_valid():
+        identity.config = json.dumps(form.cleaned_data)
+        identity.save(update_fields=['config'])
+        return JsonResponse({'message': 'Changes saved!'})
+    else:
+        return JsonResponse({'error': 'Changes not saved!'})
 
 
 def reset_options(request):
