@@ -1,5 +1,7 @@
 import dash
-from dash import html, dcc
+#from dash import html, dcc
+import dash_core_components as dcc
+import dash_html_components as html
 import json
 import os
 import plotly.graph_objects as go
@@ -256,18 +258,18 @@ def select_model(btn, pk, ix):
         raise PreventUpdate
     elif btn == 0:
         model = Job.objects.get(project_id=pk)
-        return [btn, [model.project.filename, model.matrix.url, model.info]]
+        return [btn, [model.project.filename, model.matrix.path, model.info]]
     elif btn >= 1:
         model = Job.objects.get(project_id=pk, model_number=btn)
-        return [btn, [model.project.filename, model.matrix.url, model.info]]
+        return [btn, [model.project.filename, model.matrix.path, model.info]]
 
 
 @app.expanded_callback([Output('con-intra', 'value'), Output('con-inter', 'value'), Output('contacts', 'value')],
                        [Input('model-data', 'value')])
 def load_basic_data(pdb_matrix_info):
-    info = json.loads(pdb_matrix_info[2])  # dict = {'protein-A':[['AA:200','AA:201', ...],[from:to]]}
-    matrix = np.load(os.getcwd() + pdb_matrix_info[1])
-
+    x = json.loads(pdb_matrix_info[2])
+    info = json.loads(pdb_matrix_info[2])['labels']  # dict = {'protein-A':[['AA:200','AA:201', ...],[from:to]]}
+    matrix = np.load(pdb_matrix_info[1])
     options1 = {}
     options2 = {}
     objects = []
@@ -302,7 +304,7 @@ def load_basic_data(pdb_matrix_info):
 
 @app.expanded_callback(Output('data_1d', 'value'), [Input('model-data', 'value')])
 def calc_1d_data(pdb_matrix_info):
-    info = json.loads(pdb_matrix_info[2])
+    info = json.loads(pdb_matrix_info[2])['labels']
 
     data_1d = {}
     for i in info:
@@ -526,8 +528,8 @@ def prepare_distance_data(selected, pdb_matrix_info):
     if selected == '':
         raise PreventUpdate
     else:
-        path_matrix = os.getcwd() + pdb_matrix_info[1]
-        res_list = json.loads(pdb_matrix_info[2])
+        path_matrix = pdb_matrix_info[1]
+        res_list = json.loads(pdb_matrix_info[2])['labels']
 
         selected = selected.split('|')
         obj_a = selected[0].split(':')

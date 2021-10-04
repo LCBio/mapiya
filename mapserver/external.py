@@ -143,8 +143,8 @@ def fix_pdb_with_pdbfixer(filename, chains='all', params=None):
         log.append("INFO: no atoms added")
 
     if params['add_atoms'] == 'hydrogen' or params['add_atoms'] == 'all':
-        fixer.addMissingHydrogens(float(params['protonation_ph']))
-        log.append("INFO: added missing hydrogens for state protonated at pH="+params['protonation_ph'])
+        fixer.addMissingHydrogens(params['protonation_ph'])
+        log.append("INFO: added missing hydrogens for state protonated at pH="+str(params['protonation_ph']))
 
     PDBFile.writeFile(fixer.topology, fixer.positions, open(prefix+'_fixed.pdb', 'w'))
 
@@ -201,11 +201,10 @@ def run_external_software(filename, chains='all', params=None):
        params - dict of key-value options required by pdbfixer and APBS
     """
 
-    path = os.getcwd()					# parent dir for temporary dir
     prefix = filename.split('/')[-1].split('.')[0]  # PDB code + model index, e.g., prefix = 2GB1_1 when filename = <path_to_media_user_project>/2GB1_1.pdb
     dirpath = os.path.dirname(filename)			# derived <path_to_media_user_project>
 
-    with tempfile.TemporaryDirectory(dir=path) as tmp_dir:
+    with tempfile.TemporaryDirectory() as tmp_dir:
         os.chdir(tmp_dir)
 
         pdbfixer_log = fix_pdb_with_pdbfixer(filename, chains, params)		### run PDBfixer: save filename_fixed.pdb (always) and filename_fixed_envir.pdb (if requested)
@@ -275,26 +274,3 @@ def run_external_software(filename, chains='all', params=None):
 
     return pdbfixer_log, ss_elements, structural_data, HB
 
-
-#### code below should be executed in the final destination, eg. within file models.py inside the function: get_matrix()
-#### some commands are switched off to do not disturb local testing
-#### OUTPUTS:
-#### - pdbfixer_log - brief info what have been fixed with pdbfixer (to pass to the user in the download section); can be stored in the database as 'fixer_log' field
-#### - ss_elements - brief summary of number, type, and residue ranges of detected secondary structure elements (to pass to the user in the download section); can be stored in the database as 'ss_elements' field
-#### - structural_data - list of pandas dataframes (one df object per protein chain); size scalable with the number of RESIDUES in the model; can be saved as gziped file on the proper ~/media/ path as struct_data_modelID.csv
-#### - HB - pandas dataframe with all params relevant to hydrogen bonds description; size scalable with the number of ATOMS(!) in the model; can be saved as gziped file on the proper ~/media/ path as hydrogen_bonds_modelID.csv
-####---------------------------------------------------------------
-
-#from manage_external_software import *
-#model_index = 1	# default = 1, or function iterating through all models
-#model = MapModel.objects.get(map_id=pk, model_number=model_index)
-#opts = convert_options_values(model.config) # or sth like that :)	# teplate function 'convert_options_values' is on the top of this file
-#media_path = <path_to_media_dir>
-
-# myfile = os.getcwd()+'/3dcg.pdb'	# path to SINGLE(!) model of user-loaded PDB file (~/media/user/session/...)
-# pdbfixer_log, ss_elements, structural_data, HB = run_external_software(myfile, 'all', opts)
-
-#model.fixer_log = json.dumps(pdbfixer_log)
-#model.ss_elements = json.dumps(ss_elements)
-#structural_data.to_csv(media_path+'/struct_data_'+model_index+'.csv', sep='\t')	# or model.structural_data = structural_data.to_json() to store pandas dataframe in DB
-#HB.to_csv(media_path+'/hydrogen_bonds_'+model_index+'.csv', sep='\t')			# or model.hydrogen_bonds = HB.to_json() to store pandas dataframe in DB

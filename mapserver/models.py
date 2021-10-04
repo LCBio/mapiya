@@ -126,7 +126,6 @@ class Job(models.Model):
             np.save(f, matrix)
             self.matrix = File(f, name=f'matrix{self.model_number}.npy')
 
-            info.update(json.loads(self.info) if self.info else {})
             self.info = json.dumps({
                 'labels': info,
                 **(json.loads(self.info) if self.info else {})
