@@ -125,8 +125,12 @@ class Job(models.Model):
             info, matrix = self.get_matrix()
             np.save(f, matrix)
             self.matrix = File(f, name=f'matrix{self.model_number}.npy')
+
             info.update(json.loads(self.info) if self.info else {})
-            self.info = json.dumps(info)
+            self.info = json.dumps({
+                'labels': info,
+                **(json.loads(self.info) if self.info else {})
+            })
             self.save(update_fields=['matrix', 'info'])
 
     def save_pdb(self):
