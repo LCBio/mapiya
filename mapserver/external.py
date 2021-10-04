@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-import os
-import subprocess
-import tempfile
-
 import openmm as mm
+import os
 import pandas as pd
 import simtk.unit as unit
+import subprocess
+import tempfile
+import traceback
 from openmm.app import PDBFile
 from pdbfixer import PDBFixer
 
@@ -144,9 +144,9 @@ def fix_pdb_with_pdbfixer(filename, chains='all', params=None):
 
     if params['add_atoms'] == 'hydrogen' or params['add_atoms'] == 'all':
         fixer.addMissingHydrogens(params['protonation_ph'])
-        log.append("INFO: added missing hydrogens for state protonated at pH="+str(params['protonation_ph']))
+        log.append("INFO: added missing hydrogens for state protonated at pH=" + str(params['protonation_ph']))
 
-    PDBFile.writeFile(fixer.topology, fixer.positions, open(prefix+'_fixed.pdb', 'w'))
+    PDBFile.writeFile(fixer.topology, fixer.positions, open(prefix + '_fixed.pdb', 'w'))
 
     # Add a water box
     if params['add_environment'] != 'none':
@@ -160,7 +160,7 @@ def fix_pdb_with_pdbfixer(filename, chains='all', params=None):
                     max((pos[i] for pos in fixer.positions)) - min((pos[i] for pos in fixer.positions))
                     for i in range(3)
                 )
-                boxSize = maxSize*mm.Vec3(1, 1, 1)
+                boxSize = maxSize * mm.Vec3(1, 1, 1)
             elif params['water_box'] == 'custom':
                 bs = [float(i) for i in params['box_dimensions'].split(',')]
                 boxSize = mm.Vec3(bs[0], bs[1], bs[2]) * unit.nanometers
@@ -172,7 +172,7 @@ def fix_pdb_with_pdbfixer(filename, chains='all', params=None):
                     "INFO: added solvent: water box dimensions: " + str(boxSize) + "; ion(+)=" + ions[0] + "; ion(-)=" +
                     ions[1] + "; ionic strength: " + str(ions[2]) + " molar"
                 )
-                PDBFile.writeFile(fixer.topology, fixer.positions, open(prefix+'_fixed_envir.pdb', 'w'))
+                PDBFile.writeFile(fixer.topology, fixer.positions, open(prefix + '_fixed_envir.pdb', 'w'))
             except Exception as e:
                 log.append(f"INFO: adding solvent failed due to an error: {e}")
 
@@ -182,9 +182,9 @@ def fix_pdb_with_pdbfixer(filename, chains='all', params=None):
             try:
                 fixer.addMembrane(lipidType=mem[0], membraneCenterZ=float(mem[1]), minimumPadding=float(mem[2]),
                                   positiveIon=ions[0], negativeIon=ions[1], ionicStrength=float(ions[2]) * unit.molar)
-                log.append("INFO: added membrane: lipid type: " + mem[0] + "; ion(+)=" + ions[0] + "; ion(-)=" + ions[
-                    1] + "; ionic strength: " + str(ions[2]) + " molar")
-                PDBFile.writeFile(fixer.topology, fixer.positions, open(prefix+'_fixed_envir.pdb', 'w'))
+                log.append("INFO: added membrane: lipid type: " + mem[0] + "; ion(+)=" + ions[0] +
+                           "; ion(-)=" + ions[1] + "; ionic strength: " + str(ions[2]) + " molar")
+                PDBFile.writeFile(fixer.topology, fixer.positions, open(prefix + '_fixed_envir.pdb', 'w'))
             except Exception as e:
                 log.append(f"INFO: adding membrane failed due to an error: {e}")
     else:
@@ -201,76 +201,112 @@ def run_external_software(filename, chains='all', params=None):
        params - dict of key-value options required by pdbfixer and APBS
     """
 
-    prefix = filename.split('/')[-1].split('.')[0]  # PDB code + model index, e.g., prefix = 2GB1_1 when filename = <path_to_media_user_project>/2GB1_1.pdb
-    dirpath = os.path.dirname(filename)			# derived <path_to_media_user_project>
+    prefix = filename.split('/')[-1].split('.')[0]
+    dirpath = os.path.dirname(filename)  # <path_to_media_user_project>
+    path = dirpath.replace('media', ' ').split()[0]
+    pdbfixer_log = ss_elements = structural_data = HB = ''
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         os.chdir(tmp_dir)
+        try:
+            pdbfixer_log = fix_pdb_with_pdbfixer(filename, chains,
+                                                 params)  ### run PDBfixer: save filename_fixed.pdb (always) and filename_fixed_envir.pdb (if requested)
+            os.system('cp ' + prefix + '_fixed.pdb ' + prefix + '_fixed_envir.pdb ' + dirpath)
+        except:
+            os.system('cp ' + filename + ' ' + prefix + '_fixed.pdb')
+            pdbfixer_log = ['PDBfixer failed to optimize your pdb.']
+            traceback.print_exc(file=open(dirpath + '/pdbfixer.log', "a"))
 
-        pdbfixer_log = fix_pdb_with_pdbfixer(filename, chains, params)		### run PDBfixer: save filename_fixed.pdb (always) and filename_fixed_envir.pdb (if requested)
-        os.system('stride -h -f'+prefix+'.stride '+prefix+'_fixed.pdb')		### run STRIDE to get: secondary structure, solvent accessibility, ramachandran angles
-        os.system(f"pdb2pqr --ff=PARSE --apbs-input {prefix}.in --titration-state-method=propka "
-                  f"--with-ph={params['protonation_ph']} {prefix}_fixed.pdb {prefix}.pqr 2> apbs.out")
-        os.system('apbs --output-file=apbs.config '+prefix+'.in >> apbs.out')	### run APBS to get electrostatics
-        p = subprocess.Popen(['whereis', 'edhb'], stdout=subprocess.PIPE)	### (!) make sure that the venv is activated: 'conda activate venv'
-        venvdir = str(p.stdout.read().decode('ascii')).strip().split()[1].strip().replace('edhb','')
-        os.system('ln -s '+venvdir+'main_input ./')				### (!) required in the current path for edhb
-        os.system('ln -s '+venvdir+'init.txt ./')				### (!) required in the current path for edhb
-        os.system('edhb '+prefix+'_fixed.pdb -c -a -B -R')			### run EDHB to get hydrogen bonds
-        ### save important outputs in ~/media/ dir
-        os.system('cp '+prefix+'_fixed.pdb '+prefix+'_fixed_envir.pdb '+prefix+'.pqr '+prefix+'.pqr.dx '+dirpath)
-        os.system(f'cp apbs.config {dirpath}/{prefix}.apbs')
+        try:
+            os.system(f"pdb2pqr --ff=PARSE --apbs-input {prefix}.in --titration-state-method=propka "
+                      f"--with-ph={params['protonation_ph']} {prefix}_fixed.pdb {prefix}.pqr 2> apbs.out")
+            os.system('cp ' + prefix + '.pqr ' + dirpath)
+        except:
+            traceback.print_exc(file=open(dirpath + '/pdb2pqr.log', "a"))
 
-#        print(os.listdir(tmp_dir))
+        try:
+            os.system(
+                'stride -h -f' + prefix + '.stride ' + prefix + '_fixed.pdb')  ### run STRIDE to get: secondary structure, solvent accessibility, ramachandran angles
+            ### parse STRIDE outputs
+            ss_elements = {}
+            structural_data = pd.DataFrame(
+                columns=['chain', 'residues', 'secondary_structure', 'solvent_accessibility', 'phi', 'psi',
+                         'mainHB_acceptor'])
+            path_to_file = prefix + '.stride'
+            if os.path.exists(path_to_file):
+                with open(path_to_file, 'r') as f:
+                    for row in f:
+                        if row.startswith('LOC'):
+                            element = row[5:17].strip()
+                            if not element in ss_elements:
+                                ss_elements[element] = []
+                            ss_elements[element].append(
+                                row[18:21].strip() + ':' + row[22:27].strip() + '_' + row[28] + '-' +
+                                row[35:38].strip() + ':' + row[41:45].strip() + '_' + row[46])
+                        elif row.startswith('ASG'):
+                            structural_data.loc[len(structural_data.index)] = [row[9], row[5:8].strip() + ':' +
+                                row[11:15].strip(), row[24:25].strip(), row[64:69].strip(), row[42:49].strip(),
+                                row[52:59].strip(), {}]
+                        elif row.startswith('DNR'):
+                            acc = row[25:28].strip() + ':' + row[31:35].strip() + '_' + row[29]
+                            donor = row[5:8].strip() + ':' + row[11:15].strip()
+                            value = [row[41:45].strip(), row[46:52].strip(), row[53:59].strip(), row[60:66].strip(),
+                                     row[67:73]]  # [0] N..0 distance; [1] N..O=C angle; [2] O..N-C angle; [3] A1 (Angle between the planes of donor complex and O..N-C); [4] A2 (angle between the planes of acceptor complex and N..O=C)
+                            structural_data.loc[
+                                (structural_data['chain'] == row[9]) & (structural_data['residues'] == donor)][
+                                'mainHB_acceptor'].values[0][acc] = value
+        except:
+            traceback.print_exc(file=open(dirpath + '/stride.log', "a"))
 
-        ### parse STRIDE outputs
-        ss_elements = {}
-        structural_data = pd.DataFrame(columns = ['chain','residues','secondary_structure','solvent_accessibility','phi','psi','mainHB_acceptor'])
-        path_to_file = os.getcwd()+'/'+prefix+'.stride'
-        if os.path.exists(path_to_file):
-            with open(path_to_file,'r') as f:
-                for row in f:
-                    if row.startswith('LOC'):
-                        element = row[5:17].strip()
-                        if not element in ss_elements:
-                            ss_elements[element] = []
-                        ss_elements[element].append(row[18:21].strip()+':'+row[22:27].strip()+'_'+row[28]+'-'+row[35:38].strip()+':'+row[41:45].strip()+'_'+row[46])
-                    elif row.startswith('ASG'):
-                        structural_data.loc[len(structural_data.index)] = [row[9], row[5:8].strip()+':'+row[11:15].strip(), row[24:25].strip(), row[64:69].strip(), row[42:49].strip(), row[52:59].strip(), {}]
-                    elif row.startswith('DNR'):
-                        acc = row[25:28].strip()+':'+row[31:35].strip()+'_'+row[29]
-                        donor = row[5:8].strip()+':'+row[11:15].strip()
-                        value = [row[41:45].strip(), row[46:52].strip(), row[53:59].strip(), row[60:66].strip(), row[67:73]]	#[0] N..0 distance; [1] N..O=C angle; [2] O..N-C angle; [3] A1 (Angle between the planes of donor complex and O..N-C); [4] A2 (angle between the planes of acceptor complex and N..O=C)
-                        structural_data.loc[(structural_data['chain'] == row[9]) & (structural_data['residues'] == donor)]['mainHB_acceptor'].values[0][acc] = value
+        try:
+            p = subprocess.Popen(['whereis', 'edhb'], stdout=subprocess.PIPE)
+            venvdir = str(p.stdout.read().decode('ascii')).strip().split()[1].strip().replace('edhb', '')
+            os.system('ln -s ' + venvdir + 'main_input ./')
+            os.system('ln -s ' + venvdir + 'init.txt ./')
+            os.system('edhb ' + prefix + '_fixed.pdb -c -a -B')  ### run EDHB to get hydrogen bonds
+            ### parse EDHB outputs
+            HB = pd.DataFrame(
+                columns=['chains', 'donor', 'acceptor', 'proton', 'acc_atom', 'ids', 'type', 'bond', 'length', 'angle',
+                         'bifurcation'])
+            path_to_edhb = prefix + '_fixed.xls'
+            path_to_fixer = prefix + '_fixed.pdb'
+            if os.path.exists(path_to_edhb) and os.path.exists(path_to_fixer):
+                edhb = pd.read_excel(path_to_edhb)
+                inds = pd.DataFrame(columns=['chain', 'residue', 'atom', 'ix'])
+                with open(path_to_fixer, 'r') as f:
+                    for row in f:
+                        if row.startswith('ATOM'):
+                            inds.loc[len(inds.index)] = [row[21], row[17:20].strip() + ':' + row[22:26].strip(),
+                                                         row[11:16].strip(), row[4:11].strip()]
+                for index, row in edhb.iterrows():
+                    ids = row['atomIDs'].split('-')
+                    proton = inds[inds.ix == ids[1]]
+                    acceptor = inds[inds.ix == ids[0]]
+                    if len(proton) and len(acceptor):  # remove HB with water molecules
+                        backbone = ['N', 'H', 'H2', 'H3', 'CA', 'HA', 'C', 'O']
+                        chains = proton['chain'].values[0] + ':' + acceptor['chain'].values[0]
+                        at_d = proton['atom'].values[0]
+                        at_a = acceptor['atom'].values[0]
+                        ix_d = proton['ix'].values[0]
+                        ix_a = acceptor['ix'].values[0]
+                        td = ta = 's'
+                        if at_d in backbone:
+                            td = 'b'
+                        if at_a in backbone:
+                            ta = 'b'
+                        HB.loc[len(HB.index)] = [chains, proton['residue'].values[0], acceptor['residue'].values[0],
+                                                 at_d, at_a, ix_d + ':' + ix_a, td + ta, row['Bond'], row['HB length'],
+                                                 row['HB Angle'], row['Bifurcation type']]
 
-        ### parse EDHB outputs
-        HB = pd.DataFrame(columns = ['chains','donor','acceptor','proton','acc_atom','ids','type','bond','length','angle','intraHB','bifurcation'])
-        path_to_edhb = os.getcwd()+'/'+prefix+'_fixed.xls'
-        path_to_fixer = os.getcwd()+'/'+prefix+'_fixed.pdb'
-        if os.path.exists(path_to_edhb) and os.path.exists(path_to_fixer):
-            edhb = pd.read_excel(path_to_edhb)
-            inds = pd.DataFrame(columns = ['chain','residue','atom', 'ix'])
-            with open(path_to_fixer,'r') as f:
-                for row in f:
-                    if row.startswith('ATOM'):
-                        inds.loc[len(inds.index)] = [row[21], row[17:20].strip()+':'+row[22:26].strip(), row[11:16].strip(), row[4:11].strip()]
-        for index, row in edhb.iterrows():
-            ids = row['atomIDs'].split('-')
-            proton = inds[inds.ix == ids[1]]
-            acceptor = inds[inds.ix == ids[0]]
-            if len(proton) and len(acceptor):		# remove HB with water molecules
-                backbone = ['N', 'H', 'H2', 'H3', 'CA', 'HA', 'C', 'O']
-                chains = proton['chain'].values[0]+':'+acceptor['chain'].values[0]
-                at_d = proton['atom'].values[0]
-                at_a = acceptor['atom'].values[0]
-                ix_d = proton['ix'].values[0]
-                ix_a = acceptor['ix'].values[0]
-                td = ta = 's'
-                if at_d in backbone:
-                    td = 'b'
-                if at_a in backbone:
-                    ta = 'b'
-                HB.loc[len(HB.index)] = [chains, proton['residue'].values[0], acceptor['residue'].values[0], at_d, at_a, ix_d+':'+ix_a, td+ta, row['Bond'], row['HB length'], row['HB Angle'], row['Intra-HB'], row['Bifurcation type']]
+        except:
+            traceback.print_exc(file=open(dirpath + '/edhb.log', "a"))
 
+        #        try:
+        #            os.system('apbs --output-file=apbs.config '+prefix+'.in >> apbs.out')	### run APBS to get electrostatics
+        #            os.system(f'cp apbs.config {dirpath}/{prefix}.apbs')
+        #            os.system('cp '+prefix+'.pqr.dx '+dirpath)
+        #        except:
+        #            traceback.print_exc(file=open(dirpath+'/apbs.log', "a"))
+
+        os.chdir(path)
     return pdbfixer_log, ss_elements, structural_data, HB
-
