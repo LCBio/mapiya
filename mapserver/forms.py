@@ -38,8 +38,7 @@ class OptionsForm(forms.Form):
         'max_loop_length': 5,
         'keep_heterogens': 'none',
         'replace_non_standard': False,
-        'apply_mutations': False,
-        'specify_mutations': '',
+        'apply_mutations': '',
         'add_environment': 'none',
         'positive_ion': 'Na+',
         'negative_ion': 'Cl-',
@@ -112,18 +111,10 @@ class OptionsForm(forms.Form):
         label='replace non-standard aa'
     )
 
-    apply_mutations = forms.ChoiceField(
-        choices=[(False, 'no'), (True, 'yes')],
-        label='apply mutations'
-    )
-
-    specify_mutations = forms.CharField(
+    apply_mutations = forms.CharField(
         required=False,
-        label='&#8627; specify mutations',
-        widget=forms.TextInput(attrs={
-            'placeholder': 'e.g., VAL-3-ILE:A, ILE-7-VAL:A',
-            'data-requirements': json.dumps({'apply_mutations': ['True']})
-        })
+        label='apply mutations',
+        widget=forms.TextInput(attrs={'placeholder': 'e.g., VAL-3-ILE:A, ILE-7-VAL:A'})
     )
 
     add_environment = forms.ChoiceField(
@@ -222,9 +213,6 @@ class OptionsForm(forms.Form):
     def clean_replace_non_standard(self):
         return self.cleaned_data['replace_non_standard'] in ['True', 'true', True]
 
-    def clean_apply_mutations(self):
-        return self.cleaned_data['apply_mutations'] in ['True', 'true', True]
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -251,7 +239,6 @@ class OptionsForm(forms.Form):
             layouts.RowField('keep_heterogens'),
             layouts.RowField('replace_non_standard'),
             layouts.RowField('apply_mutations'),
-            layouts.RowField('specify_mutations'),
             layouts.RowField('add_environment'),
             layouts.RowField('positive_ion'),
             layouts.RowField('negative_ion'),

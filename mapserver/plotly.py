@@ -1,7 +1,7 @@
 import dash
-#from dash import html, dcc
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import html, dcc
+# import dash_core_components as dcc
+# import dash_html_components as html
 import json
 import os
 import plotly.graph_objects as go
@@ -198,7 +198,7 @@ def load_models(pk, n, model_ix):
     status = 0
     for i in list(Job.objects.all()):
         if i.project_id == pk:
-            models[i.model_number] = i.status
+            models[i.model_index] = i.status
     n_models = len(models)
     if n_models > 1:
         buttons = []

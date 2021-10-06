@@ -1,11 +1,11 @@
-from . import models
+from . import Project, Job
 from django.dispatch import receiver
 from django.db.models import signals
 from django.core.files.storage import default_storage as storage
 import json
 
 
-@receiver(signals.pre_delete, sender=models.Project)
+@receiver(signals.pre_delete, sender=Project)
 def delete_media(**kwargs):
     instance = kwargs.get('instance')
     if storage.exists(instance.media_dir):
@@ -14,7 +14,7 @@ def delete_media(**kwargs):
         storage.delete(instance.media_dir)
 
 
-@receiver(signals.post_save, sender=models.Project)
+@receiver(signals.post_save, sender=Project)
 def project_init_extras(**kwargs):
     if kwargs['created']:
         instance = kwargs.get('instance')
@@ -23,8 +23,8 @@ def project_init_extras(**kwargs):
             'labels': list(instance.atoms.models.keys())
         })
         instance.save(update_fields=['info'])
-        for model_number in instance.atoms.models:
-            models.Job.objects.create(
+        for model_index in instance.atoms.models:
+            Job.objects.create(
                 project=instance,
-                model_number=model_number if model_number else 0
+                model_index=model_index if model_index else 0
             )
