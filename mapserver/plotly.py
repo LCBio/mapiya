@@ -19,32 +19,36 @@ from .models import Job
 #    print('Start... ', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))	### testing mode
 
 # CSS style
-drops = {'margin': '0 0 0.4vh 0.5vw', 'width': '20vw', 'display': 'inline-block', 'font-size': '2vh',
+drops = {'margin': '0 0 0.4vh 2vw', 'width': '13vw', 'display': 'inline-block', 'font-size': '2vh',
          'font-family': 'Ubuntu, sans-serif', 'color': 'dimgrey'}
-lab_style = {'color': 'white', 'text-align': 'left', 'font-size': '0.85rem', 'font-weight': '500',
+lab_style = {'color': '#63533c', 'text-align': 'left', 'font-size': '0.85rem', 'font-weight': '500',
              'margin-left': '2px', 'font-family': 'Ubuntu, sans-serif'}
-drop_style = {'margin': '1vh 0 0 2vw', 'width': '13vw', 'display': 'inline-block', 'font-size': '2vh',
-              'color': 'dimgrey', 'font-family': 'Ubuntu, sans-serif'}
 btn_basic = {'margin': '0 0.5vw 0 0', 'padding': '0.2vh 0', 'font-size': '2vh', 'height': '3vh', 'width': '7vw'}
-btn_style = {'background-color': 'rgb(239, 239, 239)', 'color': '#4D5656', }
+btn_style = {'background-color': '#eeece7', 'color': '#63533c'}
 btn_selected_style = {'borderBottom': '3px solid #4682B4', 'borderTop': '0px solid #4682B4',
                       'background-color': '#95C8D8', 'color': 'black'}
-btn_disabled_style = {'background-color': '#F8F9F9', 'color': '#95A5A6 '}
-btn_opts = {'height': '4vw', 'width': '4vw', 'border': '1px', 'margin-bottom': '0.4vh', 'font-size': '3vh'}
+btn_disabled_style = {'background-color': '#F8F9F9', 'color': '#95A5A6'}
+btn_opts = {'height': '4vw', 'width': '4vw', 'border': '1px', 'margin-bottom': '0.45vw', 'font-size': '3vh'}
 btn_slider = {'height': '3vh', 'width': '4vw', 'display': 'inline-block', 'position': 'absolute', 'top': '0',
               'font-size': '1.7vh'}
 tabs_style = {'height': '4vh', 'width': '89.5vw', 'overflow-x': 'hidden', 'overflow-y': 'hidden',
               'scrollbar-width': 'none', 'display': 'inline-block', 'margin-left': '4.5vw', 'margin-right': '0.5vw'}
-settings_style = {'width': '94vw', 'height': '12vh', 'display': 'none', 'background': '#272727', 'opacity': '0.98',
-                  'border-radius': '5px 5px 5px 5px', 'position': 'absolute', 'left': '4.5vw', 'z-index': '101'}
+settings_style = {'width': '92.5vw', 'height': 'auto', 'display': 'block', 'background': '#eeece7', 'opacity': '0.97',
+                  'border-radius': '5px 5px 5px 5px', 'position': 'absolute', 'top': '0', 'left': '0.5vw', 'z-index': '101',
+                  'padding': '1vh 1vw 1vh 1vw'}
+settings_close = {'margin': '0 1vw 0 0', 'border': '0px', 'color': '#63533c', 'font-size': '3vh', 'vertical-align': 'top', 
+                  'height':'2vw', 'width':'2vw', 'position':'absolute', 'top':'0', 'right':'0', 'z-index':'105'}
 
 # colorscales
-colors = ['Viridis', 'Cividis', 'Inferno', 'Magma', 'Plasma', 'Turbo', 'Blackbody', 'Blured', 'Electric', 'Hot', 'Jet',
+colors = ['ice', 'Viridis', 'Cividis', 'Inferno', 'Magma', 'Plasma', 'Turbo', 'Blackbody', 'Blured', 'Electric', 'Hot', 'Jet',
           'Rainbow', 'Blues', 'BuGn', 'BuPu', 'GnBu', 'Greens', 'Greys', 'OrRd', 'Oranges', 'PuBu', 'PuBuGn', 'PuRd',
           'Purples', 'RdBu', 'RdPu', 'Reds', 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd', 'turbid', 'thermal', 'haline',
-          'solar', 'ice', 'gray', 'deep', 'dense', 'algae', 'matter', 'speed', 'amp', 'tempo', 'Burg', 'Burgyl',
+          'solar', 'gray', 'deep', 'dense', 'algae', 'matter', 'speed', 'amp', 'tempo', 'Burg', 'Burgyl',
           'Redor', 'Oryel', 'Peach', 'Pinkyl', 'Mint', 'Blugrn', 'Darkmint', 'Emrld', 'Aggrnyl', 'Bluyl', 'Teal',
           'Tealgrn', 'Purp', 'Purpor', 'Sunset', 'Magenta', 'Sunsetdark', 'Agsunset', 'Brwnyl']
+colors_binary = {'Purple': '#800080', 'Fuchsia': '#FF00FF', 'Navy': '#000080', 'Blue': '#0000FF', 'Skyblue': '#1DACD6', 
+          'Teal': '#008080', 'Aqua': '#00FFFF', 'Green': '#008000', 'Lime': '#00FF00', 'Olive': '#808000', 'Yellow': '#FFFF00',
+          'Orange': '#FF8000', 'Maroon': '#800000', 'Red': '#FF0000', 'Silver': '#C0C0C0', 'Gray': '#808080', 'Black': '#000000'}
 cs_seq = [[0, "#c6ff1a"], [0.05, "#c6ff1a"], [0.05, "#ffff00"], [0.1, "#ffff00"], [0.1, "#ffcc00"], [0.15, "#ffcc00"],
           [0.15, "#ff944d"], [0.2, "#ff944d"], [0.2, "#ff6600"], [0.25, "#ff6600"], [0.25, "#e62e00"], [0.3, "#e62e00"],
           [0.3, "#cc0000"], [0.35, "#cc0000"], [0.35, "#b30059"], [0.4, "#b30059"], [0.4, "#ff0080"], [0.45, "#ff0080"],
@@ -101,6 +105,7 @@ app.layout = html.Div([
     dcc.Input(id="void1", value='', type='hidden'),
     dcc.Input(id="void2", value='', type='hidden'),
     dcc.Input(id="void3", value='', type='hidden'),
+    dcc.Input(id="void4", value='', type='hidden'),
     dcc.Input(id="slider", value='', type='hidden'),
 
     dcc.Interval(id="interval", interval=5000),
@@ -110,12 +115,15 @@ app.layout = html.Div([
         html.Button('⯈', id="slide", type="button", style={'display': 'none'}),
     ], style={'position': 'relative'}),
     html.Div([
-        html.Button('⚙', id='opts', style={**btn_basic, **btn_style, **btn_opts}, title='display settings'),
+        html.Button('⚙', id='opts', className='hovertext', style={**btn_basic, **btn_style, **btn_opts}, title='display settings'),
         html.Button('✾', id='tab-1', style={**btn_basic, **btn_style, **btn_opts},
                     title='see objects and interactions'),
         html.Button('◩', id='tab-2', style={**btn_basic, **btn_style, **btn_opts, 'color': '#95A5A6'},
                     title='see contact map'),
         html.Button('⬇', id='tab-3', style={**btn_basic, **btn_style, **btn_opts}, title='download data'),
+        html.Div([html.Div(id='settings', style={'display':'block', 'z-index':'110'}),
+                  html.Button('×', id='close', style={**btn_style, **settings_close}, title='close options window'),
+                 ], id='settings-dir', style={**settings_style, 'left': '4.5vw'}),
     ], style={'width': '4vw', 'position': 'absolute', 'left': '0', 'z-index': '100'}),
     html.Div(id='tabs', style={'height': '94vh'}),
 ], style={'height': '97vh', 'width': '96vw', 'margin': '0', 'padding': '0'})
@@ -168,24 +176,19 @@ app.clientside_callback(
     Output('void2', 'value'), [Input('slider', 'value')]
 )
 
+
 app.clientside_callback(
     """
-    function (n_clicks) {
-      var targetDiv = document.getElementById("settings_chord");
-      if (targetDiv==null) {
-        var targetDiv = document.getElementById("settings_map");
-      };
-      if (targetDiv==null) {
-        var targetDiv = document.getElementById("settings_download");
-      };
-      if (targetDiv.style.display !== "none") {
+    function (n_clicks, n_clicks) {
+      var targetDiv = document.getElementById("settings-dir");
+      if (targetDiv.style.display !== "none" && typeof (n_clicks) !== 'undefined') {
           targetDiv.style.display = "none";
         } else {
           targetDiv.style.display = "block";
         }
     };
     """,
-    Output('void3', 'value'), [Input('opts', 'n_clicks')]
+    Output('void3', 'value'), [Input('opts', 'n_clicks'), Input('close', 'n_clicks')]
 )
 
 
@@ -258,18 +261,19 @@ def select_model(btn, pk, ix):
         raise PreventUpdate
     elif btn == 0:
         model = Job.objects.get(project_id=pk)
-        return [btn, [model.project.filename, model.matrix.path, model.info]]
+        return [btn, {'protein': model.project.filename, 'matrix': model.matrix.path, 'info': model.info, 
+                      'config': model.project.config, 'struct': model.structural_data.path, 'hbonds': model.hydrogen_bonds.path}]
     elif btn >= 1:
         model = Job.objects.get(project_id=pk, model_number=btn)
-        return [btn, [model.project.filename, model.matrix.path, model.info]]
+        return [btn, {'protein': model.project.filename, 'matrix': model.matrix.path, 'info': model.info, 
+                      'config':model.project.config, 'struct': model.structural_data.path, 'hbonds': model.hydrogen_bonds.path}]
 
 
 @app.expanded_callback([Output('con-intra', 'value'), Output('con-inter', 'value'), Output('contacts', 'value')],
                        [Input('model-data', 'value')])
-def load_basic_data(pdb_matrix_info):
-    x = json.loads(pdb_matrix_info[2])
-    info = json.loads(pdb_matrix_info[2])['labels']  # dict = {'protein-A':[['AA:200','AA:201', ...],[from:to]]}
-    matrix = np.load(pdb_matrix_info[1])
+def load_basic_data(model_data):
+    info = json.loads(model_data['info'])['labels']  # dict = {'protein-A':[['AA:200','AA:201', ...],[from:to]]}
+    matrix = np.load(model_data['matrix'])
     options1 = {}
     options2 = {}
     objects = []
@@ -286,7 +290,7 @@ def load_basic_data(pdb_matrix_info):
                 mat = mat[np.nonzero(mat)]
                 counts = 0
                 try:
-                    counts = len(mat[mat <= 8.0])  # model.cutoff field needed in django
+                    counts = len(mat[mat <= json.loads(model_data['config'])["contact_cutoff"]])
                     if counts > 0:
                         if num1 == num2:
                             val = i + ":" + str(r1[0]) + ":" + str(r1[1]) + ":" + str(counts)
@@ -303,8 +307,8 @@ def load_basic_data(pdb_matrix_info):
 
 
 @app.expanded_callback(Output('data_1d', 'value'), [Input('model-data', 'value')])
-def calc_1d_data(pdb_matrix_info):
-    info = json.loads(pdb_matrix_info[2])['labels']
+def calc_1d_data(model_data):
+    info = json.loads(model_data['info'])['labels']
 
     data_1d = {}
     for i in info:
@@ -318,10 +322,10 @@ def calc_1d_data(pdb_matrix_info):
     return data_1d
 
 
-@app.callback(Output('tabs', 'children'),
+@app.callback([Output('settings', 'children'), Output('tabs', 'children')],
               [Input('tab-1', 'n_clicks'), Input('tab-2', 'n_clicks'), Input('tab-3', 'n_clicks'),
-               Input('con-intra', 'value'), Input('con-inter', 'value'), Input('selected', 'value')])
-def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inter, selected):
+               Input('con-intra', 'value'), Input('con-inter', 'value'), Input('selected', 'value'), Input('model-data', 'value')])
+def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inter, selected, model_data):
     tab = 'tab-1'
     ctx = dash.callback_context.triggered
     if len(ctx):
@@ -329,115 +333,141 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
         if tmp.startswith('tab'):
             tab = tmp
     if tab == 'tab-1':
-        return html.Div([
+        return [
             html.Div([
                 html.Div([
                     html.Label('to see Intramolecular Map', style=lab_style),
                     dcc.Dropdown(id='object_selected', placeholder="Select Object", clearable=False, optionHeight=30,
-                                 options=[{'label': i, 'value': intra[i]} for i in intra], value='')], style=drops, ),
+                                 options=[{'label': i, 'value': intra[i]} for i in intra], value='', style={'marginTop': '6px'})], 
+                    style={**drops, 'marginLeft': '0.5vw', 'width': '20vw'}),
                 html.Div([
                     html.Label('to see Intermolecular Map', style=lab_style),
                     dcc.Dropdown(id='interaction_selected', placeholder="Select Interaction", clearable=False,
-                                 optionHeight=30, options=[{'label': i, 'value': inter[i]} for i in inter], value='')],
-                    style={**drops, 'margin-left': '2.5vw'}, ),
+                                 optionHeight=30, options=[{'label': i, 'value': inter[i]} for i in inter], value='', style={'marginTop': '6px'})],
+                    style={**drops, 'width': '20vw'}),
                 html.Div(
                     [html.P(' or hover & click on the selected ribbon',
                             style={'color': 'gray', 'text-align': 'left', })],
-                    style={'width': '40vw', 'display': 'inline-block', 'vertical-align': 'bottom'}, ),
-            ], id='settings_chord', style=settings_style),
-
-            html.Div(id='dashbio-circos', style={'height': '90vh', 'width': '94vw', 'margin': '1vh 0 0 3vw'}),
-            dcc.Input(id='click-data', type='hidden'),
-        ])
+                    style={'width': '40vw', 'display': 'inline-block', 'vertical-align': 'bottom', 'marginLeft': '2vw'}, ),
+            ], id='settings_chord'),
+            html.Div([
+                html.Div(id='dashbio-circos', style={'height': '90vh', 'width': '94vw', 'margin': '1vh 0 0 3vw'}),
+                dcc.Input(id='click-data', type='hidden'),
+            ])]
 
     elif tab == 'tab-2' and selected != '':
-        return html.Div([
+        if len(selected.split('|')) > 1:
+            opts = [{'label': 'CM: contact map', 'value': 'C'}, {'label': 'DM: distance map', 'value': 'D'}]
+            val = 'C'
+            opt_cs=[{'label': i, 'value': colors_binary[i]} for i in colors_binary]
+        else:
+            opts = [{'label': 'CM|DM', 'value': 'M'}, {'label': 'CM: contact map', 'value': 'C'},
+                    {'label': 'DM: distance map', 'value': 'D'}]
+            val = 'M'
+            opt_cs=[{'label': i, 'value': i} for i in colors]
+        return [
             html.Div([
                 html.Div([
+                    html.Div([
+                        html.Label('Display Mode', style=lab_style),
+                        dcc.Dropdown(id='display_mode', placeholder="Select mode", clearable=False,
+                                     style={'margin-top': '6px'}, optionHeight=30,
+                                     options=opts, value=val)],
+                        style={**drops, 'marginLeft': '0.5vw', 'width': '18vw'}),
                     html.Div([
                         html.Label('Contact Filter', style=lab_style),
                         dcc.Dropdown(id='feature_selected', placeholder="Select Feature", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
                                      options=[
-                                         {'label': 'distance cutoff', 'value': 'D'},
-                                         {'label': 'interaction types', 'value': 'H'},
-                                         {'label': 'filter: hydrophobic', 'value': 'H'},
-                                         {'label': 'filter: polar', 'value': 'P'},
-                                         {'label': 'filter: charged', 'value': 'E'},
-                                         {'label': 'filter: aromatic', 'value': 'A'},
-                                     ], value='D')],
-                        style={**drop_style, 'margin-left': '1vw', 'width': '17vw'}),
+                                         {'label': 'filter: none', 'value': 'N'},
+                                         {'label': 'hydrophobic', 'value': 'H'},
+                                         {'label': 'polar', 'value': 'P'},
+                                         {'label': 'charged', 'value': 'C'},
+                                         {'label': 'π-π stacking', 'value': 'S'},
+                                         {'label': 'π-cation', 'value': 'A'},
+                                         {'label': 'hydrogen bonds', 'value': 'B'},
+                                     ], value='N')],
+                        style={**drops, 'width': '18vw'}),
+                    html.Div([
+                        html.Label('Cutoff [Å]', style=lab_style),
+                        dcc.Input(id="cutoff", type="number", placeholder=" default: 8Å", min=0, value=json.loads(model_data['config'])["contact_cutoff"], step=0.1,
+                                  debounce=True,
+                                  style=dict(height='29px', width='10vw', marginTop='6px', color='dimgrey',
+                                             borderRadius='5px 5px 5px 5px', borderColor='rgba(0,0,0,0)'))],
+                        style={**drops, 'vertical-align': 'top', 'width': '10vw', 'margin-right': '1vw'}, ),
                     html.Div([
                         html.Label('ColorScale', style=lab_style),
                         dcc.Dropdown(id='color_selected', placeholder="Select Color", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
-                                     options=[{'label': i, 'value': i} for i in colors])],
-                        style={**drop_style, 'width': '11vw'}, ),
+                                     options=opt_cs, value=opt_cs[0]['value'])],
+                        style={**drops, 'width': '16vw'}, ),
                     html.Div([
-                        html.Label('Reverse', style=lab_style),
+                        html.Label('Reverse', id='check-reverse', style=lab_style),
                         dcc.Checklist(id='reverse', options=[{'label': '', 'value': '_r'}, ], value='', ), ],
-                        style={'width': '6vw', 'marginTop': '3.5vh', 'marginLeft': '0.8vw', 'display': 'inline-block',
+                        style={'width': '12vw', 'marginTop': '3vh', 'marginLeft': '0.8vw', 'display': 'inline-block',
                                'vertical-align': 'top'}, ),
+                    html.Hr(style={'border-top': '1px solid lightgray', 'margin': '0.7vw 0.5vw 0.7vw 0.5vw'}),
                     html.Div([
-                        html.Label('Cutoff [Å]', style=lab_style),
-                        dcc.Input(id="cutoff", type="number", placeholder=" default: 8Å", min=0, value='', step=0.1,
-                                  debounce=True,
-                                  style=dict(height='29px', width='10vw', marginTop='6px', color='dimgrey',
-                                             borderRadius='5px 5px 5px 5px', borderColor='rgba(0,0,0,0)'))],
-                        style={**drop_style, 'vertical-align': 'top', 'width': '10vw', 'margin-right': '1vw'}, ),
-                    html.Div([
-                        html.Label('Select 1D-Y', style=lab_style),
-                        dcc.Dropdown(id='1dy', placeholder="Select 1D Feature", clearable=False,
+                        html.Div([
+                            html.Label('Select 1D-Y Feature', style=lab_style),
+                            dcc.Dropdown(id='1dy', placeholder="Select 1D Feature", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
                                      options=[{'label': i, 'value': i} for i in opt_1D], value='none')],
-                        style={**drop_style, 'width': '17.5vw'}, ),
-                    html.Div([
-                        html.Label('Select 1D-X', style=lab_style),
-                        dcc.Dropdown(id='1dx', placeholder="Select 1D Feature", clearable=False,
+                            style={**drops, 'width': '18vw', 'marginLeft': '0.5vw'}, ),
+                        html.Div([
+                            html.Label('Select 1D-X Feature', style=lab_style),
+                            dcc.Dropdown(id='1dx', placeholder="Select 1D Feature", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
                                      options=[{'label': i, 'value': i} for i in opt_1D], value='none')],
-                        style={**drop_style, 'width': '17.5vw'}, ),
+                            style={**drops, 'width': '18vw'}),
+                    ], style={'display': 'block'}),
                 ]),
-            ], id='settings_map', style=settings_style),
+            ], id='settings_map'),
 
             html.Div([
-                dcc.Loading(id='loading-map', type='circle',
+                html.Div([
+                    dcc.Loading(id='loading-map', type='circle',
                             children=[html.Div(dcc.Graph(id='graph_map',
                                                          style={'height': '94vh', 'width': '95vw', 'margin-top': '0',
                                                                 'margin-left': '4vw'},
                                                          config={'responsive': True,
                                                              'toImageButtonOptions': {'format': 'svg', 'width': 1400,
                                                                                       'height': 800, 'scale': 1.5}}))]),
-            ], className='graph-parent'),
-            dcc.Input(id='click-map', type='hidden'),
+                ], className='graph-parent'),
+                dcc.Input(id='click-map', type='hidden'),
             # return info of clicked point on the map;
-        ])
+            ])]
 
     elif tab == 'tab-3':
-        return html.Div([
+        return [
             html.Div([
                 html.Div([
                     html.Label('Some options_1', style=lab_style),
                     dcc.Dropdown(id='options1', placeholder="Select ...", clearable=False, optionHeight=30,
                                  options=[{'label': 'H bonds', 'value': 'HB'},
-                                          {'label': 'interactions', 'value': 'I'}, ], value='')], style=drops, ),
+                                          {'label': 'interactions', 'value': 'I'}, ], value='', style={'marginTop': '6px'})],
+                    style={**drops, 'marginLeft': '0.5vw'},),
                 html.Div([
                     html.Label('Some options_2', style=lab_style),
                     dcc.Dropdown(id='options2', placeholder="Select ...", clearable=False, optionHeight=30,
-                                 options=[], value='')], style={**drops, 'margin-left': '2.5vw'}, ),
-            ], id='settings_download', style=settings_style),
-            dcc.Textarea(id='textarea', value='Textarea content initialized\nwith multiple lines of text',
+                                 options=[], value='', style={'marginTop': '6px'})], style={**drops}, ),
+            ], id='settings_download'),
+
+            html.Div([
+                dcc.Textarea(id='textarea', value='Textarea content initialized\nwith multiple lines of text',
                          style={'width': '93.5vw', 'height': 300, 'margin-top': '0', 'margin-left': '4.5vw'}, ),
-            html.Div(id='text-output'),
-        ])
+                html.Div(id='text-output'),
+            ])]
     else:
         raise PreventUpdate
 
 
-@app.expanded_callback([Output('text-output', 'children')],
-                       [Input('textarea', 'value'), Input('data_1d', 'value'), Input('options1', 'value')])
-def load_download_section(text, dat, val):
-    return ['You have entered: \n{}'.format(text)]
+@app.expanded_callback([Output('color_selected', 'options'), Output('color_selected', 'value'), Output('check-reverse', 'children')], Input('display_mode', 'value'))
+def update_cs(mode):
+    if mode == 'C':
+        return [[{'label': i, 'value': colors_binary[i]} for i in colors_binary], colors_binary['Navy'], 'Smoth CS']
+    else:
+        return [[{'label': i, 'value': i} for i in colors], colors[0], 'Reverse']
 
 
 @app.expanded_callback(Output('dashbio-circos', 'children'), Input('contacts', 'value'))
@@ -494,42 +524,50 @@ def display_click_data(data):
         return ''
 
 
-@app.expanded_callback([Output('tab-2', 'n_clicks'), Output('selected', 'value'), Output('tab-2', 'style')],
-                       [Input('object_selected', 'value'), Input('interaction_selected', 'value'),
-                        Input('click-data', 'value'), Input('con-intra', 'value'), Input('con-inter', 'value')],
-                       [State('tab-2', 'n_clicks'), State('tab-2', 'style')])
-def switch_to_map_tab(obj, interaction, click, intra, inter, n, style):
+@app.expanded_callback([Output('tab-2', 'n_clicks'), Output('selected', 'value')],
+                       [Input('buttons', 'value'), Input('object_selected', 'value'), 
+                        Input('interaction_selected', 'value'), Input('click-data', 'value'), 
+                        Input('con-intra', 'value'), Input('con-inter', 'value')], [State('tab-2', 'n_clicks')])
+def switch_to_map_tab(btn, obj, interaction, click, intra, inter, n):
     if n is None:
         n = 0
-    if obj != '':
-        return [n + 1, str(obj), {**style, 'color': '#4D5656'}]
+    ctx = dash.callback_context.triggered
+    if len(ctx):
+        ctx = ctx[0]['prop_id'].split('.')[0]
+    if ctx == 'buttons':
+        return [0, '']
+    elif obj != '':
+        return [n + 1, str(obj)]
     elif interaction != '':
-        return [n + 1, str(interaction), {**style, 'color': '#4D5656'}]
+        return [n + 1, str(interaction)]
     elif click != '' and click is not None:
         if len(click.split(':')) == 1:
-            return [n + 1, intra[click], {**style, 'color': '#4D5656'}]
+            return [n + 1, intra[click]]
         else:
             if click in inter:
-                return [n + 1, inter[click], {**style, 'color': '#4D5656'}]
+                return [n + 1, inter[click]]
             else:
                 click = click.split(':')
-                return [n + 1, inter[click[1] + ':' + click[0]], {**style, 'color': '#4D5656'}]
+                return [n + 1, inter[click[1] + ':' + click[0]]]
     else:
         raise PreventUpdate
 
 
-@app.expanded_callback(Output('color_selected', 'value'), [Input('selected', 'value')])
-def switch_color(sel):
-    return 'ice'
+@app.expanded_callback(Output('tab-2', 'style'), [Input('selected', 'value')], [State('tab-2', 'style')])
+def disable_map_button(selected, style):
+    if selected == '':
+        return {**style, 'color': '#95A5A6'}
+    else:
+        return {**style, 'color': '#63533c'}
 
 
 @app.expanded_callback(Output('data_Dist', 'value'), [Input('selected', 'value'), Input('model-data', 'value')])
-def prepare_distance_data(selected, pdb_matrix_info):
+def prepare_distance_data(selected, model_data):
     if selected == '':
         raise PreventUpdate
     else:
-        path_matrix = pdb_matrix_info[1]
-        res_list = json.loads(pdb_matrix_info[2])['labels']
+        path_matrix = model_data['matrix']
+        res_list = json.loads(model_data['info'])['labels']
 
         selected = selected.split('|')
         obj_a = selected[0].split(':')
@@ -547,8 +585,8 @@ def prepare_distance_data(selected, pdb_matrix_info):
         return data_dist
 
 
-@app.expanded_callback(Output('data_Con', 'value'), [Input('cutoff', 'value'), Input('data_Dist', 'value')])
-def prepare_contact_data(cutoff, data_dist):
+@app.expanded_callback(Output('data_Con', 'value'), [Input('cutoff', 'value'), Input('data_Dist', 'value'), Input('display_mode', 'value')])
+def prepare_contact_data(cutoff, data_dist, mode):
     distances = np.array(data_dist[0])
     obj_a = data_dist[3]
     obj_b = data_dist[4]
@@ -559,7 +597,7 @@ def prepare_contact_data(cutoff, data_dist):
     desc_c[distances <= cutoff] = 'YES'
     desc_c[distances > cutoff] = 'NO'
 
-    if obj_a == obj_b:
+    if obj_a == obj_b and mode == 'M':
         maxi = np.amax(distances)
         contacts = np.copy(distances)
         contacts[contacts <= cutoff] = cutoff - 1
@@ -568,8 +606,10 @@ def prepare_contact_data(cutoff, data_dist):
         m = np.nonzero(contacts)
         contacts[contacts == cutoff - 1] = round(maxi / 3, 2)
         distances[m] = contacts[m]
-    else:
+        distances[distances == 0] = maxi
+    elif mode == 'C':
         distances[distances > cutoff] = cutoff + 0.1
+        distances[distances == 0] = cutoff + 0.1
 
     data_con = [distances, desc_c, cutoff]
     return data_con
@@ -584,12 +624,17 @@ def display_click_map(data):
                        [Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'),
                         Input('1dy', 'value'), Input('1dx', 'value'), Input('data_1d', 'value'),
                         Input('data_Dist', 'value'), Input('data_Con', 'value'), Input('model-data', 'value')])
-def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_con, pdb_name):
-    pdb_name = pdb_name[0]
+def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_con, model_data):
+    pdb_name = model_data['protein']
     if len(pdb_name) > 10:
         pdb_name = pdb_name[:11]
     if len(rv) > 0 and rv[0] == '_r':
-        cs = cs + rv[0]
+        if cs.startswith('#'):
+            cs = [[0, cs], [1, '#ffffff']]
+        else:
+            cs = cs + rv[0]
+    elif cs.startswith('#'):
+        cs = [[0, cs], [0.999, cs], [1, '#ffffff']]
     distances = data_con[0]
     desc_c = data_con[1]
     cutoff = data_con[2]
@@ -716,3 +761,10 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
             margin=dict(t=0),
         )
     }
+
+
+@app.expanded_callback([Output('text-output', 'children')],
+                       [Input('textarea', 'value'), Input('data_1d', 'value'), Input('options1', 'value')])
+def load_download_section(text, dat, val):
+    return ['You have entered: \n{}'.format(text)]
+

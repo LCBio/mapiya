@@ -213,7 +213,8 @@ def run_external_software(filename, chains='all', params=None):
                                                  params)  ### run PDBfixer: save filename_fixed.pdb (always) and filename_fixed_envir.pdb (if requested)
             os.system('cp ' + prefix + '_fixed.pdb ' + prefix + '_fixed_envir.pdb ' + dirpath)
         except:
-            os.system('cp ' + filename + ' ' + prefix + '_fixed.pdb')
+            os.system('cp ' + filename + ' ./' + prefix + '_fixed.pdb')
+            os.system('cp ' + filename + ' ' + dirpath + '/' + prefix + '_fixed.pdb')
             pdbfixer_log = ['PDBfixer failed to optimize your pdb.']
             traceback.print_exc(file=open(dirpath + '/pdbfixer.log', "a"))
 

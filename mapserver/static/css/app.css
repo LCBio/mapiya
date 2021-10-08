@@ -26,3 +26,22 @@
     visibility: visible;
     display: inline-block;
 }
+
+.hovertext {
+    background-color: #eeece7;
+    color: #63533c;
+    transition: width 0.2s, height 0.2s;
+    cursor: pointer;
+    height: 4vw;
+    width: 4vw;
+    border: 0;
+    margin-bottom: 0.4vh;
+    font-size: 3vh;
+    margin: 0 0.5vw 0 0;
+    padding: 0.2vh 0;
+}
+
+.hovertext:hover {
+    color: #ae6100;
+    border: 1px;
+}
