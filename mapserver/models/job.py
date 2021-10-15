@@ -5,6 +5,8 @@ from mollib.utils import DistanceMatrix
 from mapserver.models import Project
 from pdbfixer import PDBFixer
 from openmm.app import PDBFile
+from simtk import unit
+import openmm
 import numpy as np
 import io
 import json
@@ -46,6 +48,7 @@ class Job(models.Model):
     model_index = models.SmallIntegerField()
     matrix = models.FileField(upload_to=compute_path, null=True, blank=True)
     pdb = models.FileField(upload_to=compute_path, null=True, blank=True)
+    environment = models.FileField(upload_to=compute_path, null=True, blank=True)
     structural_data = models.FileField(upload_to=compute_path, null=True, blank=True)
     hydrogen_bonds = models.FileField(upload_to=compute_path, null=True, blank=True)
     info = models.TextField(null=True, blank=True)
@@ -172,7 +175,11 @@ class Job(models.Model):
 
         # load fixer object from self.pdb
         with self.pdb.open('rt') as f:
-            fixer = PDBFixer(pdbfile=f)
+            head, tail = self.project.header
+            stream = io.StringIO()
+            stream.write(''.join([head, f.read(), '\n', tail]))
+            stream.seek(0)
+            fixer = PDBFixer(pdbfile=stream)
 
         # Remove heterogens
         if config['keep_heterogens'] == 'water':
@@ -189,17 +196,17 @@ class Job(models.Model):
             mutations = collections.defaultdict(list)
             for mutation, chain_id in map(
                     lambda x: x.split(':'),
-                    config['specify_mutations'].replace(' ', '').split(',')
+                    config['apply_mutations'].replace(' ', '').split(',')
             ): mutations[chain_id].append(mutation)
 
             for chain in mutations:
                 try:
                     fixer.applyMutations(mutations[chain], chain)
-                    logger.info(f'Applied mutations in chain {chain} : {", ".join(mutations[chain])}.')
+                    logger.info(f'Applied mutations in chain {chain} : {", ".join(mutations[chain])}')
                 except:
-                    logger.error(f'Invalid mutation in chain {chain} - {", ".join(mutations[chain])}.')
+                    logger.error(f'Invalid mutation in chain {chain} - {", ".join(mutations[chain])}')
         else:
-            logger.info('No mutations applied.')
+            logger.info('No mutations applied')
 
         # Replace non-standard residues
         fixer.findNonstandardResidues()
@@ -216,7 +223,7 @@ class Job(models.Model):
             chains = list(fixer.topology.chains())
 
             # iterate over identified gaps
-            for key, residues in fixer.missingResidues.items():
+            for key, residues in dict(fixer.missingResidues).items():
                 chain_index, residue_index = key
                 chain = chains[chain_index]
                 residues_count = len(list(chain.residues()))
@@ -234,16 +241,95 @@ class Job(models.Model):
             if fixed_residues:
                 logger.info(f'{len(fixed_residues)} missing residues were rebuilt: {", ".join(fixed_residues)}')
             else:
-                logger.info('No residues were missing.')
+                logger.info('No residues were missing')
         else:
-            logger.info('No missing residues were rebuilt.')
+            logger.info('No missing residues were rebuilt')
 
-        # Save PDBFixer log in the DB
-        self.update_log('pdbfixer', log.getvalue())
+        # Add missing atoms
+        if config['add_atoms'] not in ['none', 'terminal']:
+            fixer.findMissingAtoms()
+            if config['add_atoms'] == 'standard':
+                fixer.missingTerminals = {}
+            elif config['add_atoms'] == 'terminal':
+                fixer.missingAtoms = {}
+
+            # inner atoms
+            for residue, atoms in fixer.missingAtoms.items():
+                for atom in atoms:
+                    logger.info(
+                        f'{atom.name}-{atom.id} added to {residue.name}-{residue.id} in chain: {residue.chain.id}'
+                    )
+
+            # chain terminals
+            for residue, terminal in fixer.missingTerminals.items():
+                logger.info(f'{terminal} atom added to {residue.name}-{residue.id} in chain: {residue.chain.id}')
+
+            fixer.addMissingAtoms()
+
+        elif config['add_atoms'] == 'none':
+            logger.info('No atoms added')
+
+        if config['add_atoms'] in ['hydrogen', 'all']:
+            pH = config.get('protonation_ph', 7.0)
+            fixer.addMissingHydrogens(pH=pH)
+            logger.info(f'Added missing hydrogens for state protonated at pH={pH}')
+
+        # Add a water box
+        if config['add_environment'] != 'none':
+            ions = [config['positive_ion'], config['negative_ion'], config['ionic_strength']]
+            if config['add_environment'] == 'solvent':
+                box_size = fixer.topology.getUnitCellDimensions()
+                if config['water_box'] == 'unitcell':
+                    box_size = box_size
+                elif config['water_box'] == 'maxsize':
+                    max_size = max(
+                        max((pos[i] for pos in fixer.positions)) - min((pos[i] for pos in fixer.positions))
+                        for i in range(3)
+                    )
+                    box_size = max_size * openmm.Vec3(1, 1, 1)
+                elif config['water_box'] == 'custom':
+                    bs = [float(i) for i in config['box_dimensions'].split(',')]
+                    box_size = openmm.Vec3(bs[0], bs[1], bs[2]) * unit.nanometers
+                try:
+                    fixer.addSolvent(
+                        box_size, positiveIon=ions[0], negativeIon=ions[1], ionicStrength=float(ions[2]) * unit.molar
+                    )
+                    logger.info(
+                        f'solvent added: water box dimensions: {box_size}; ion(+): {ions[0]}; ion(-): {ions[1]}; '
+                        f'ionic strength: {ions[2]} molar'
+                    )
+                except Exception as e:
+                    logger.warning(f'adding solvent failed due to an error: {e}')
+
+            elif config['add_environment'] == 'membrane':
+                mem = [config['lipid_type']]
+                mem.extend(config['membrane_position'].split(','))
+                try:
+                    fixer.addMembrane(lipidType=mem[0], membraneCenterZ=float(mem[1]), minimumPadding=float(mem[2]),
+                                      positiveIon=ions[0], negativeIon=ions[1],
+                                      ionicStrength=float(ions[2]) * unit.molar)
+                    logger.info(
+                        f'membrane added: lipid type: {mem[0]}; ion(+): {ions[0]}; ion(-): {ions[1]}; '
+                        f'ionic strength: {ions[2]} molar'
+                    )
+
+                except Exception as e:
+                    logger.warning(f'adding membrane failed due to an error: {e}')
+
+            # save environment file
+            with io.StringIO() as f:
+                PDBFile.writeFile(fixer.topology, fixer.positions, f)
+                self.environment = ContentFile(name=f'environment{self.model_index}.pdb', content=f.getvalue())
+                self.save(update_fields=['environment'])
+        else:
+            logger.info('no solvent or membrane added')
 
         # Overwrite self.pdb with fixed structure
         with self.pdb.open('wt') as f:
             PDBFile.writeFile(fixer.topology, fixer.positions, f)
+
+        # Save PDBFixer log in the DB
+        self.update_log('pdbfixer', log.getvalue())
 
     def run_pdb2pqr(self):
         pass

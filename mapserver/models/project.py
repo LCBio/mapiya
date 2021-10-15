@@ -44,13 +44,15 @@ class Project(models.Model):
 
     @cached_property
     def header(self):
+        head, tail = [], []
         with self.pdb.open('rt') as f:
-            return ''.join([
-                line for line in f if not any(map(
-                    lambda x: line.startswith(x),
-                    ['MODEL', 'END', 'ATOM', 'HETATM', 'TER']
-                ))
-            ])
+            for line in f:
+                if not any(map(lambda x: line.startswith(x), ['MODEL', 'ENDMDL', 'ATOM', 'HETATM', 'TER', 'ANISOU'])):
+                    if any(map(lambda x: line.startswith(x), ['CONECT', 'MASTER', 'END'])):
+                        tail.append(line)
+                    else:
+                        head.append(line)
+        return ''.join(head), ''.join(tail)
 
     @property
     def progress(self):
