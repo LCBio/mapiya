@@ -16,3 +16,11 @@ form.dropzone {
 #optionsForm .form-group {
     margin-bottom: 0.25rem;
 }
+
+.tooltip.show {
+    opacity: 1.0;
+}
+
+.tooltip-inner {
+    background-color: darkorange;
+}

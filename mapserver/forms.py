@@ -28,7 +28,43 @@ class RCSBForm(CrispyFormMixin, forms.Form):
         )
 
 
+def format_tooltip(tooltip):
+
+    html = f'''
+        <h5>
+            {tooltip.get('title', 'Example tooltip title')}
+            <i class="fas fa-{tooltip.get('icon')}"></i>
+        </h5>
+        <hr/>
+        <small>{tooltip.get('body', 'Tooltip body missing')}</small>
+    '''
+
+    return {
+        'data-toggle': 'tooltip',
+        'data-placement': tooltip.get('placement', 'left'),
+        'data-html': 'true',
+        'title': html
+    }
+
+
 class OptionsForm(forms.Form):
+
+    TOOLTIPS = {
+        'contact_cutoff': {
+            'title': 'Contact cutoff',
+            'body': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labor'
+                    'e et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi '
+                    'ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse'
+                    ' cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in c'
+                    'ulpa qui officia deserunt mollit anim id est laborum.',
+            'icon': 'question-circle',
+            'placement': 'left'
+        }
+    }
+
+    HELP_TEXT = {
+        'contact_cutoff': 'Example help text'
+    }
 
     DEFAULTS = {
         'contact_cutoff': 8.0,
@@ -53,7 +89,7 @@ class OptionsForm(forms.Form):
         min_value=0,
         max_value=20.0,
         widget=forms.NumberInput(attrs={'step': 0.1}),
-        label='contact cutoff [&#8491;]'
+        label='contact cutoff [&#8491;]',
     )
 
     add_atoms = forms.ChoiceField(
@@ -215,6 +251,12 @@ class OptionsForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        for field_name, help_text in self.HELP_TEXT.items():
+            self.fields[field_name].help_text = help_text
+
+        for field_name, tooltip in self.TOOLTIPS.items():
+            self.fields[field_name].widget.attrs.update(format_tooltip(tooltip))
 
         self.helper = helper.FormHelper()
         self.helper.form_show_errors = True
