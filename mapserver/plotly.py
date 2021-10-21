@@ -1,5 +1,7 @@
+import sys ###
 import dash
 #from dash import html, dcc
+import pandas as pd
 import dash_core_components as dcc
 import dash_html_components as html
 import json
@@ -12,10 +14,10 @@ from datetime import datetime  # to be removed
 from django_plotly_dash import DjangoDash
 
 from mollib.chord import *
-from mollib.patterns import calc_patterns, calc_entropy
+from mollib.patterns import * #calc_patterns, calc_entropy
 from .models import Job
 
-#    np.set_printoptions(threshold=sys.maxsize)				### testing mode
+np.set_printoptions(threshold=sys.maxsize)				### testing mode
 #    print('Start... ', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))	### testing mode
 
 # CSS style
@@ -59,30 +61,40 @@ cs_seq = [[0, "#c6ff1a"], [0.05, "#c6ff1a"], [0.05, "#ffff00"], [0.1, "#ffff00"]
 cs_binary = [[0, '#ffffff'], [0.49, '#ffffff'], [0.5, '#1DACD6'], [1, '#1DACD6']]
 cs_ternary = [[0, 'rgb(255,255,255)'], [0.33, 'rgb(255,255,255)'], [0.33, "#1DACD6"], [0.66, "#1DACD6"],
               [0.66, "#000066"], [0.99, "#000066"], [1, '#cccccc']]
+cs_ss8 = [[0, "#228B22"], [0.13, "#228B22"], [0.13, "#66b929"], [0.25, "#66b929"], [0.25, "#ccff33"], [0.37, "#ccff33"],
+          [0.37, "#D70040"], [0.50, "#D70040"], [0.50, "#ff3399"], [0.63, "#ff3399"], [0.63, "#ff66ff"], [0.75, "#ff66ff"],
+          [0.75, "#9999ff"], [0.87, "#9999ff"], [0.87, "#59deff"], [0.999, "#59deff"], [0.999, "#cccccc"], [1, "#cccccc"]]
+#cs_sa = [[0, "#CC3300"], [0.2, "#9999FF"], [0.4, "#000066"], [0.99, "#000066"], [1, '#cccccc']]
+#cs_sa = [[0, '#CC3300'], [0.2, '#CC3300'], [0.33, '#ba5759'], [0.4, "#9999FF"], [0.66, "#2e2e94"], [0.8, "#000066"], [0.99, "#000066"], [1, '#cccccc']]
+cs_sa = [[0, '#CC3300'], [0.2, '#CC3300'], [0.25, "#9999FF"], [0.4, "#9999FF"], [0.5, "#2e2e94"], [0.8, "#000066"], [0.99, "#000066"], [1, '#cccccc']]
+
 
 # const. data
 amino = ['W', 'F', 'Y', 'N', 'Q', 'D', 'E', 'S', 'T', 'H', 'K', 'R', 'L', 'I', 'V', 'A', 'G', 'M', 'C', 'P']
 
 params = {'composition': [cs_seq, 'SEQUENCE', 0.45, [0.02, 0.07, 0.12, 0.17, 0.22, 0.27, 0.32, 0.37, 0.42, 0.47,
                                             0.52, 0.57, 0.62, 0.67, 0.72, 0.77, 0.82, 0.87, 0.92, 0.97], amino],
-          'hydropathy': ['RdBu', 'HYDROPATHY', 0.22, [0.1, 0.5, 0.9], ['-4.5 (philic)', '0.0', '4.5 (phobic)']],
-          'hydropathy_n': ['RdBu', 'HYDROPATHY<br>(normalized)', 0.22, [0.1, 0.5, 0.9],
+          'hydropathy': ['RdBu', 'HYDROPATHY', 0.15, [0.1, 0.5, 0.9], ['-4.5 (philic)', '0.0', '4.5 (phobic)']],
+          'hydropathy_n': ['RdBu', 'HYDROPATHY-n', 0.15, [0.1, 0.5, 0.9],
                            ['0 (philic)', '0.5', '1 (phobic)']],
-          'hydrophobic': [cs_binary, 'HYDROPHOBIC', 0.2, [0.25, 0.75], ['NO', 'YES']],
-          'amphipatic': [cs_binary, 'AMPHIPATIC', 0.2, [0.25, 0.75], ['NO', 'YES']],
-          'hydrophilic': [cs_binary, 'HYDROPHILIC', 0.2, [0.25, 0.75], ['NO', 'YES']],
-          'charged': [cs_ternary, 'CHARGE', 0.25, [0.17, 0.5, 0.83], ['NO', 'positive', 'negative']],
-          'polar': [cs_binary, 'POLAR', 0.2, [0.25, 0.75], ['NO', 'YES']],
-          'nonpolar': [cs_binary, 'NONPOLAR', 0.2, [0.25, 0.75], ['NO', 'YES']],
-          'aromatic': [cs_binary, 'AROMATIC', 0.2, [0.25, 0.75], ['NO', 'YES']],
-          'π-bond': [cs_binary, 'non-aromatic<br>π-BOND', 0.2, [0.25, 0.75], ['NO', 'YES']],
-          'sulfur': [cs_ternary, 'SULFUR', 0.25, [0.17, 0.5, 0.83], ['NO', 'CYS', 'MET']],
-          'H-Bond donor': [cs_binary, 'H-BOND DONOR', 0.2, [0.25, 0.75], ['NO', 'YES']],
-          'H-Bond acceptor': [cs_binary, 'H-BOND ACCEPTOR', 0.2, [0.25, 0.75], ['NO', 'YES']],
-          'SEQ entropy': ['GnBu', 'ENTROPY', 0.22, [], []],
+          'hydrophobic': [cs_binary, 'HYDROPHOBIC', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'amphipatic': [cs_binary, 'AMPHIPATIC', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'hydrophilic': [cs_binary, 'HYDROPHILIC', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'charged': [cs_ternary, 'CHARGE', 0.15, [0.17, 0.5, 0.83], ['NO', 'positive', 'negative']],
+          'polar': [cs_binary, 'POLAR', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'nonpolar': [cs_binary, 'NONPOLAR', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'aromatic': [cs_binary, 'AROMATIC', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'π-bond': [cs_binary, 'non-aromatic<br>π-BOND', 0.15, [0.25, 0.75], ['NO', 'YES']],
+          'sulfur': [cs_ternary, 'SULFUR', 0.15, [0.17, 0.5, 0.83], ['NO', 'CYS', 'MET']],
+          'H-Bond donor': [cs_binary, 'H-BOND DONOR', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'H-Bond acceptor': [cs_binary, 'H-BOND ACCEPTOR', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'SEQ entropy': ['GnBu', 'ENTROPY', 0.15, [], []],
+          'II-structure': [cs_ss8, 'II-STRUCTURE', 0.25, [0.06, 0.19, 0.31, 0.43, 0.56, 0.69, 0.81, 0.93], 
+                          ["ɑ-helix", "310-helix", "π-helix", "β-strand", "β-bridge", "HB-turn", "bend", 'loop']],
+          'solvent access': [cs_sa, 'RSA', 0.15, [0.1, 0.35, 0.7], ['buried', 'medium', 'exposed']]
           }
 opt_1D = ['none', 'composition', 'hydropathy', 'hydropathy_n', 'hydrophobic', 'amphipatic', 'hydrophilic', 'charged',
-          'polar', 'nonpolar', 'aromatic', 'π-bond', 'sulfur', 'H-Bond donor', 'H-Bond acceptor', 'electrostatics',
+          'polar', 'nonpolar', 'aromatic', 'π-bond', 'sulfur', 'H-Bond donor', 'H-Bond acceptor',
           'SEQ entropy', 'II-structure', 'solvent access']
 
 app = DjangoDash('ContactMap')
@@ -309,7 +321,7 @@ def load_basic_data(model_data):
 @app.expanded_callback(Output('data_1d', 'value'), [Input('model-data', 'value')])
 def calc_1d_data(model_data):
     info = json.loads(model_data['info'])['labels']
-
+    struct = pd.read_csv(model_data['struct'], sep = ',', engine = 'python')
     data_1d = {}
     for i in info:
         if i.startswith('protein'):
@@ -318,7 +330,9 @@ def calc_1d_data(model_data):
             for z in patterns:
                 data_1d[i + ':' + z] = patterns[z]
             data_1d[i + ':SEQ entropy'] = calc_entropy(residues)
-    # 'electrostatics', 'II-structure', 'solvent access' - the other missing data (they will be provided by external software)
+            struct_data = struct[struct.chain == i.split('-')[1]]
+            if len(struct_data) == len(residues):
+                data_1d[i + ':II-structure'], data_1d[i + ':solvent access'] = calc_struct(residues, struct_data)
     return data_1d
 
 
@@ -375,23 +389,9 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                                      options=opts, value=val)],
                         style={**drops, 'marginLeft': '0.5vw', 'width': '18vw'}),
                     html.Div([
-                        html.Label('Contact Filter', style=lab_style),
-                        dcc.Dropdown(id='feature_selected', placeholder="Select Feature", clearable=False,
-                                     style={'margin-top': '6px'}, optionHeight=30,
-                                     options=[
-                                         {'label': 'filter: none', 'value': 'N'},
-                                         {'label': 'hydrophobic', 'value': 'H'},
-                                         {'label': 'polar', 'value': 'P'},
-                                         {'label': 'charged', 'value': 'C'},
-                                         {'label': 'π-π stacking', 'value': 'S'},
-                                         {'label': 'π-cation', 'value': 'A'},
-                                         {'label': 'hydrogen bonds', 'value': 'B'},
-                                     ], value='N')],
-                        style={**drops, 'width': '18vw'}),
-                    html.Div([
                         html.Label('Cutoff [Å]', style=lab_style),
                         dcc.Input(id="cutoff", type="number", placeholder=" default: 8Å", min=0, value=json.loads(model_data['config'])["contact_cutoff"], step=0.1,
-                                  debounce=True,
+                                  debounce=False,
                                   style=dict(height='29px', width='10vw', marginTop='6px', color='dimgrey',
                                              borderRadius='5px 5px 5px 5px', borderColor='rgba(0,0,0,0)'))],
                         style={**drops, 'vertical-align': 'top', 'width': '10vw', 'margin-right': '1vw'}, ),
@@ -406,6 +406,37 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                         dcc.Checklist(id='reverse', options=[{'label': '', 'value': '_r'}, ], value='', ), ],
                         style={'width': '12vw', 'marginTop': '3vh', 'marginLeft': '0.8vw', 'display': 'inline-block',
                                'vertical-align': 'top'}, ),
+
+                    html.Hr(style={'border-top': '1px solid lightgray', 'margin': '0.7vw 0.5vw 0.7vw 0.5vw'}),
+                    html.Div([
+                        html.Label('intra-Contact Filter', id='intra_contact', style=lab_style),
+                        dcc.Input(id="filter_cutoff", type="number", placeholder=" i, i+n: n=0", min=0, value=0, step=1,
+                                  debounce=False,
+                                  style=dict(height='29px', width='10vw', marginTop='6px', color='dimgrey',
+                                             borderRadius='5px 5px 5px 5px', borderColor='rgba(0,0,0,0)')),
+                        html.Label(' i, i+n', style={'font-style': 'italic', 'color': '#95A5A6'})],
+                        style={**drops, 'vertical-align': 'top', 'width': '18vw', 'marginLeft': '0.5vw', 'margin-right': '1vw'}, ),
+                    html.Div([
+                        html.Label('Interaction Filter', style=lab_style),
+                        dcc.Dropdown(id='feature_selected', placeholder="Select Feature", clearable=False,
+                                     style={'margin-top': '6px'}, optionHeight=30,
+                                     options=[
+                                         {'label': 'filter: none', 'value': 'none'},
+                                         {'label': 'hydropathy', 'value': 'hydropathy'},
+                                         {'label': 'hydrophobic', 'value': 'hydrophobic'},
+                                         {'label': 'hydrophilic', 'value':  'hydrophilic'},
+                                         {'label': 'electrostatics', 'value': 'electrostatics'},
+                                         {'label': 'π-π stacking', 'value': 'π-π stacking'},
+                                         {'label': 'π-ion stacking', 'value': 'π-ion stacking'},
+                                         {'label': 'hydrogen bonds', 'value': 'hydrogen bonds'},
+                                     ], value='none')],
+                        style={**drops, 'width': '18vw', 'marginLeft': '1vw'}),
+                    html.Div([
+                        html.Label('Only', id='filter-only', style=lab_style),
+                        dcc.Checklist(id='filter', options=[{'label': '', 'value': 'only'}, ], value='', ), ],
+                        style={'width': '4vw', 'marginTop': '3vh', 'marginLeft': '0.8vw', 'display': 'inline-block',
+                               'vertical-align': 'top'}, ),
+
                     html.Hr(style={'border-top': '1px solid lightgray', 'margin': '0.7vw 0.5vw 0.7vw 0.5vw'}),
                     html.Div([
                         html.Div([
@@ -465,7 +496,7 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
 @app.expanded_callback([Output('color_selected', 'options'), Output('color_selected', 'value'), Output('check-reverse', 'children')], Input('display_mode', 'value'))
 def update_cs(mode):
     if mode == 'C':
-        return [[{'label': i, 'value': colors_binary[i]} for i in colors_binary], colors_binary['Navy'], 'Smoth CS']
+        return [[{'label': i, 'value': colors_binary[i]} for i in colors_binary], colors_binary['Silver'], 'Smoth CS']
     else:
         return [[{'label': i, 'value': i} for i in colors], colors[0], 'Reverse']
 
@@ -553,12 +584,14 @@ def switch_to_map_tab(btn, obj, interaction, click, intra, inter, n):
         raise PreventUpdate
 
 
-@app.expanded_callback(Output('tab-2', 'style'), [Input('selected', 'value')], [State('tab-2', 'style')])
+@app.expanded_callback([Output('tab-2', 'style'), Output('intra_contact', 'style'), Output('filter_cutoff', 'disabled')], [Input('selected', 'value')], [State('tab-2', 'style')])
 def disable_map_button(selected, style):
     if selected == '':
-        return {**style, 'color': '#95A5A6'}
+        return [{**style, 'color': '#95A5A6'}, {**lab_style, 'color': '#95A5A6'}, True]
+    elif len(selected.split('|')) > 1:
+        return [{**style, 'color': '#63533c'}, {**lab_style, 'color': '#95A5A6'}, True]
     else:
-        return {**style, 'color': '#63533c'}
+        return [{**style, 'color': '#63533c'}, lab_style, False]
 
 
 @app.expanded_callback(Output('data_Dist', 'value'), [Input('selected', 'value'), Input('model-data', 'value')])
@@ -578,27 +611,41 @@ def prepare_distance_data(selected, model_data):
         residues_a = res_list[obj_a[0]][0]
         residues_b = res_list[obj_b[0]][0]
 
-        desc_d = np.load(path_matrix)[int(obj_a[1]):int(obj_a[2]) + 1, int(obj_b[1]):int(obj_b[2]) + 1].round(
-            decimals=3)
+        desc_d = np.load(path_matrix)[int(obj_a[1]):int(obj_a[2]), int(obj_b[1]):int(obj_b[2])].round(decimals=3)
 
         data_dist = [desc_d, residues_a, residues_b, obj_a, obj_b]
         return data_dist
 
 
-@app.expanded_callback(Output('data_Con', 'value'), [Input('cutoff', 'value'), Input('data_Dist', 'value'), Input('display_mode', 'value')])
-def prepare_contact_data(cutoff, data_dist, mode):
+@app.expanded_callback(Output('data_Con', 'value'), [Input('cutoff', 'value'), Input('data_Dist', 'value'), 
+                       Input('display_mode', 'value'), Input('feature_selected', 'value'), Input('filter_cutoff', 'value')])
+def prepare_contact_data(cutoff, data_dist, mode, feature, intra_n):
     distances = np.array(data_dist[0])
-    obj_a = data_dist[3]
-    obj_b = data_dist[4]
+    residues_a = [i.split(':')[0] for i in data_dist[1]]
+    residues_b = [i.split(':')[0] for i in data_dist[2]]
 
-    desc_c = np.zeros(distances.shape, 'U3')
+    desc_c = np.zeros(distances.shape, 'U500')
+    filtrated = np.zeros(distances.shape, 'U10')
     if cutoff == '':
         cutoff = 8.0
-    desc_c[distances <= cutoff] = 'YES'
-    desc_c[distances > cutoff] = 'NO'
 
-    if obj_a == obj_b and mode == 'M':
-        maxi = np.amax(distances)
+    maxi = np.amax(distances)
+    if data_dist[3] == data_dist[4]:
+        np.fill_diagonal(distances, maxi)
+        if intra_n > 0:
+            for i in range(1,intra_n+1):
+                np.fill_diagonal(distances[i:], maxi)
+                np.fill_diagonal(distances[:,i:], maxi)
+
+    desc_c[distances > cutoff] = 'NO'
+    for (x,y) in zip(*np.where(desc_c != 'NO')):
+        interaction = calc_contact_nature(residues_a[x], residues_b[y])
+        filtrated[x][y] = filter_contact_by_nature(residues_a[x], residues_b[y], feature)
+        if filtrated[x][y] != '-':
+            interaction += 'interaction filter: '+feature
+        desc_c[x][y] = interaction
+
+    if mode == 'M':
         contacts = np.copy(distances)
         contacts[contacts <= cutoff] = cutoff - 1
         contacts[contacts > cutoff] = maxi
@@ -606,35 +653,25 @@ def prepare_contact_data(cutoff, data_dist, mode):
         m = np.nonzero(contacts)
         contacts[contacts == cutoff - 1] = round(maxi / 3, 2)
         distances[m] = contacts[m]
-        distances[distances == 0] = maxi
     elif mode == 'C':
         distances[distances > cutoff] = cutoff + 0.1
         distances[distances == 0] = cutoff + 0.1
 
-    data_con = [distances, desc_c, cutoff]
+    data_con = [distances, desc_c, cutoff, filtrated, CS_CONTACT[feature]]
     return data_con
 
-
-@app.expanded_callback(Output('click-map', 'value'), Input('graph_map', 'clickData'))
-def display_click_map(data):
-    return json.dumps(data, indent=2)
 
 
 @app.expanded_callback(Output('graph_map', 'figure'),
                        [Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'),
                         Input('1dy', 'value'), Input('1dx', 'value'), Input('data_1d', 'value'),
-                        Input('data_Dist', 'value'), Input('data_Con', 'value'), Input('model-data', 'value')])
-def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_con, model_data):
+                        Input('data_Dist', 'value'), Input('data_Con', 'value'), Input('model-data', 'value'),
+                        Input('feature_selected', 'value'), Input('filter', 'value')])
+def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_con, model_data, filtr, only):
     pdb_name = model_data['protein']
     if len(pdb_name) > 10:
         pdb_name = pdb_name[:11]
-    if len(rv) > 0 and rv[0] == '_r':
-        if cs.startswith('#'):
-            cs = [[0, cs], [1, '#ffffff']]
-        else:
-            cs = cs + rv[0]
-    elif cs.startswith('#'):
-        cs = [[0, cs], [0.999, cs], [1, '#ffffff']]
+
     distances = data_con[0]
     desc_c = data_con[1]
     cutoff = data_con[2]
@@ -643,60 +680,69 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
     residues_b = data_dist[2]
     obj_a = data_dist[3]
     obj_b = data_dist[4]
+    cf = cutoff
+    sc_len = 0.5
+
+    if len(rv) > 0 and rv[0] == '_r':
+        if cs.startswith('#'):
+            cs = [[0, cs], [0.999, '#F8F8F8'], [1, 'rgba(255,255,255, 0.0)']]
+            cf = cutoff - 0.5
+            sc_len = 0.12
+        else:
+            cs = cs + rv[0]
+    elif cs.startswith('#'):
+        cs = [[0, cs], [0.999, cs], [1, 'rgba(255,255,255, 0.0)']]
+        cf = cutoff/2
+        sc_len = 0.12
 
     dataset = []
     ax = 0.96
     if x_val != 'none':
         ax = 0.88
 
-    sc_len = 0.975
+    sc_show = True
+    shift = 0.0
+    sc_x = 0.98
+    sc_y = 0.98
+    if y_val != 'none':
+        sc_x = sc_y - params[y_val][2]
+    if y_val == 'composition' or x_val == 'composition':
+        shift = 0.02
     if y_val != 'none' or x_val != 'none':
-        sc_len = 0.5
-
-        ###---Colorbars position settings
-        sc_show = True
-        sc_x = 0.98
-        sc_y = 0.53
-        if y_val == 'composition' and x_val != 'none':
-            sc_x = 0.53
-            if x_val != y_val:
-                if x_val == 'charged':
-                    sc_len = 0.28
-                else:
-                    sc_len = 0.33
-        elif x_val == 'composition' and y_val != 'none':
-            if y_val != x_val:
-                if y_val == 'charged':
-                    sc_y = 0.28
-                    sc_len = 0.28
-                else:
-                    sc_y = 0.33
-                    sc_len = 0.33
+        sc_len = 0.12
         if y_val == x_val:
             sc_show = False
 
         if y_val != 'none':
             base = 0
             cmax = 0.99
+            desc_y = ['' for i in residues_a]
             if y_val != 'hydropathy_n':
                 color = list(map(float, data_1d[obj_a[0] + ':' + y_val]))
                 x_vals = [1] * len(residues_a)
                 if y_val == 'SEQ entropy':
                     x_vals = color
+                    desc_y = ['Shannon entropy: '+str(i) for i in color]
                     cmax = np.amax(color)
                     params[y_val][3] = [0.1, cmax - 0.1]
                     params[y_val][4] = ['0.00', str(cmax)]
-                if y_val == 'hydropathy':
+                elif y_val == 'solvent access':
+                    x_vals = color
+                    desc_y = ['RSA: '+str(i) for i in color]
+                elif y_val == 'hydropathy':
+                    desc_y = ['Kyte-Doolittle: '+str(round((i*9)-4.5,1)) for i in color]
                     x_vals = [x - 0.5 for x in color]
                     base = 0.5
-            else:
+            elif y_val == 'hydropathy_n':
                 color = list(map(float, data_1d[obj_a[0] + ':hydropathy']))
+                desc_y = ['normalized K-D: '+str((i)) for i in color]
                 x_vals = color
-            trace2 = go.Bar(x=x_vals, y=residues_a, orientation='h', base=base, text=residues_a,
-                            name=y_val + '<br>' + obj_a[0], hoverlabel=dict(namelength=-1), hoverinfo="text+name",
+            trace2 = go.Bar(x=x_vals, y=residues_a, orientation='h', base=base, text=desc_y,
+                            name=y_val + '<br>' + obj_a[0], hoverlabel=dict(namelength=-1),
+                            hovertemplate='residue: %{y} in ' + obj_a[0] + '<br>%{text}',
                             marker=dict(cmin=0.00, cmax=cmax, color=color, colorscale=params[y_val][0], showscale=True,
-                                        colorbar=dict(title=params[y_val][1], len=params[y_val][2], x=1, y=sc_y,
-                                                      yanchor="bottom", tickvals=params[y_val][3],
+                                        colorbar=dict(title=params[y_val][1], len=params[y_val][2], x=1, y=sc_y - shift,
+                                                      yanchor="top", tickvals=params[y_val][3],
                                                       ticktext=params[y_val][4]), ), showlegend=False, yaxis='y1',
                             xaxis='x2')
             dataset.append(trace2)
@@ -704,22 +750,30 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
         if x_val != 'none':
             base = 0
             cmax = 0.99
+            desc_x = ['' for i in residues_a]
             if x_val != 'hydropathy_n':
                 color = list(map(float, data_1d[obj_b[0] + ':' + x_val]))
                 y_vals = [1] * len(residues_b)
                 if x_val == 'SEQ entropy':
                     y_vals = color
+                    desc_x = ['Shannon entropy: '+str(i) for i in color]
                     cmax = np.amax(color)
                     params[x_val][3] = [0.1, cmax - 0.1]
                     params[x_val][4] = ['0.00', str(cmax)]
-                if x_val == 'hydropathy':
+                elif x_val == 'solvent access':
+                    y_vals = color
+                    desc_x = ['RSA: '+str(i) for i in color]
+                elif x_val == 'hydropathy':
+                    desc_x = ['Kyte-Doolittle: '+str(round((i*9)-4.5, 1)) for i in color]
                     y_vals = [x - 0.5 for x in color]
                     base = 0.5
-            else:
+            elif x_val == 'hydropathy_n':
                 color = list(map(float, data_1d[obj_b[0] + ':hydropathy']))
+                desc_x = ['normalized K-D: '+str(i) for i in color]
                 y_vals = color
-            trace3 = go.Bar(x=residues_b, y=y_vals, text=residues_b, base=base, name=x_val + '<br>' + obj_b[0],
-                            hoverlabel=dict(namelength=-1), hoverinfo="text+name",
+            trace3 = go.Bar(x=residues_b, y=y_vals, text=desc_x, base=base, name=x_val + '<br>' + obj_b[0],
+                            hoverlabel=dict(namelength=-1),
+                            hovertemplate='residue: %{x} in ' + obj_b[0] + '<br>%{text}',
                             marker=dict(cmin=0.00, cmax=cmax, color=color, colorscale=params[x_val][0],
                                         showscale=sc_show,
                                         colorbar=dict(title=params[x_val][1], len=params[x_val][2], x=1, y=sc_x,
@@ -728,14 +782,26 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
                             xaxis='x1')
 
             dataset.append(trace3)
-    trace1 = go.Heatmap(x=residues_b, y=residues_a, z=distances, name='DISTANCE MAP', colorscale=cs, yaxis='y1',
-                        xaxis='x1',
-                        text=desc_c, hovertext=desc_d,
-                        hovertemplate='residue: %{x} in ' + obj_b[0] + '<br>residue: %{y} in ' + obj_a[
-                            0] + '<br>distance: %{hovertext} [Å]<br>contact cutoff: ' + str(
-                            cutoff) + ' [Å]<br>contact: %{text}',
-                        colorbar=dict(title='DISTANCES', len=sc_len, x=1, y=0, yanchor="bottom"))
-    dataset.append(trace1)
+    if len(only) == 0 or filtr == 'none':
+        trace1 = go.Heatmap(x=residues_b, y=residues_a, z=distances, name='DISTANCE MAP', colorscale=cs, yaxis='y1',
+                        xaxis='x1', text=desc_c, hovertext=desc_d,
+                        hovertemplate='residue: %{x} in ' + obj_b[0] + '<br>residue: %{y} in ' + obj_a[0] + 
+                                      '<br>distance: %{hovertext} [Å]<br>contact cutoff: ' + str(cutoff) + 
+                                      ' [Å]<br>contact: %{text}',
+                        colorbar=dict(title='CONTACTS', len=sc_len, x=1, y=-0.02, yanchor="bottom",
+                                     tickmode='array', tickvals=[cf], ticktext=['cutoff='+str(cutoff)]))
+        dataset.append(trace1)
+    if filtr != 'none':
+        cs_tmp = data_con[4]
+        trace4 = go.Heatmap(x=residues_b, y=residues_a, z=data_con[3], zmin=0, zmax=1, name='filter',
+                                                yaxis='y1', xaxis='x1', text=desc_c, hovertext=desc_d,
+                        hovertemplate='residue: %{x} in ' + obj_b[0] + '<br>residue: %{y} in ' + obj_a[0] + 
+                                      '<br>distance: %{hovertext} [Å]<br>contact cutoff: ' + str(cutoff) + 
+                                      ' [Å]<br>contact: %{text}',
+                        colorscale=cs_tmp[0],
+                        colorbar=dict(title=cs_tmp[1], len=cs_tmp[2], x=1, y=sc_len - (2 * shift), yanchor="bottom",
+                                      tickmode='array', tickvals=cs_tmp[3], ticktext=cs_tmp[4]),)
+        dataset.append(trace4)
 
     return {
         'data': dataset,
@@ -761,6 +827,11 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
             margin=dict(t=0),
         )
     }
+
+
+@app.expanded_callback(Output('click-map', 'value'), Input('graph_map', 'clickData'))
+def display_click_map(data):
+    return json.dumps(data, indent=2)
 
 
 @app.expanded_callback([Output('text-output', 'children')],
