@@ -14,7 +14,6 @@ from django.db import models
 from openmm.app import PDBFile
 from pdbfixer import PDBFixer
 from simtk import unit
-
 from mapserver.models import Project
 from mollib.atom import Atoms
 from mollib.utils import DistanceMatrix
@@ -55,6 +54,7 @@ class Job(models.Model):
     environment = models.FileField(upload_to=compute_path, null=True, blank=True)
     structural_data = models.FileField(upload_to=compute_path, null=True, blank=True)
     hydrogen_bonds = models.FileField(upload_to=compute_path, null=True, blank=True)
+    pqr = models.FileField(upload_to=compute_path, null=True, blank=True)
     info = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=1, choices=StatusChoices.choices, default=StatusChoices.QUEUE)
     error = models.TextField(null=True, blank=True)
@@ -159,6 +159,9 @@ class Job(models.Model):
 
         # run stride
         self.run_stride()
+
+        # run apbs
+        self.run_apbs()
 
         # calculate distance matrix from self.pdb
         self.save_matrix()
@@ -276,6 +279,10 @@ class Job(models.Model):
             fixer.addMissingHydrogens(pH=pH)
             logger.info(f'Added missing hydrogens for state protonated at pH={pH}')
 
+        # Overwrite self.pdb with fixed structure
+        with self.pdb.open('wt') as f:
+            PDBFile.writeFile(fixer.topology, fixer.positions, f)
+
         # Add a water box
         if config['add_environment'] != 'none':
             ions = [config['positive_ion'], config['negative_ion'], config['ionic_strength']]
@@ -326,21 +333,37 @@ class Job(models.Model):
         else:
             logger.info('no solvent or membrane added')
 
-        # Overwrite self.pdb with fixed structure
-        with self.pdb.open('wt') as f:
-            PDBFile.writeFile(fixer.topology, fixer.positions, f)
-
         # Save PDBFixer log in the DB
         self.update_log('pdbfixer', log.getvalue())
 
-    def run_pdb2pqr(self):
-        pass
+    def run_apbs(self):
+        input_path = pathlib.Path(self.pdb.path)
+
+        with tempfile.TemporaryDirectory(dir='playground') as workdir:
+            dir_path = pathlib.Path(workdir)
+            apbs_in = dir_path / 'apbs.in'
+            pqr_file = dir_path / f'{input_path.stem}.pqr'
+
+            args = ['pdb2pqr', '--ff=PARSE', '--titration-state-method=propka', '--with-ph=7.0',
+                    '--apbs-input', apbs_in, input_path, pqr_file]
+            proc = subprocess.run(args=args, capture_output=True)
+            if proc.returncode:
+                # TODO: add error handling for apbs
+                pass
+            else:
+                self.update_log('apbs', proc.stderr.decode())
+                self.pqr = ContentFile(name=f'{pqr_file.name}', content=pqr_file.read_text())
+                info = json.loads(self.info) if self.info else {}
+                info['apbs'] = apbs_in.read_text()
+                self.info = json.dumps(info)
+                self.save(update_fields=['info', 'pqr'])
 
     def run_edhb(self):
         pass
 
     def run_stride(self):
-        proc = subprocess.run(['stride', '-h', self.pdb.path], capture_output=True)
+        args = ['stride', '-h', self.pdb.path]
+        proc = subprocess.run(args=args, capture_output=True)
 
         if proc.returncode:
             # TODO: add error handling for stride
@@ -351,7 +374,7 @@ class Job(models.Model):
                 'chain', 'residues', 'secondary_structure', 'solvent_accessibility', 'phi', 'psi', 'mainHB_acceptor'
             ])
 
-            for row in proc.stdout.decode().split('\n'):
+            for row in proc.stdout.decode(errors='ignore', encoding='utf-8').split('\n'):
                 if row.startswith('LOC'):
                     element = row[5:17].strip()
                     if element not in ss_elements:
@@ -377,7 +400,7 @@ class Job(models.Model):
                         (structural_data['chain'] == row[9]) & (structural_data['residues'] == donor)
                         ]['mainHB_acceptor'].values[0][acc] = value
 
-            self.update_log('stride', proc.stderr.decode())
+            self.update_log('stride', proc.stderr.decode(encoding='utf-8', errors='ignore'))
             self.structural_data = ContentFile(name=f'data{self.model_index}.csv', content=structural_data.to_csv())
             info = json.loads(self.info) if self.info else {}
             info['ss_elements'] = ss_elements
