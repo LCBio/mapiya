@@ -1,19 +1,23 @@
-from django.db import models
-from django.core.files.base import File, ContentFile
-from mollib.atom import Atoms
-from mollib.utils import DistanceMatrix
-from mapserver.models import Project
-from pdbfixer import PDBFixer
-from openmm.app import PDBFile
-from simtk import unit
-import openmm
-import numpy as np
+import collections
 import io
 import json
-import pathlib
 import logging
-import collections
+import pathlib
 import subprocess
+import tempfile
+
+import numpy as np
+import openmm
+import pandas as pd
+from django.core.files.base import File, ContentFile
+from django.db import models
+from openmm.app import PDBFile
+from pdbfixer import PDBFixer
+from simtk import unit
+
+from mapserver.models import Project
+from mollib.atom import Atoms
+from mollib.utils import DistanceMatrix
 
 
 def compute_path(instance, filename):
@@ -153,10 +157,8 @@ class Job(models.Model):
         # run pdb fixer
         self.run_pdbfixer()
 
-        # # run external software and overwrite self.pdb
-        # self.save_results(*(external.run_external_software(
-        #     self.pdb.path, params=json.loads(self.project.identity.config)
-        # )))
+        # run stride
+        self.run_stride()
 
         # calculate distance matrix from self.pdb
         self.save_matrix()
@@ -338,4 +340,46 @@ class Job(models.Model):
         pass
 
     def run_stride(self):
-        pass
+        proc = subprocess.run(['stride', '-h', self.pdb.path], capture_output=True)
+
+        if proc.returncode:
+            # TODO: add error handling for stride
+            self.update_log('stride', 'ERROR')
+        else:
+            ss_elements = {}
+            structural_data = pd.DataFrame(columns=[
+                'chain', 'residues', 'secondary_structure', 'solvent_accessibility', 'phi', 'psi', 'mainHB_acceptor'
+            ])
+
+            for row in proc.stdout.decode().split('\n'):
+                if row.startswith('LOC'):
+                    element = row[5:17].strip()
+                    if element not in ss_elements:
+                        ss_elements[element] = []
+                    ss_elements[element].append(
+                        row[18:21].strip() + ':' + row[22:27].strip() + '_' + row[28] + '-' +
+                        row[35:38].strip() + ':' + row[41:45].strip() + '_' + row[46])
+                elif row.startswith('ASG'):
+                    structural_data.loc[len(structural_data.index)] = [
+                        row[9],
+                        row[5:8].strip() + ':' + row[11:15].strip(),
+                        row[24:25].strip(),
+                        row[64:69].strip(),
+                        row[42:49].strip(),
+                        row[52:59].strip(),
+                        {}
+                    ]
+                elif row.startswith('DNR'):
+                    acc = row[25:28].strip() + ':' + row[31:35].strip() + '_' + row[29]
+                    donor = row[5:8].strip() + ':' + row[11:15].strip()
+                    value = [row[41:45].strip(), row[46:52].strip(), row[53:59].strip(), row[60:66].strip(), row[67:73]]
+                    structural_data.loc[
+                        (structural_data['chain'] == row[9]) & (structural_data['residues'] == donor)
+                        ]['mainHB_acceptor'].values[0][acc] = value
+
+            self.update_log('stride', proc.stderr.decode())
+            self.structural_data = ContentFile(name=f'data{self.model_index}.csv', content=structural_data.to_csv())
+            info = json.loads(self.info) if self.info else {}
+            info['ss_elements'] = ss_elements
+            self.info = json.dumps(info)
+            self.save(update_fields=['structural_data', 'info'])
