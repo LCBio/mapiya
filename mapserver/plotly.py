@@ -213,7 +213,7 @@ def load_models(pk, n, model_ix):
     status = 0
     for i in list(Job.objects.all()):
         if i.project_id == pk:
-            models[i.model_number] = i.status
+            models[i.model_index] = i.status
     n_models = len(models)
     if n_models > 1:
         buttons = []
@@ -276,7 +276,7 @@ def select_model(btn, pk, ix):
         return [btn, {'protein': model.project.filename, 'matrix': model.matrix.path, 'info': model.info, 
                       'config': model.project.config, 'struct': model.structural_data.path, 'hbonds': model.hydrogen_bonds.path}]
     elif btn >= 1:
-        model = Job.objects.get(project_id=pk, model_number=btn)
+        model = Job.objects.get(project_id=pk, model_index=btn)
         return [btn, {'protein': model.project.filename, 'matrix': model.matrix.path, 'info': model.info, 
                       'config':model.project.config, 'struct': model.structural_data.path, 'hbonds': model.hydrogen_bonds.path}]
 
