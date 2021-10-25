@@ -153,15 +153,11 @@ class Job(models.Model):
     def run(self):
         # extract model from uploaded file in self.pdb
         self.save_pdb()
-
-        # run pdb fixer
         self.run_pdbfixer()
 
-        # run stride
         self.run_stride()
-
-        # run apbs
         self.run_apbs()
+        self.run_edhb()
 
         # calculate distance matrix from self.pdb
         self.save_matrix()
@@ -359,7 +355,54 @@ class Job(models.Model):
                 self.save(update_fields=['info', 'pqr'])
 
     def run_edhb(self):
-        pass
+
+        # TODO: add error handling if no hydrogens present in input pdb
+
+        input_path = pathlib.Path(self.pdb.path)
+
+        with tempfile.TemporaryDirectory(dir='playground') as workdir:
+            dir_path = pathlib.Path(workdir)
+            xls_path = dir_path / 'input.xls'
+            args = ['edhb', input_path, '-a', '-B', '-c']
+            proc = subprocess.run(args=args, capture_output=True, cwd=dir_path)
+            self.update_log('edhb', proc.stdout.decode(errors='ignore') + proc.stderr.decode(errors='ignore'))
+            edhb = pd.read_excel(xls_path)
+
+        inds = pd.DataFrame(columns=['chain', 'residue', 'atom', 'ix'])
+        with input_path.open('rt') as f:
+            for row in f:
+                if row.startswith('ATOM'):
+                    inds.loc[len(inds.index)] = [
+                        row[21],
+                        row[17:20].strip() + ':' + row[22:26].strip(),
+                        row[11:16].strip(),
+                        row[4:11].strip()
+                    ]
+
+        HB = pd.DataFrame(columns=['chains', 'donor', 'acceptor', 'proton', 'acc_atom', 'ids', 'type', 'bond', 'length',
+                                   'angle', 'bifurcation'])
+
+        for index, row in edhb.iterrows():
+            ids = row['atomIDs'].split('-')
+            proton = inds[inds.ix == ids[1]]
+            acceptor = inds[inds.ix == ids[0]]
+            if len(proton) and len(acceptor):  # remove HB with water molecules
+                backbone = ['N', 'H', 'H2', 'H3', 'CA', 'HA', 'C', 'O']
+                chains = proton['chain'].values[0] + ':' + acceptor['chain'].values[0]
+                at_d = proton['atom'].values[0]
+                at_a = acceptor['atom'].values[0]
+                ix_d = proton['ix'].values[0]
+                ix_a = acceptor['ix'].values[0]
+                td = ta = 's'
+                if at_d in backbone:
+                    td = 'b'
+                if at_a in backbone:
+                    ta = 'b'
+                HB.loc[len(HB.index)] = [chains, proton['residue'].values[0], acceptor['residue'].values[0],
+                                         at_d, at_a, ix_d + ':' + ix_a, td + ta, row['Bond'], row['HB length'],
+                                         row['HB Angle'], row['Bifurcation type']]
+        self.hydrogen_bonds = ContentFile(name=f'hbonds{self.model_index}.csv', content=HB.to_csv())
+        self.save(update_fields=['hydrogen_bonds'])
 
     def run_stride(self):
         args = ['stride', '-h', self.pdb.path]
