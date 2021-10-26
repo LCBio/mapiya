@@ -1,6 +1,5 @@
-import sys ###
+#import sys ###
 import dash
-#from dash import html, dcc
 import pandas as pd
 import dash_core_components as dcc
 import dash_html_components as html
@@ -17,7 +16,7 @@ from mollib.chord import *
 from mollib.patterns import * #calc_patterns, calc_entropy
 from .models import Job
 
-np.set_printoptions(threshold=sys.maxsize)				### testing mode
+#np.set_printoptions(threshold=sys.maxsize)				### testing mode
 #    print('Start... ', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))	### testing mode
 
 # CSS style
@@ -113,6 +112,7 @@ app.layout = html.Div([
     dcc.Input(id="data_Dist", value='', type='hidden'),  # submatrix for selected interactions
     # list = [desc_d, residuesA, residuesB, objA, objB]
     dcc.Input(id="data_Con", value='', type='hidden'),  # contacts for selected cutoff
+    dcc.Input(id="hbonds", value='', type='hidden'),  # path to hbonds
     # list = [distances, desc_c, cutoff]
     dcc.Input(id="void1", value='', type='hidden'),
     dcc.Input(id="void2", value='', type='hidden'),
@@ -367,6 +367,7 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
             html.Div([
                 html.Div(id='dashbio-circos', style={'height': '90vh', 'width': '94vw', 'margin': '1vh 0 0 3vw'}),
                 dcc.Input(id='click-data', type='hidden'),
+                dcc.Input(id='chains-colors', type='hidden'),
             ])]
 
     elif tab == 'tab-2' and selected != '':
@@ -421,14 +422,14 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                         dcc.Dropdown(id='feature_selected', placeholder="Select Feature", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
                                      options=[
-                                         {'label': 'filter: none', 'value': 'none'},
-                                         {'label': 'hydropathy', 'value': 'hydropathy'},
-                                         {'label': 'hydrophobic', 'value': 'hydrophobic'},
-                                         {'label': 'hydrophilic', 'value':  'hydrophilic'},
-                                         {'label': 'electrostatics', 'value': 'electrostatics'},
-                                         {'label': 'π-π stacking', 'value': 'π-π stacking'},
-                                         {'label': 'π-ion stacking', 'value': 'π-ion stacking'},
-                                         {'label': 'hydrogen bonds', 'value': 'hydrogen bonds'},
+                                         {'label': 'filter: none', 'value': 'none', 'disabled': False},
+                                         {'label': 'hydropathy', 'value': 'hydropathy', 'disabled': False},
+                                         {'label': 'hydrophobic', 'value': 'hydrophobic', 'disabled': False},
+                                         {'label': 'hydrophilic', 'value':  'hydrophilic', 'disabled': False},
+                                         {'label': 'electrostatics', 'value': 'electrostatics', 'disabled': False},
+                                         {'label': 'π-π stacking', 'value': 'π-π stacking', 'disabled': False},
+                                         {'label': 'π-ion stacking', 'value': 'π-ion stacking', 'disabled': False},
+                                         {'label': 'hydrogen bonds', 'value': 'hydrogen bonds', 'disabled': False},
                                      ], value='none')],
                         style={**drops, 'width': '18vw', 'marginLeft': '1vw'}),
                     html.Div([
@@ -462,8 +463,11 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                                                          style={'height': '94vh', 'width': '95vw', 'margin-top': '0',
                                                                 'margin-left': '4vw'},
                                                          config={'responsive': True,
+                                                                 'modeBarButtonsToAdd':['drawline', 'drawopenpath',
+                                                                     'drawclosedpath', 'drawcircle', 'drawrect',
+                                                                     'eraseshape', 'resetViews', 'toggleHover', 'toggleSpikelines'],
                                                              'toImageButtonOptions': {'format': 'svg', 'width': 1400,
-                                                                                      'height': 800, 'scale': 1.5}}))]),
+                                                                     'filename': 'mapiya.svg', 'height': 1000, 'scale': 1.5}}))]),
                 ], className='graph-parent'),
                 dcc.Input(id='click-map', type='hidden'),
             # return info of clicked point on the map;
@@ -493,6 +497,17 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
         raise PreventUpdate
 
 
+@app.expanded_callback([Output('feature_selected', 'options'), Output('hbonds', 'value')], Input('model-data', 'value'), State('feature_selected', 'options'))
+def update_filter_options(model_data, options):
+    path_hb = model_data['hbonds']
+    hbonds = pd.read_csv(path_hb, sep = ',', engine = 'python')
+    if len(hbonds) > 0:
+       options[-1]['disabled'] = False
+    else:
+       options[-1]['disabled'] = True
+    return [options, path_hb]
+
+
 @app.expanded_callback([Output('color_selected', 'options'), Output('color_selected', 'value'), Output('check-reverse', 'children')], Input('display_mode', 'value'))
 def update_cs(mode):
     if mode == 'C':
@@ -501,7 +516,7 @@ def update_cs(mode):
         return [[{'label': i, 'value': i} for i in colors], colors[0], 'Reverse']
 
 
-@app.expanded_callback(Output('dashbio-circos', 'children'), Input('contacts', 'value'))
+@app.expanded_callback([Output('dashbio-circos', 'children'), Output('chains-colors', 'value')], Input('contacts', 'value'))
 def display_circos(data):
     if not len(data):
         raise PreventUpdate
@@ -521,6 +536,8 @@ def display_circos(data):
             new_colors.extend(ideo_colors)
         ideo_colors = new_colors
 
+    chains_colors = {i:ideo_colors[n] for n, i in enumerate(labels)}
+
     shapes = []
     ideograms = []
     ribbon_info = []
@@ -537,7 +554,7 @@ def display_circos(data):
     ideograms.extend(ribbon_info)
     fig = go.Figure(data=ideograms, layout=layout)
 
-    return dcc.Graph(id='graph-circos', figure=fig)
+    return [dcc.Graph(id='graph-circos', figure=fig), chains_colors]
 
 
 @app.expanded_callback(Output('click-data', 'value'), Input('graph-circos', 'clickData'))
@@ -617,9 +634,9 @@ def prepare_distance_data(selected, model_data):
         return data_dist
 
 
-@app.expanded_callback(Output('data_Con', 'value'), [Input('cutoff', 'value'), Input('data_Dist', 'value'), 
+@app.expanded_callback(Output('data_Con', 'value'), [Input('cutoff', 'value'), Input('data_Dist', 'value'), Input('hbonds', 'value'),
                        Input('display_mode', 'value'), Input('feature_selected', 'value'), Input('filter_cutoff', 'value')])
-def prepare_contact_data(cutoff, data_dist, mode, feature, intra_n):
+def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
     distances = np.array(data_dist[0])
     residues_a = [i.split(':')[0] for i in data_dist[1]]
     residues_b = [i.split(':')[0] for i in data_dist[2]]
@@ -630,20 +647,65 @@ def prepare_contact_data(cutoff, data_dist, mode, feature, intra_n):
         cutoff = 8.0
 
     maxi = np.amax(distances)
+    is_intra = False
     if data_dist[3] == data_dist[4]:
+        is_intra = True
         np.fill_diagonal(distances, maxi)
-        if intra_n > 0:
+        if intra_n != None and intra_n > 0:
             for i in range(1,intra_n+1):
                 np.fill_diagonal(distances[i:], maxi)
                 np.fill_diagonal(distances[:,i:], maxi)
 
+    if feature == 'hydrogen bonds':
+        hbonds = pd.read_csv(hbonds, sep = ',', engine = 'python')
+        if data_dist[3][0].startswith('protein') and data_dist[4][0].startswith('protein'):
+            donor = data_dist[3][0].split('-')[1]
+            accep = data_dist[4][0].split('-')[1]
+            ch_hb = hbonds[hbonds.chains == donor+':'+accep]
+            if len(ch_hb) > 0:
+                is_hb = True
+                hbonds = ch_hb
+                donor_set = data_dist[1]
+                accep_set = data_dist[2]
+            else:
+                ch_hb = hbonds[hbonds.chains == accep+':'+donor]
+                if len(ch_hb) > 0:
+                    is_hb = True
+                    hbonds = ch_hb
+                    donor = accep
+                    accep = data_dist[3][0].split('-')[1]
+                    donor_set = data_dist[2]
+                    accep_set = data_dist[1]
+                else:
+                    is_hb = False
+        else:
+           is_hb = False
+
     desc_c[distances > cutoff] = 'NO'
     for (x,y) in zip(*np.where(desc_c != 'NO')):
+        hb_desc = ''
         interaction = calc_contact_nature(residues_a[x], residues_b[y])
-        filtrated[x][y] = filter_contact_by_nature(residues_a[x], residues_b[y], feature)
+        if feature == 'hydrogen bonds':
+            if is_hb:
+                hb = hbonds[(hbonds.donor == donor_set[x]) & (hbonds.acceptor == accep_set[y])]
+                if len(hb) > 0:
+                    filtrated[x][y] = 0.1
+                    hb_desc = ' calculated by STRIDE:<br>'+'<br>'.join(['HB-type: '+row['type'].upper()+
+                              ', '+row['proton']+' in '+donor+':'+row['donor']+'  &  '+row['acc_atom']+' in '+accep+':'+
+                              row['acceptor']+', length: '+str(row['length']) for index, row in hb.iterrows()])
+                else:
+                    filtrated[x][y] = '-'
+            else:
+                filtrated[x][y] = '-'
+        else:
+            filtrated[x][y] = filter_contact_by_nature(residues_a[x], residues_b[y], feature)
         if filtrated[x][y] != '-':
-            interaction += 'interaction filter: '+feature
+            interaction += 'interaction filter: '+feature+hb_desc
         desc_c[x][y] = interaction
+        if is_intra:
+            filtrated[y][x] = filtrated[x][y]
+            desc_c[y][x] = desc_c[x][y]
+
 
     if mode == 'M':
         contacts = np.copy(distances)
@@ -829,9 +891,19 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
     }
 
 
-@app.expanded_callback(Output('click-map', 'value'), Input('graph_map', 'clickData'))
-def display_click_map(data):
-    return json.dumps(data, indent=2)
+@app.expanded_callback(Output('click-map', 'value'), [Input('graph_map', 'clickData'), Input('selected', 'value')])
+def display_click_map(data, selected):
+    ctx = dash.callback_context.triggered
+    if len(ctx):
+        ctx = ctx[0]['prop_id'].split('.')[0]
+        if ctx == 'graph_map':
+            selected = selected.split('|')
+            data = data['points'][0]
+            return json.dumps({'res1' : selected[1].split(':')[0].split('-')[1]+'-'+data['x'].replace(':', '-'), 
+                               'res2' : selected[0].split(':')[0].split('-')[1]+'-'+data['y'].replace(':', '-')}, indent=2)
+    else:
+        raise PreventUpdate
+
 
 
 @app.expanded_callback([Output('text-output', 'children')],
