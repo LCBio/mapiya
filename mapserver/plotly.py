@@ -706,7 +706,7 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
             filtrated[y][x] = filtrated[x][y]
             desc_c[y][x] = desc_c[x][y]
 
-
+    map_label = 'DISTANCE MAP'
     if mode == 'M':
         contacts = np.copy(distances)
         contacts[contacts <= cutoff] = cutoff - 1
@@ -715,11 +715,13 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
         m = np.nonzero(contacts)
         contacts[contacts == cutoff - 1] = round(maxi / 3, 2)
         distances[m] = contacts[m]
+        map_label = 'CM / DM'
     elif mode == 'C':
         distances[distances > cutoff] = cutoff + 0.1
         distances[distances == 0] = cutoff + 0.1
+        map_label = 'CONTACT MAP'
 
-    data_con = [distances, desc_c, cutoff, filtrated, CS_CONTACT[feature]]
+    data_con = [distances, desc_c, cutoff, filtrated, CS_CONTACT[feature], map_label]
     return data_con
 
 
@@ -737,6 +739,7 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
     distances = data_con[0]
     desc_c = data_con[1]
     cutoff = data_con[2]
+    map_label = data_con[5]
     desc_d = data_dist[0]
     residues_a = data_dist[1]
     residues_b = data_dist[2]
@@ -845,7 +848,7 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
 
             dataset.append(trace3)
     if len(only) == 0 or filtr == 'none':
-        trace1 = go.Heatmap(x=residues_b, y=residues_a, z=distances, name='DISTANCE MAP', colorscale=cs, yaxis='y1',
+        trace1 = go.Heatmap(x=residues_b, y=residues_a, z=distances, name=map_label, colorscale=cs, yaxis='y1',
                         xaxis='x1', text=desc_c, hovertext=desc_d,
                         hovertemplate='residue: %{x} in ' + obj_b[0] + '<br>residue: %{y} in ' + obj_a[0] + 
                                       '<br>distance: %{hovertext} [Å]<br>contact cutoff: ' + str(cutoff) + 
