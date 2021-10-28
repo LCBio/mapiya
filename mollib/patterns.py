@@ -171,8 +171,8 @@ cs5  = [[0, '#ff0000'], [0.2, '#ff0000'], [0.2, '#cc0066'], [0.4, '#cc0066'], [0
 CS_CONTACT = {
     'none'            : [],
     'hydropathy'      : [cs5, 'Contact filter:<br>hydropathy', 0.22, [0.1, 0.3 , 0.5, 0.7, 0.9], ['ζ-ζ', 'ζ-ɤ', 'ɤ-ɤ', 'Φ-ɤ', 'Φ-Φ']],
-    'hydrophobic'     : [cs1b, 'Contact filter:<br>hydrophobic', 0.15, [0.5], ['ζ-ζ + ζ-ɤ']],
-    'hydrophilic'     : [cs1a, 'Contact filter:<br>hydrophilic', 0.15, [0.5], ['Φ-Φ + Φ-ɤ']],
+    'hydrophobic'     : [cs1b, 'Contact filter:<br>hydrophobic', 0.15, [0.5], ['Φ-Φ + Φ-ɤ']],
+    'hydrophilic'     : [cs1a, 'Contact filter:<br>hydrophilic', 0.15, [0.5], ['ζ-ζ + ζ-ɤ']],
     'electrostatics'   : [cs4, 'Contact filter:<br>electrostatics', 0.22, [0.13, 0.38, 0.63, 0.88], ['A: ⊕ ⊖', 'A: ⦿  δ', 'A: δ δ', 'R: ⊕ ⊕ or ⊖ ⊖']],
     'π-π stacking'    : [cs3, 'Contact filter:<br>π-π stacking', 0.22, [0.17, 0.5, 0.79], ['⌬-⌬', '⌬-π', 'π-π']],
     'π-ion stacking'  : [cs2, 'Contact filter:<br>π-ion stacking', 0.17, [0.25, 0.75], ['⊕-π', '⊖-π']],

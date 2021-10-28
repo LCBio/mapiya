@@ -63,13 +63,77 @@ cs_ternary = [[0, 'rgb(255,255,255)'], [0.33, 'rgb(255,255,255)'], [0.33, "#1DAC
 cs_ss8 = [[0, "#228B22"], [0.13, "#228B22"], [0.13, "#66b929"], [0.25, "#66b929"], [0.25, "#ccff33"], [0.37, "#ccff33"],
           [0.37, "#D70040"], [0.50, "#D70040"], [0.50, "#ff3399"], [0.63, "#ff3399"], [0.63, "#ff66ff"], [0.75, "#ff66ff"],
           [0.75, "#9999ff"], [0.87, "#9999ff"], [0.87, "#59deff"], [0.999, "#59deff"], [0.999, "#cccccc"], [1, "#cccccc"]]
-#cs_sa = [[0, "#CC3300"], [0.2, "#9999FF"], [0.4, "#000066"], [0.99, "#000066"], [1, '#cccccc']]
-#cs_sa = [[0, '#CC3300'], [0.2, '#CC3300'], [0.33, '#ba5759'], [0.4, "#9999FF"], [0.66, "#2e2e94"], [0.8, "#000066"], [0.99, "#000066"], [1, '#cccccc']]
 cs_sa = [[0, '#CC3300'], [0.2, '#CC3300'], [0.25, "#9999FF"], [0.4, "#9999FF"], [0.5, "#2e2e94"], [0.8, "#000066"], [0.99, "#000066"], [1, '#cccccc']]
 
 
 # const. data
 amino = ['W', 'F', 'Y', 'N', 'Q', 'D', 'E', 'S', 'T', 'H', 'K', 'R', 'L', 'I', 'V', 'A', 'G', 'M', 'C', 'P']
+
+title = {'intra-map' : 'The intramolecular map shows the internal contacts of the object.\n\
+These contacts stabilize the secondary structure and topology of a single domain.',
+         'inter-map' : 'The intermolecular map shows the spatial contacts between two different objects.\n\
+These contacts define binding interfaces, stabilize the quaternary structure,\nand are important for function.',
+         'display-mode' : 'Select mode to display:\n• CM - Contact Map (intra- or intermolecular), where only \
+points below the cutoff are visible\n• DM - Distance Map (intra- or intermolecular), where all points are \
+colored by distance\n• CM | DM - Mixed Map (intramolecular only), split between top-left Contact Map triangle\n\
+    and bottom-right Distance Map triangle',
+         'cutoff' : 'Select distance cutoff [Å] below which contacts will be defined.\ndefault: 8.0 Å',
+         'color-scale' : 'Select a continuous color scale for the Distance Map\n\
+or a discrete color for the Contact Map visualization.',
+         'reverse-cs' : 'Reverse the color order in the selected color scale.',
+         'smoth-cs' : 'Convert the selected color to a continuous color scale fading to white.\n\
+This will visually distinguish between contacts closer and more distant in space.',
+         'intra-filter' : 'Filter out local contacts between neighboring residues.\n\
+As a result, the points along diagonal are dropped.\nThe filter takes an integer n, which defines the number \
+of amino acids (i, i+1, ..., i+n)\nalong the sequence, for which contacts are excluded.\n\
+The filter is available only for intramolecular maps (internal contacts for an object).\ndefault: n = 0',
+         'interaction-filter' : 'Highlight the protein-protein contacts stabilized by the selected interaction type.\n\
+This facilitates your discovery of the nature of the interaction.\nEach option in the Interaction Filter has its own tooltip.\
+\n\nNote: Some contacts can be multivalent (e.g., have both charge and π-electrons)\nand can be displayed for several \
+force types (e.g., electrostatics and π-stacking).\nMost filters are defined on-the-fly based on the physicochemical properties\n\
+of amino acid side groups. Hydrogen bonds are calculated using EDHB.\nFilters for interactions with other \
+biomacromolecules will be available\nin the next version of the Mapiya, so check out it frequently.\n',
+         'interaction-only' : 'Display filtered contacts only.\nThis removes the other contacts from the background of the plot.',
+         'feature-y' : 'Select the additional feature assigned with the residue-resolution along the protein sequence.\n\
+The bar-chart will be displayed on the right side parallel to the Y axis.\n\nAvailable options include:\n\
+• various physicochemical properties,\n• amino acid composition,\n• secondary structure, calculated using STRIDE,\n\
+• solvent accessibility, calculated using STRIDE,\n• Shannon enthropy, calculated on-the-fly,\n\
+• hydrogen bond donor/acceptor,\n• and more.',
+         'feature-x' : 'Select the additional feature assigned with the residue-resolution along the protein sequence.\n\
+The bar-chart will be displayed on the top side parallel to the X axis.\n\nAvailable options include:\n\
+• various physicochemical properties,\n• amino acid composition,\n• secondary structure, calculated using STRIDE,\n\
+• solvent accessibility, calculated using STRIDE,\n• Shannon enthropy, calculated on-the-fly,\n\
+• hydrogen bond donor/acceptor,\n• and more.',
+         'hydropathy' : 'The hydropathy shows the hydrophobic (lacking affinity for water),\n\
+amphipatic (having both polar-water-soluble and nonpolar-not-water-soluble regions),\n\
+and hydrophilic (attracted to water) tendencies of the protein sequence.\n\
+The hydrophobic (Φ) amino acids are: Gly, Ala, Leu, Ile, Val, Pro, Phe.\n\
+The amphipatic (ɤ) amino acids are: Trp, Tyr, Met, Lys.\n\
+The hydrophilic (ζ) amino acids are: Arg, Asn, Asp, Gln, Glu, His, Ser, Thr, Cys.',
+         'hydrophobic' : 'Hydrophobicity is the physical property of a molecule that is seemingly repelled from water.\n\
+The hydrophobic (Φ) amino acids are: Gly, Ala, Leu, Ile, Val, Pro, Phe.\n',
+         'hydrophilic' : 'Hydrophilic substances have a strong affinity for water and dissolve in water.\n\
+The hydrophilic (ζ) amino acids are: Arg, Asn, Asp, Gln, Glu, His, Ser, Thr, Cys.',
+         'electrostatics' : 'Electrostatics describes the interactions between charges.\n\
+There is an attractive (A) force between a positive ⊕ and a negative ⊖ charge,\nwhile two charges of the same sign repel (R) each other. \
+Point charges (monopoles)\nsuch as ions ⦿ , can also interact electrostatically with dipoles (e.g., polar groups, δ)\n\
+and cause temporary charge shifts (induced dipoles) in neutral groups.\nPositively charged amino acids, ⊕ are: Arg, Lys, His.\n\
+Negatively charged amino acids, ⊖ are: Glu, Asp.\nPolar amino acids, δ are: Ser, Thr, Tyr, Gln, Asn, Cys, Met.',
+         'pi-stacking' : 'π–π stacking is an attractive, noncovalent interaction between\naromatic rings, ⌬ , \
+and/or other π–electron-containing systems.\nThe aromatic amino acids, ⌬ are: Phe, Tyr, trp, His.\n\
+The other systems with π–bond are: Arg, Asn, Asp, Gln, Glu, Gly*.',
+         'ion-stacking' : 'Ion–π interaction is a noncovalent attractive interaction between the electron-rich π-system\n\
+(e.g. aromatic ring ⌬ or other π-bond) and an adjacent ion, i.e., cation ⊕ or anion ⊖.\n\
+The aromatic amino acids, ⌬ are: Phe, Tyr, trp, His.\nThe other systems with π–bond are, π: Arg, Asn, Asp, Gln, Glu, Gly*.\n\
+The charged amino acids are: ⊕ : Arg, Lys, His, and ⊖ : Glu, Asp.\n\n\
+The ion-π interactions are orientation-dependent. The two most stable conformations\nare the parallel displaced and T-shaped.\n\
+The stacking is also possible between π–electron-containing system and polar group\nor even C-H orbital.',
+         'hbonds' : 'A hydrogen bond is a special type of dipole-dipole attraction, involving a hydrogen atom\n\
+located between a pair of highly electronegative atoms (having a high affinity for electrons).\n\
+Hydrogen bonds are calculated using EDHB.\n\
+Amino acids that can be proton donors: Arg, Asn, Gln, His, Ser, Thr, Tyr, Trp, Cys, Lys.\n\
+Amino acids that can be proton acceptors: Asn, Asp, Gln, Glu, His, Ser, Thr, Tyr.',
+}
 
 params = {'composition': [cs_seq, 'SEQUENCE', 0.45, [0.02, 0.07, 0.12, 0.17, 0.22, 0.27, 0.32, 0.37, 0.42, 0.47,
                                             0.52, 0.57, 0.62, 0.67, 0.72, 0.77, 0.82, 0.87, 0.92, 0.97], amino],
@@ -132,7 +196,7 @@ app.layout = html.Div([
                     title='see objects and interactions'),
         html.Button('◩', id='tab-2', style={**btn_basic, **btn_style, **btn_opts, 'color': '#95A5A6'},
                     title='see contact map'),
-        html.Button('⬇', id='tab-3', style={**btn_basic, **btn_style, **btn_opts}, title='download data'),
+        html.Button('⟱', id='tab-3', style={**btn_basic, **btn_style, **btn_opts}, title='download data'),
         html.Div([html.Div(id='settings', style={'display':'block', 'z-index':'110'}),
                   html.Button('×', id='close', style={**btn_style, **settings_close}, title='close options window'),
                  ], id='settings-dir', style={**settings_style, 'left': '4.5vw'}),
@@ -350,12 +414,12 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
         return [
             html.Div([
                 html.Div([
-                    html.Label('to see Intramolecular Map', style=lab_style),
+                    html.Label('to see Intramolecular Map', style=lab_style, title=title['intra-map']),
                     dcc.Dropdown(id='object_selected', placeholder="Select Object", clearable=False, optionHeight=30,
                                  options=[{'label': i, 'value': intra[i]} for i in intra], value='', style={'marginTop': '6px'})], 
                     style={**drops, 'marginLeft': '0.5vw', 'width': '20vw'}),
                 html.Div([
-                    html.Label('to see Intermolecular Map', style=lab_style),
+                    html.Label('to see Intermolecular Map', style=lab_style, title=title['inter-map']),
                     dcc.Dropdown(id='interaction_selected', placeholder="Select Interaction", clearable=False,
                                  optionHeight=30, options=[{'label': i, 'value': inter[i]} for i in inter], value='', style={'marginTop': '6px'})],
                     style={**drops, 'width': '20vw'}),
@@ -384,33 +448,33 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
             html.Div([
                 html.Div([
                     html.Div([
-                        html.Label('Display Mode', style=lab_style),
+                        html.Label('Display Mode', style=lab_style, title=title['display-mode']),
                         dcc.Dropdown(id='display_mode', placeholder="Select mode", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
                                      options=opts, value=val)],
                         style={**drops, 'marginLeft': '0.5vw', 'width': '18vw'}),
                     html.Div([
-                        html.Label('Cutoff [Å]', style=lab_style),
+                        html.Label('Cutoff [Å]', style=lab_style, title=title['cutoff']),
                         dcc.Input(id="cutoff", type="number", placeholder=" default: 8Å", min=0, value=json.loads(model_data['config'])["contact_cutoff"], step=0.1,
                                   debounce=False,
                                   style=dict(height='29px', width='10vw', marginTop='6px', color='dimgrey',
                                              borderRadius='5px 5px 5px 5px', borderColor='rgba(0,0,0,0)'))],
                         style={**drops, 'vertical-align': 'top', 'width': '10vw', 'margin-right': '1vw'}, ),
                     html.Div([
-                        html.Label('ColorScale', style=lab_style),
+                        html.Label('ColorScale', style=lab_style, title=title['color-scale']),
                         dcc.Dropdown(id='color_selected', placeholder="Select Color", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
                                      options=opt_cs, value=opt_cs[0]['value'])],
                         style={**drops, 'width': '16vw'}, ),
                     html.Div([
-                        html.Label('Reverse', id='check-reverse', style=lab_style),
+                        html.Label('Reverse', id='check-reverse', style=lab_style, title=title['reverse-cs']),
                         dcc.Checklist(id='reverse', options=[{'label': '', 'value': '_r'}, ], value='', ), ],
                         style={'width': '12vw', 'marginTop': '3vh', 'marginLeft': '0.8vw', 'display': 'inline-block',
                                'vertical-align': 'top'}, ),
 
                     html.Hr(style={'border-top': '1px solid lightgray', 'margin': '0.7vw 0.5vw 0.7vw 0.5vw'}),
                     html.Div([
-                        html.Label('intra-Contact Filter', id='intra_contact', style=lab_style),
+                        html.Label('intra-Contact Filter', id='intra_contact', style=lab_style, title=title['intra-filter']),
                         dcc.Input(id="filter_cutoff", type="number", placeholder=" i, i+n: n=0", min=0, value=0, step=1,
                                   debounce=False,
                                   style=dict(height='29px', width='10vw', marginTop='6px', color='dimgrey',
@@ -418,22 +482,22 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                         html.Label(' i, i+n', style={'font-style': 'italic', 'color': '#95A5A6'})],
                         style={**drops, 'vertical-align': 'top', 'width': '18vw', 'marginLeft': '0.5vw', 'margin-right': '1vw'}, ),
                     html.Div([
-                        html.Label('Interaction Filter', style=lab_style),
+                        html.Label('Interaction Filter', style=lab_style, title=title['interaction-filter']),
                         dcc.Dropdown(id='feature_selected', placeholder="Select Feature", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
                                      options=[
                                          {'label': 'filter: none', 'value': 'none', 'disabled': False},
-                                         {'label': 'hydropathy', 'value': 'hydropathy', 'disabled': False},
-                                         {'label': 'hydrophobic', 'value': 'hydrophobic', 'disabled': False},
-                                         {'label': 'hydrophilic', 'value':  'hydrophilic', 'disabled': False},
-                                         {'label': 'electrostatics', 'value': 'electrostatics', 'disabled': False},
-                                         {'label': 'π-π stacking', 'value': 'π-π stacking', 'disabled': False},
-                                         {'label': 'π-ion stacking', 'value': 'π-ion stacking', 'disabled': False},
-                                         {'label': 'hydrogen bonds', 'value': 'hydrogen bonds', 'disabled': False},
+                                         {'label': 'hydropathy', 'value': 'hydropathy', 'disabled': False, 'title': title['hydropathy']},
+                                         {'label': 'hydrophobic', 'value': 'hydrophobic', 'disabled': False, 'title': title['hydrophobic']},
+                                         {'label': 'hydrophilic', 'value':  'hydrophilic', 'disabled': False, 'title': title['hydrophilic']},
+                                         {'label': 'electrostatics', 'value': 'electrostatics', 'disabled': False, 'title': title['electrostatics']},
+                                         {'label': 'π-π stacking', 'value': 'π-π stacking', 'disabled': False, 'title': title['pi-stacking']},
+                                         {'label': 'π-ion stacking', 'value': 'π-ion stacking', 'disabled': False, 'title': title['ion-stacking']},
+                                         {'label': 'hydrogen bonds', 'value': 'hydrogen bonds', 'disabled': False, 'title': title['hbonds']},
                                      ], value='none')],
                         style={**drops, 'width': '18vw', 'marginLeft': '1vw'}),
                     html.Div([
-                        html.Label('Only', id='filter-only', style=lab_style),
+                        html.Label('Only', id='filter-only', style=lab_style, title=title['interaction-only']),
                         dcc.Checklist(id='filter', options=[{'label': '', 'value': 'only'}, ], value='', ), ],
                         style={'width': '4vw', 'marginTop': '3vh', 'marginLeft': '0.8vw', 'display': 'inline-block',
                                'vertical-align': 'top'}, ),
@@ -441,13 +505,13 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                     html.Hr(style={'border-top': '1px solid lightgray', 'margin': '0.7vw 0.5vw 0.7vw 0.5vw'}),
                     html.Div([
                         html.Div([
-                            html.Label('Select 1D-Y Feature', style=lab_style),
+                            html.Label('Select 1D-Y Feature', style=lab_style, title=title['feature-y']),
                             dcc.Dropdown(id='1dy', placeholder="Select 1D Feature", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
                                      options=[{'label': i, 'value': i} for i in opt_1D], value='none')],
                             style={**drops, 'width': '18vw', 'marginLeft': '0.5vw'}, ),
                         html.Div([
-                            html.Label('Select 1D-X Feature', style=lab_style),
+                            html.Label('Select 1D-X Feature', style=lab_style, title=title['feature-x']),
                             dcc.Dropdown(id='1dx', placeholder="Select 1D Feature", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
                                      options=[{'label': i, 'value': i} for i in opt_1D], value='none')],
@@ -511,9 +575,11 @@ def update_filter_options(model_data, options):
 @app.expanded_callback([Output('color_selected', 'options'), Output('color_selected', 'value'), Output('check-reverse', 'children')], Input('display_mode', 'value'))
 def update_cs(mode):
     if mode == 'C':
-        return [[{'label': i, 'value': colors_binary[i]} for i in colors_binary], colors_binary['Silver'], 'Smoth CS']
+        S = html.Label('Smoth CS', style=lab_style, title=title['smoth-cs'])
+        return [[{'label': i, 'value': colors_binary[i]} for i in colors_binary], colors_binary['Silver'], S]
     else:
-        return [[{'label': i, 'value': i} for i in colors], colors[0], 'Reverse']
+        R = html.Label('Reverse', style=lab_style, title=title['reverse-cs'])
+        return [[{'label': i, 'value': i} for i in colors], colors[0], R]
 
 
 @app.expanded_callback([Output('dashbio-circos', 'children'), Output('chains-colors', 'value')], Input('contacts', 'value'))
@@ -563,9 +629,9 @@ def display_click_data(data):
         data = data["points"][0]
         if 'text' in data:
             data = data['text'].split()
-            if len(data) == 5 and data[3] == 'intramolecular':
+            if len(data) == 5 and data[3].startswith('intra'):
                 data = data[0]
-            elif len(data) == 7 and data[3] == 'intermolecular':
+            elif len(data) == 7 and data[3].startswith('inter'):
                 data = data[0] + ':' + data[6]
         return data
     else:
@@ -690,7 +756,7 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
                 hb = hbonds[(hbonds.donor == donor_set[x]) & (hbonds.acceptor == accep_set[y])]
                 if len(hb) > 0:
                     filtrated[x][y] = 0.1
-                    hb_desc = ' calculated by STRIDE:<br>'+'<br>'.join(['HB-type: '+row['type'].upper()+
+                    hb_desc = ' calculated by EDHB:<br>'+'<br>'.join(['HB-type: '+row['type'].upper()+
                               ', '+row['proton']+' in '+donor+':'+row['donor']+'  &  '+row['acc_atom']+' in '+accep+':'+
                               row['acceptor']+', length: '+str(row['length']) for index, row in hb.iterrows()])
                 else:
