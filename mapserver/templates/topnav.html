@@ -4,7 +4,7 @@
         <i class="fas fa-map"></i> <strong>Mapserver</strong>
     </a>
 
-    <span class="text-white pr-5">{% if commit_sha %}{{ commit_sha }}{% endif %}</span>
+    {% if commit_sha %}{{ commit_sha }}{% endif %}
 
     {% if user.is_authenticated %}
 

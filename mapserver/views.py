@@ -4,6 +4,7 @@ from django.shortcuts import redirect
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.views import generic
+from django.utils.html import format_html
 from django.core.files import File
 from django_tables2 import SingleTableView
 from . import models, forms, tables
@@ -127,5 +128,8 @@ def reset_options(request):
 def get_commit_sha():
     proc = subprocess.run(['git', 'log', '-n1', '--oneline', '--no-decorate'], capture_output=True)
     if proc.returncode:
-        return ''
-    return proc.stdout.decode(errors='ignore')
+        return None
+    sha = proc.stdout.decode(errors='ignore').split()[0]
+    return format_html(
+        f'<a class="text-white px-5" href="https://bitbucket.org/lcbio/mapserver/commits/{sha}">{sha}</a>'
+    )
