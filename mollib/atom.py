@@ -166,7 +166,7 @@ class Atom:
     def __str__(self):
         name = self.name if len(self.name) == 4 else f' {self.name:<3s}'
         hetero = 'HETATM' if self.hetero else 'ATOM  '
-        return f'{hetero}{self.serial:5d} {name}{self.altloc}{self.resname} {self.chain}{self.resnum:4d}' \
+        return f'{hetero}{self.serial:5d} {name}{self.altloc}{self.resname:3} {self.chain}{self.resnum:4d}' \
                f'{self.icode}   {self.R.x:8.3f}{self.R.y:8.3f}{self.R.z:8.3f}{self.occ:6.2f}{self.bfac:6.2f}'
 
     @cached_property
