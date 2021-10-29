@@ -4,6 +4,8 @@
         <i class="fas fa-map"></i> <strong>Mapserver</strong>
     </a>
 
+    <span class="text-white pr-5">{% if commit_sha %}{{ commit_sha }}{% endif %}</span>
+
     {% if user.is_authenticated %}
 
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">

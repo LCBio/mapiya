@@ -1,4 +1,5 @@
 import json
+import subprocess
 from django.shortcuts import redirect
 from django.http import JsonResponse
 from django.urls import reverse_lazy
@@ -22,6 +23,7 @@ class Home(SingleTableView):
             identity.config = json.dumps(forms.OptionsForm.DEFAULTS)
             identity.save(update_fields=['config'])
         data['options_form'] = forms.OptionsForm(data=json.loads(identity.config))
+        data['commit_sha'] = get_commit_sha()
         return data
 
     def get_queryset(self):
@@ -120,3 +122,10 @@ def reset_options(request):
     identity.config = json.dumps(forms.OptionsForm.DEFAULTS)
     identity.save(update_fields=['config'])
     return redirect('home')
+
+
+def get_commit_sha():
+    proc = subprocess.run(['git', 'log', '-n1', '--oneline', '--no-decorate'], capture_output=True)
+    if proc.returncode:
+        return ''
+    return proc.stdout.decode(errors='ignore')
