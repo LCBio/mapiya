@@ -11,6 +11,8 @@ $modal.on('shown.bs.modal', function (event) {
 $modal.on('submit', 'form#rcsbForm', function (event) {
     event.preventDefault();
     let $form = $(this);
+    $form.find('button').attr('disabled', true);
+
     $.ajax({
         url: $form.attr('action'),
         method: $form.attr('method'),
