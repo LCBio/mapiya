@@ -53,10 +53,26 @@ def calc_entropy(seq, shift=6):
 
 def calc_struct(seq, struct):
 
-    ss = [SS_CODES['8-letter'][i] for i in struct['secondary_structure'].tolist()]
-    sasa = struct['solvent_accessibility'].tolist()
-    sa = [round(sasa[n]/AA_ATTRIBUTES[i][7][0], 2) for n, i in enumerate(seq)]
-    return ss, sa
+    resids = struct.residues.tolist()
+    ss_t = struct['secondary_structure'].tolist()
+    sa_t = struct['solvent_accessibility'].tolist()
+    ss = []
+    sa = []
+    if len(seq) != len(resids):
+        for i in seq:
+            if i in resids:
+                k = resids.index(i)
+                ss.append(ss_t[k])
+                sa.append(sa_t[k])
+            else:
+                ss.append('C')
+                sa.append(AA_ATTRIBUTES[i.split(':')[0]][7][0])
+    else:
+        ss = ss_t
+        sa = sa_t
+    sec_struct = [SS_CODES['8-letter'][i] for i in ss]
+    sasa = [round(sa[n]/AA_ATTRIBUTES[i.split(':')[0]][7][0], 2) for n, i in enumerate(seq)]
+    return sec_struct, sasa
 
 
 def calc_contact_nature(res1, res2):

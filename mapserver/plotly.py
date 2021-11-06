@@ -130,7 +130,7 @@ The ion-π interactions are orientation-dependent. The two most stable conformat
 The stacking is also possible between π–electron-containing system and polar group\nor even C-H orbital.',
          'hbonds' : 'A hydrogen bond is a special type of dipole-dipole attraction, involving a hydrogen atom\n\
 located between a pair of highly electronegative atoms (having a high affinity for electrons).\n\
-Hydrogen bonds are calculated using EDHB.\n\
+Hydrogen bonds are calculated using EDHB. If the option is disabled, the process was unsuccessful.\n\
 Amino acids that can be proton donors: Arg, Asn, Gln, His, Ser, Thr, Tyr, Trp, Cys, Lys.\n\
 Amino acids that can be proton acceptors: Asn, Asp, Gln, Glu, His, Ser, Thr, Tyr.',
 }
@@ -335,14 +335,22 @@ def toggle_interval(status):
 def select_model(btn, pk, ix):
     if btn == '' or btn == ix:
         raise PreventUpdate
-    elif btn == 0:
-        model = Job.objects.get(project_id=pk)
+    else:
+        struct = hbonds = ''
+        if btn == 0:
+            model = Job.objects.get(project_id=pk)
+        elif btn >= 1:
+            model = Job.objects.get(project_id=pk, model_index=btn)
+        try:
+            struct = model.structural_data.path
+        except ValueError:
+            pass
+        try:
+            hbonds = model.hydrogen_bonds.path
+        except ValueError:
+            pass
         return [btn, {'protein': model.project.filename, 'matrix': model.matrix.path, 'info': model.info, 
-                      'config': model.project.config, 'struct': model.structural_data.path, 'hbonds': model.hydrogen_bonds.path}]
-    elif btn >= 1:
-        model = Job.objects.get(project_id=pk, model_index=btn)
-        return [btn, {'protein': model.project.filename, 'matrix': model.matrix.path, 'info': model.info, 
-                      'config':model.project.config, 'struct': model.structural_data.path, 'hbonds': model.hydrogen_bonds.path}]
+                      'config': model.project.config, 'struct': struct, 'hbonds': hbonds}]
 
 
 @app.expanded_callback([Output('con-intra', 'value'), Output('con-inter', 'value'), Output('contacts', 'value')],
@@ -385,7 +393,9 @@ def load_basic_data(model_data):
 @app.expanded_callback(Output('data_1d', 'value'), [Input('model-data', 'value')])
 def calc_1d_data(model_data):
     info = json.loads(model_data['info'])['labels']
-    struct = pd.read_csv(model_data['struct'], sep = ',', engine = 'python')
+    struct = pd.DataFrame()
+    if model_data['struct'] != '':
+        struct = pd.read_csv(model_data['struct'], sep = ',', engine = 'python')
     data_1d = {}
     for i in info:
         if i.startswith('protein'):
@@ -394,10 +404,43 @@ def calc_1d_data(model_data):
             for z in patterns:
                 data_1d[i + ':' + z] = patterns[z]
             data_1d[i + ':SEQ entropy'] = calc_entropy(residues)
-            struct_data = struct[struct.chain == i.split('-')[1]]
-            if len(struct_data) == len(residues):
-                data_1d[i + ':II-structure'], data_1d[i + ':solvent access'] = calc_struct(residues, struct_data)
+            if not struct.empty:
+                struct_data = struct[struct.chain == i.split('-')[1]]
+                if not struct_data.empty:
+                    data_1d[i + ':II-structure'], data_1d[i + ':solvent access'] = calc_struct(info[i][0], struct_data)
+                else:
+                    data_1d[i + ':II-structure'] = ''
+                    data_1d[i + ':solvent access'] = ''
     return data_1d
+
+
+@app.expanded_callback([Output('1dx', 'options'), Output('1dy', 'options')], [Input('data_1d', 'value'), Input('selected', 'value')])
+def disable_1d_options(data_1d, selected):
+    opts_a = []
+    opts_b = []
+    selected = selected.split('|')
+    obj_a = selected[0].split(':')[0]
+    obj_b = obj_a
+    if len(selected) > 1:
+        obj_b = selected[1].split(':')[0]
+
+    if obj_a.startswith('protein'):
+        if len(data_1d[obj_a + ':II-structure']):
+            opts_a=[{'label': i, 'value': i, 'disabled': False} for i in opt_1D]
+        else:
+            opts_a=[{'label': i, 'value': i, 'disabled': True} if i in ['II-structure', 'solvent access'] else {'label': i, 'value': i, 'disabled': False} for i in opt_1D]
+    else:
+        opts_a=[{'label': i, 'value': i, 'disabled': True} for i in opt_1D]
+
+    if obj_b.startswith('protein'):
+        if len(data_1d[obj_b + ':II-structure']):
+            opts_b=[{'label': i, 'value': i, 'disabled': False} for i in opt_1D]
+        else:
+            opts_b=[{'label': i, 'value': i, 'disabled': True} if i in ['II-structure', 'solvent access'] else {'label': i, 'value': i, 'disabled': False} for i in opt_1D]
+    else:
+        opts_b=[{'label': i, 'value': i, 'disabled': True} for i in opt_1D]
+
+    return [opts_b, opts_a]
 
 
 @app.callback([Output('settings', 'children'), Output('tabs', 'children')],
@@ -508,13 +551,13 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                             html.Label('Select 1D-Y Feature', style=lab_style, title=title['feature-y']),
                             dcc.Dropdown(id='1dy', placeholder="Select 1D Feature", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
-                                     options=[{'label': i, 'value': i} for i in opt_1D], value='none')],
+                                     options=[{'label': i, 'value': i, 'disabled': False} for i in opt_1D], value='none')],
                             style={**drops, 'width': '18vw', 'marginLeft': '0.5vw'}, ),
                         html.Div([
                             html.Label('Select 1D-X Feature', style=lab_style, title=title['feature-x']),
                             dcc.Dropdown(id='1dx', placeholder="Select 1D Feature", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
-                                     options=[{'label': i, 'value': i} for i in opt_1D], value='none')],
+                                     options=[{'label': i, 'value': i, 'disabled': False} for i in opt_1D], value='none')],
                             style={**drops, 'width': '18vw'}),
                     ], style={'display': 'block'}),
                 ]),
@@ -564,11 +607,11 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
 @app.expanded_callback([Output('feature_selected', 'options'), Output('hbonds', 'value')], Input('model-data', 'value'), State('feature_selected', 'options'))
 def update_filter_options(model_data, options):
     path_hb = model_data['hbonds']
-    hbonds = pd.read_csv(path_hb, sep = ',', engine = 'python')
-    if len(hbonds) > 0:
-       options[-1]['disabled'] = False
-    else:
-       options[-1]['disabled'] = True
+    options[-1]['disabled'] = True
+    if path_hb != '':
+        hbonds = pd.read_csv(path_hb, sep = ',', engine = 'python')
+        if len(hbonds) > 0:
+            options[-1]['disabled'] = False
     return [options, path_hb]
 
 
