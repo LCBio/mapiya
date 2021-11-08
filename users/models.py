@@ -70,6 +70,7 @@ class Identity(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     session = models.OneToOneField(Session, on_delete=models.SET_NULL, null=True, blank=True)
     config = models.TextField(null=True, blank=True)
+    # TODO: limit number of running jobs per user
 
     def __str__(self):
         return self.id
