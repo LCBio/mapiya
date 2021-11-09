@@ -172,7 +172,7 @@ class Job(models.Model):
         logger, log = setup_logger('PDBFixer')
 
         # get config from the Project
-        config = self.project.get_config
+        config = self.project.config
 
         # load fixer object from self.pdb
         with self.pdb.open('rt') as f:

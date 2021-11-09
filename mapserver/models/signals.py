@@ -2,7 +2,6 @@ from . import Project, Job
 from django.dispatch import receiver
 from django.db.models import signals
 from django.core.files.storage import default_storage as storage
-import json
 
 
 @receiver(signals.pre_delete, sender=Project)
@@ -18,10 +17,10 @@ def delete_media(**kwargs):
 def project_init_extras(**kwargs):
     if kwargs['created']:
         instance = kwargs.get('instance')
-        instance.info = json.dumps({
+        instance.info = {
             'models': instance.atoms.models_count,
             'labels': list(instance.atoms.models.keys())
-        })
+        }
         instance.save(update_fields=['info'])
         for model_index in instance.atoms.models:
             Job.objects.create(
