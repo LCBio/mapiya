@@ -21,9 +21,9 @@ class Home(SingleTableView):
         data = super().get_context_data(**kwargs)
         identity = get_identity(self.request)
         if not identity.config:
-            identity.config = json.dumps(forms.OptionsForm.DEFAULTS)
+            identity.config = forms.OptionsForm.DEFAULTS
             identity.save(update_fields=['config'])
-        data['options_form'] = forms.OptionsForm(data=json.loads(identity.config))
+        data['options_form'] = forms.OptionsForm(data=identity.config)
         data['commit_sha'] = get_commit_sha()
         return data
 
@@ -110,7 +110,7 @@ def update_options(request):
     identity = get_identity(request)
     form = forms.OptionsForm(data=request.POST)
     if form.is_valid():
-        identity.config = json.dumps(form.cleaned_data)
+        identity.config = form.cleaned_data
         identity.save(update_fields=['config'])
         return JsonResponse({'message': 'Changes saved!'})
     else:
@@ -120,7 +120,7 @@ def update_options(request):
 def reset_options(request):
     # TODO: update form only, without homepage reload
     identity = get_identity(request)
-    identity.config = json.dumps(forms.OptionsForm.DEFAULTS)
+    identity.config = forms.OptionsForm.DEFAULTS
     identity.save(update_fields=['config'])
     return redirect('home')
 
