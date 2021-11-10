@@ -10,7 +10,8 @@ from django.db import transaction
 from . import models
 
 
-def queue_worker(job):
+def queue_worker(queue):
+    job = queue.popleft()
     job.status = 'R'
     job.save(update_fields=['status'])
     try:
@@ -27,28 +28,26 @@ def queue_worker(job):
 def queue_manager():
     queue = collections.deque()
     while True:
-        if queue:
-            max_workers = min(settings.QUEUE_WORKERS_COUNT, len(queue))
-            workers = [
-                threading.Thread(target=queue_worker, args=[queue.popleft()], name=f'QueueWorker-{index}')
-                for index in range(max_workers)
-            ]
+        jobs = models.Job.objects.filter(status='S').order_by('date_init')
+        queue.extend(jobs)
+        with transaction.atomic():
+            for job in jobs:
+                job.status = 'Q'
+                job.save(update_fields=['status'])
 
-            for worker in workers:
-                worker.start()
+        max_workers = min(settings.QUEUE_WORKERS_COUNT, len(queue))
+        workers = [
+            threading.Thread(target=queue_worker, args=[queue], name=f'QueueWorker-{index}')
+            for index in range(max_workers)
+        ]
 
-            for worker in workers:
-                worker.join()
+        for worker in workers:
+            worker.start()
 
-        else:
-            if jobs := models.Job.objects.filter(status='S').order_by('date_init'):
-                with transaction.atomic():
-                    for job in jobs:
-                        queue.append(job)
-                        job.status = 'Q'
-                        job.save(update_fields=['status'])
-            else:
-                time.sleep(settings.QUEUE_MANAGER_TIMEOUT_SECONDS)
+        # for worker in workers:
+        #     worker.join()
+
+        time.sleep(settings.QUEUE_MANAGER_TIMEOUT_SECONDS)
 
 
 threading.Thread(target=queue_manager, name='Queue manager').start()

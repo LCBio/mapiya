@@ -42,6 +42,7 @@ class Job(models.Model):
 
     class StatusChoices(models.TextChoices):
 
+        SUBMITTED = 'S'
         QUEUE = 'Q'
         RUNNING = 'R'
         ERROR = 'E'
@@ -57,7 +58,7 @@ class Job(models.Model):
     pqr = models.FileField(upload_to=compute_path, null=True, blank=True)
     info = models.JSONField(blank=True, default=dict)
     logs = models.JSONField(blank=True, default=dict)
-    status = models.CharField(max_length=1, choices=StatusChoices.choices, default=StatusChoices.QUEUE)
+    status = models.CharField(max_length=1, choices=StatusChoices.choices, default=StatusChoices.SUBMITTED)
     error = models.TextField(blank=True, null=True)
     date_init = models.DateTimeField(auto_now_add=True)
 

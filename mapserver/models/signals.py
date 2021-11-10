@@ -1,6 +1,5 @@
 from django.dispatch import receiver
 from django.db.models import signals
-from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage as storage
 
 from . import Project, Job
@@ -29,10 +28,3 @@ def project_init_extras(**kwargs):
                 project=instance,
                 model_index=model_index if model_index else 0
             )
-
-
-@receiver(signals.post_save, sender=Job)
-def job_init_extras(**kwargs):
-    if kwargs['created']:
-        instance = kwargs.get('instance')
-        instance.run()
