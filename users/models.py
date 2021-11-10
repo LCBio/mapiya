@@ -69,7 +69,8 @@ class Identity(models.Model):
     id = models.CharField(max_length=ID_LENGTH, primary_key=True, default=get_identity_id)
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     session = models.OneToOneField(Session, on_delete=models.SET_NULL, null=True, blank=True)
-    config = models.TextField(null=True, blank=True)
+    config = models.JSONField(null=True, blank=True)
+    # TODO: limit number of running jobs per user
 
     def __str__(self):
         return self.id

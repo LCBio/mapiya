@@ -34,8 +34,8 @@ class Project(models.Model):
     identity = models.ForeignKey(Identity, on_delete=models.CASCADE)
     filename = models.CharField(max_length=50)
     pdb = models.FileField(upload_to=pdb_path)
-    info = models.TextField(null=True, blank=True)
-    config = models.TextField(null=True, blank=True)
+    info = models.JSONField(null=True, blank=True)
+    config = models.JSONField(null=True, blank=True)
 
     @property
     def media_dir(self):
@@ -69,10 +69,6 @@ class Project(models.Model):
 
     def get_absolute_url(self):
         return reverse('project-detail', args=[self.id])
-
-    @property
-    def get_config(self):
-        return json.loads(self.config)
 
     def __str__(self):
         return self.filename

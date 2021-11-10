@@ -1,6 +1,5 @@
 import collections
 import io
-import json
 import logging
 import pathlib
 import subprocess
@@ -14,9 +13,10 @@ from django.db import models
 from openmm.app import PDBFile
 from pdbfixer import PDBFixer
 from simtk import unit
-from mapserver.models import Project
+
 from mollib.atom import Atoms
 from mollib.utils import DistanceMatrix
+from . import Project
 
 
 def compute_path(instance, filename):
@@ -42,6 +42,7 @@ class Job(models.Model):
 
     class StatusChoices(models.TextChoices):
 
+        SUBMITTED = 'S'
         QUEUE = 'Q'
         RUNNING = 'R'
         ERROR = 'E'
@@ -55,116 +56,30 @@ class Job(models.Model):
     structural_data = models.FileField(upload_to=compute_path, null=True, blank=True)
     hydrogen_bonds = models.FileField(upload_to=compute_path, null=True, blank=True)
     pqr = models.FileField(upload_to=compute_path, null=True, blank=True)
-    info = models.TextField(null=True, blank=True)
-    status = models.CharField(max_length=1, choices=StatusChoices.choices, default=StatusChoices.QUEUE)
-    error = models.TextField(null=True, blank=True)
-    logs = models.TextField(null=True, blank=True)
+    info = models.JSONField(blank=True, default=dict)
+    logs = models.JSONField(blank=True, default=dict)
+    status = models.CharField(max_length=1, choices=StatusChoices.choices, default=StatusChoices.SUBMITTED)
+    error = models.TextField(blank=True, null=True)
     date_init = models.DateTimeField(auto_now_add=True)
-
-    @property
-    def atoms(self):
-        return Atoms.from_file(self.pdb.path)
-
-    def get_log(self, key):
-        if self.logs:
-            try:
-                return json.loads(self.logs).get(key)
-            except [TypeError, KeyError]:
-                pass
-        return ''
-
-    def update_log(self, key, log):
-        if self.logs:
-            try:
-                logs = json.loads(self.logs)
-            except TypeError:
-                logs = {}
-        else:
-            logs = {}
-
-        logs.update({key: log})
-        self.logs = json.dumps(logs)
-        self.save(update_fields=['logs'])
-
-    def get_matrix(self):
-        atoms = self.atoms.drop('WATER or HYDRO')
-        residues = []
-        objects = {}
-        ix_from = 0
-        for chainID, chain in atoms.chains.items():
-            protein, other = chain.partition('PROTEIN')
-            hetero, nucleic = other.partition('HETERO')
-
-            for obj, type_ in zip([protein, nucleic, hetero], ['protein', 'nucleic', 'hetero']):
-                if len(obj):
-                    length = len(obj.residues_list)
-                    residues.extend(obj.residues_list)
-                    objects[type_ + '-' + chainID] = [
-                        [f'{r[0].resname}:{r[0].resid}' for r in obj.residues_list],
-                        [ix_from, ix_from+length]
-                    ]
-                    ix_from += length
-
-        distances = np.zeros(shape=(len(residues), len(residues)))
-        for i, r1 in enumerate(residues):
-            for j, r2 in enumerate(residues[i + 1:], i + 1):
-                distances[i, j] = distances[j, i] = np.sqrt(DistanceMatrix(r1.numpy, r2.numpy).d2.min())
-
-        return objects, distances
-
-    def save_matrix(self):
-        with io.BytesIO() as f:
-            info, matrix = self.get_matrix()
-            np.save(f, matrix)
-            self.matrix = File(f, name=f'matrix{self.model_index}.npy')
-
-            self.info = json.dumps({
-                'labels': info,
-                **(json.loads(self.info) if self.info else {})
-            })
-            self.save(update_fields=['matrix', 'info'])
-
-    def save_pdb(self):
-        atoms = self.project.atoms.models[self.model_index] if self.model_index else self.project.atoms
-        self.pdb = ContentFile(name=f'model{self.model_index}.pdb', content=atoms.pdb)
-        self.save(update_fields=['pdb'])
-
-    def save_results(self, fixer_log, ss_elements, structural_data, hydrogen_bonds):
-
-        # update self.info
-        info = json.loads(self.info) if self.info else {}
-        info['fixer_log'] = fixer_log
-        info['ss_elements'] = ss_elements
-        self.info = json.dumps(info)
-
-        # update self.pdb
-        path = pathlib.Path(self.pdb.path)
-        filename = path.parent / f'{path.stem}_fixed{path.suffix}'
-        self.pdb.delete(save=False)
-        self.pdb = ContentFile(name=path.name, content=Atoms.from_file(filename).pdb)
-
-        # save additional files
-        self.structural_data = ContentFile(name=f'data{self.model_index}.csv', content=structural_data.to_csv())
-        self.hydrogen_bonds = ContentFile(name=f'hbonds{self.model_index}.csv', content=hydrogen_bonds.to_csv())
-
-        # commit changes
-        self.save()
-
-    def run(self):
-        # extract model from uploaded file in self.pdb
-        self.save_pdb()
-        self.run_pdbfixer()
-
-        self.run_stride()
-        self.run_apbs()
-        self.run_edhb()
-
-        # calculate distance matrix from self.pdb
-        self.save_matrix()
 
     def __str__(self):
         status = dict(self.StatusChoices.choices).get(self.status, 'Unknown')
         return f'{self.project.filename}:{self.model_index} [{status}]'
+
+    def cleanup(self):
+        self.info = {}
+        self.logs = {}
+        self.error = None
+        self.status = self.StatusChoices.QUEUE
+        for filename in ['matrix', 'pdb', 'environment', 'structural_data', 'hydrogen_bonds', 'pqr']:
+            file = getattr(self, filename)
+            if file:
+                file.delete(save=False)
+        self.save()
+
+    def save_pdb(self):
+        atoms = self.project.atoms.models[self.model_index] if self.model_index else self.project.atoms
+        self.pdb = ContentFile(name=f'model{self.model_index}.pdb', content=atoms.pdb)
 
     def run_pdbfixer(self):
 
@@ -172,7 +87,7 @@ class Job(models.Model):
         logger, log = setup_logger('PDBFixer')
 
         # get config from the Project
-        config = self.project.get_config
+        config = self.project.config
 
         # load fixer object from self.pdb
         with self.pdb.open('rt') as f:
@@ -325,12 +240,42 @@ class Job(models.Model):
             with io.StringIO() as f:
                 PDBFile.writeFile(fixer.topology, fixer.positions, f)
                 self.environment = ContentFile(name=f'environment{self.model_index}.pdb', content=f.getvalue())
-                self.save(update_fields=['environment'])
         else:
             logger.info('no solvent or membrane added')
 
         # Save PDBFixer log in the DB
-        self.update_log('pdbfixer', log.getvalue())
+        self.logs['pdbfixer'] = log.getvalue()
+
+    def compute_matrix(self):
+        atoms = Atoms.from_fileobject(self.pdb.open('rt')).drop('WATER or HYDRO')
+        residues = []
+        info = {}
+        ix_from = 0
+        for chainID, chain in atoms.chains.items():
+            protein, other = chain.partition('PROTEIN')
+            hetero, nucleic = other.partition('HETERO')
+
+            for obj, type_ in zip([protein, nucleic, hetero], ['protein', 'nucleic', 'hetero']):
+                if len(obj):
+                    length = len(obj.residues_list)
+                    residues.extend(obj.residues_list)
+                    info[type_ + '-' + chainID] = [
+                        [f'{r[0].resname}:{r[0].resid}' for r in obj.residues_list],
+                        [ix_from, ix_from+length]
+                    ]
+                    ix_from += length
+
+        matrix = np.zeros(shape=(len(residues), len(residues)))
+        for i, r1 in enumerate(residues):
+            for j, r2 in enumerate(residues[i + 1:], i + 1):
+                matrix[i, j] = matrix[j, i] = np.sqrt(DistanceMatrix(r1.numpy, r2.numpy).d2.min())
+
+        with io.BytesIO() as f:
+            np.save(f, matrix)
+            self.matrix = File(f, name=f'matrix{self.model_index}.npy')
+            self.info['labels'] = info
+            self.status = self.StatusChoices.FINISHED
+            self.save()
 
     def run_apbs(self):
         input_path = pathlib.Path(self.pdb.path)
@@ -343,16 +288,10 @@ class Job(models.Model):
             args = ['pdb2pqr', '--ff=PARSE', '--titration-state-method=propka', '--with-ph=7.0',
                     '--apbs-input', apbs_in, input_path, pqr_file]
             proc = subprocess.run(args=args, capture_output=True)
-            if proc.returncode:
-                # TODO: add error handling for apbs
-                pass
-            else:
-                self.update_log('apbs', proc.stderr.decode())
+            if not proc.returncode:
                 self.pqr = ContentFile(name=f'{pqr_file.name}', content=pqr_file.read_text())
-                info = json.loads(self.info) if self.info else {}
-                info['apbs'] = apbs_in.read_text()
-                self.info = json.dumps(info)
-                self.save(update_fields=['info', 'pqr'])
+                self.info['apbs'] = apbs_in.read_text()
+            self.logs['apbs'] = proc.stderr.decode()
 
     def run_edhb(self):
 
@@ -363,13 +302,12 @@ class Job(models.Model):
             xls_path = dir_path / 'input.xls'
             args = ['edhb', input_path, '-a', '-B', '-c']
             proc = subprocess.run(args=args, capture_output=True, cwd=dir_path)
-            self.update_log('edhb', proc.stdout.decode(errors='ignore') + proc.stderr.decode(errors='ignore'))
+            self.logs['edhb'] = proc.stdout.decode(errors='ignore') + proc.stderr.decode(errors='ignore')
             if proc.returncode:
                 # TODO: add error handling if no hydrogens present in input pdb
                 pass
             else:
                 edhb = pd.read_excel(xls_path)
-
                 inds = pd.DataFrame(columns=['chain', 'residue', 'atom', 'ix'])
                 with input_path.open('rt') as f:
                     for row in f:
@@ -404,7 +342,6 @@ class Job(models.Model):
                                                  at_d, at_a, ix_d + ':' + ix_a, td + ta, row['Bond'], row['HB length'],
                                                  row['HB Angle'], row['Bifurcation type']]
                 self.hydrogen_bonds = ContentFile(name=f'hbonds{self.model_index}.csv', content=HB.to_csv())
-                self.save(update_fields=['hydrogen_bonds'])
 
     def run_stride(self):
         args = ['stride', '-h', self.pdb.path]
@@ -412,7 +349,7 @@ class Job(models.Model):
 
         if proc.returncode:
             # TODO: add error handling for stride
-            self.update_log('stride', 'ERROR')
+            pass
         else:
             ss_elements = {}
             structural_data = pd.DataFrame(columns=[
@@ -445,9 +382,15 @@ class Job(models.Model):
                         (structural_data['chain'] == row[9]) & (structural_data['residues'] == donor)
                         ]['mainHB_acceptor'].values[0][acc] = value
 
-            self.update_log('stride', proc.stderr.decode(encoding='utf-8', errors='ignore'))
+            self.logs['stride'] = proc.stderr.decode(encoding='utf-8', errors='ignore')
             self.structural_data = ContentFile(name=f'data{self.model_index}.csv', content=structural_data.to_csv())
-            info = json.loads(self.info) if self.info else {}
-            info['ss_elements'] = ss_elements
-            self.info = json.dumps(info)
-            self.save(update_fields=['structural_data', 'info'])
+            self.info['ss_elements'] = ss_elements
+
+    def run(self):
+        self.save_pdb()
+        self.run_pdbfixer()
+        self.save()
+        self.run_apbs()
+        self.run_stride()
+        self.run_edhb()
+        self.compute_matrix()
