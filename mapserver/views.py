@@ -69,8 +69,14 @@ class Delete(generic.DeleteView):
 
 def project_status(request, pk):
     identity = get_identity(request)
-    project = identity.project_set.get(pk=pk)
-    return JsonResponse({'error': 'Dupa'} if project.error else {'progress': json.dumps(project.progress)})
+    try:
+        project = identity.project_set.get(pk=pk)
+        if project.error:
+            raise models.Project.DoesNotExist
+        content = {'progress': json.dumps(project.progress)}
+    except models.Project.DoesNotExist:
+        content = {'error': 'Error'}
+    return JsonResponse(content)
 
 
 class RCSB(generic.FormView):

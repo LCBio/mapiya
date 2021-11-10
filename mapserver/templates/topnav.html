@@ -1,7 +1,10 @@
+{% load static %}
+
 <nav class="navbar shadow navbar-dark bg-primary fixed-top py-3 {% if user.is_authenticated %}navbar-expand-lg{% endif %}">
 
     <a href="{% url 'home' %}" class="navbar-brand">
-        <i class="fas fa-map"></i> <strong>Mapserver</strong>
+        <img src="{% static 'img/logo.png' %}" alt="logo" width="30" height="30"/>
+        <strong class="px-3">Mapserver</strong>
     </a>
 
     {% if commit_sha %}{{ commit_sha }}{% endif %}

@@ -1,8 +1,11 @@
 import json
+import io
+
 from django.utils.functional import cached_property
 from django.utils.crypto import get_random_string
 from django.db import models
 from django.urls import reverse
+
 from mollib.atom import Atoms
 from users.models import Identity
 
