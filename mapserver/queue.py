@@ -1,43 +1,54 @@
-from django.conf import settings
-from . import models
-from collections import deque
 import io
 import threading
 import time
 import traceback
+import collections
+
+from django.conf import settings
+from django.db import transaction
+
+from . import models
 
 
-def project_worker(queue):
-    while queue:
-        job = queue.popleft()
-        job.status = 'R'
-        job.save(update_fields=['status'])
-        try:
-            job.run()
-            job.status = 'F'
-            job.save(update_fields=['status'])
-        except Exception:
-            with io.StringIO() as f:
-                traceback.print_exc(file=f)
-                f.seek(0)
-                job.error = f.read()
-            job.status = 'E'
-            job.save(update_fields=['status', 'error'])
+def queue_worker(job):
+    job.status = 'R'
+    job.save(update_fields=['status'])
+    try:
+        job.run()
+    except Exception:
+        with io.StringIO() as f:
+            traceback.print_exc(file=f)
+            f.seek(0)
+            job.error = f.read()
+        job.status = 'E'
+        job.save(update_fields=['status', 'error'])
 
 
 def queue_manager():
+    queue = collections.deque()
     while True:
-        queue = deque(models.Job.objects.filter(status='Q').order_by('date_init'))
-        max_workers = min(settings.QUEUE_WORKERS_COUNT, len(queue))
-        workers = [threading.Thread(target=project_worker, args=[queue]) for _ in range(max_workers)]
+        if queue:
+            max_workers = min(settings.QUEUE_WORKERS_COUNT, len(queue))
+            workers = [
+                threading.Thread(target=queue_worker, args=[queue.popleft()], name=f'QueueWorker-{index}')
+                for index in range(max_workers)
+            ]
 
-        for worker in workers:
-            worker.start()
+            for worker in workers:
+                worker.start()
 
-        for worker in workers:
-            worker.join()
+            for worker in workers:
+                worker.join()
 
-        time.sleep(settings.QUEUE_MANAGER_TIMEOUT_SECONDS)
+        else:
+            if jobs := models.Job.objects.filter(status='S').order_by('date_init'):
+                with transaction.atomic():
+                    for job in jobs:
+                        queue.append(job)
+                        job.status = 'Q'
+                        job.save(update_fields=['status'])
+            else:
+                time.sleep(settings.QUEUE_MANAGER_TIMEOUT_SECONDS)
 
 
-threading.Thread(target=queue_manager, daemon=True).start()
+threading.Thread(target=queue_manager, name='Queue manager').start()
