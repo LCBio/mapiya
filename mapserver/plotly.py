@@ -356,7 +356,7 @@ def select_model(btn, pk, ix):
 @app.expanded_callback([Output('con-intra', 'value'), Output('con-inter', 'value'), Output('contacts', 'value')],
                        [Input('model-data', 'value')])
 def load_basic_data(model_data):
-    info = json.loads(model_data['info'])['labels']  # dict = {'protein-A':[['AA:200','AA:201', ...],[from:to]]}
+    info = model_data['info']['labels']  # dict = {'protein-A':[['AA:200','AA:201', ...],[from:to]]}
     matrix = np.load(model_data['matrix'])
     options1 = {}
     options2 = {}
@@ -374,7 +374,7 @@ def load_basic_data(model_data):
                 mat = mat[np.nonzero(mat)]
                 counts = 0
                 try:
-                    counts = len(mat[mat <= json.loads(model_data['config'])["contact_cutoff"]])
+                    counts = len(mat[mat <= model_data['config']["contact_cutoff"]])
                     if counts > 0:
                         if num1 == num2:
                             val = i + ":" + str(r1[0]) + ":" + str(r1[1]) + ":" + str(counts)
@@ -392,7 +392,7 @@ def load_basic_data(model_data):
 
 @app.expanded_callback(Output('data_1d', 'value'), [Input('model-data', 'value')])
 def calc_1d_data(model_data):
-    info = json.loads(model_data['info'])['labels']
+    info = model_data['info']['labels']
     struct = pd.DataFrame()
     if model_data['struct'] != '':
         struct = pd.read_csv(model_data['struct'], sep = ',', engine = 'python')
@@ -498,7 +498,7 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                         style={**drops, 'marginLeft': '0.5vw', 'width': '18vw'}),
                     html.Div([
                         html.Label('Cutoff [Å]', style=lab_style, title=title['cutoff']),
-                        dcc.Input(id="cutoff", type="number", placeholder=" default: 8Å", min=0, value=json.loads(model_data['config'])["contact_cutoff"], step=0.1,
+                        dcc.Input(id="cutoff", type="number", placeholder=" default: 8Å", min=0, value=model_data['config']["contact_cutoff"], step=0.1,
                                   debounce=False,
                                   style=dict(height='29px', width='10vw', marginTop='6px', color='dimgrey',
                                              borderRadius='5px 5px 5px 5px', borderColor='rgba(0,0,0,0)'))],
@@ -726,7 +726,7 @@ def prepare_distance_data(selected, model_data):
         raise PreventUpdate
     else:
         path_matrix = model_data['matrix']
-        res_list = json.loads(model_data['info'])['labels']
+        res_list = model_data['info']['labels']
 
         selected = selected.split('|')
         obj_a = selected[0].split(':')
