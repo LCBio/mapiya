@@ -70,7 +70,7 @@ def calc_struct(seq, struct):
     else:
         ss = ss_t
         sa = sa_t
-    sec_struct = [SS_CODES['8-letter'][i] for i in ss]
+    sec_struct = [SS_CODES['8-letter'][i.upper()] for i in ss]
     sasa = [round(sa[n]/AA_ATTRIBUTES[i.split(':')[0]][7][0], 2) for n, i in enumerate(seq)]
     return sec_struct, sasa
 

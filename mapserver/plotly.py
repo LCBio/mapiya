@@ -698,7 +698,7 @@ def switch_to_map_tab(btn, obj, interaction, click, intra, inter, n):
     elif interaction != '':
         return [n + 1, str(interaction)]
     elif click != '' and click is not None:
-        if len(click.split(':')) == 1:
+        if len(str(click).split(':')) == 1:
             return [n + 1, intra[click]]
         else:
             if click in inter:
