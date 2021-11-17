@@ -28,6 +28,6 @@
     <script src="{% static 'js/pdbe-molstar-plugin-1.1.0.js' %}"></script>
     <script src="{% static 'js/molstar.js' %}"></script>
     <script>
-        initMolStarViewer('{{ object.pdb.url }}', 'molStarViewport');
+        initMolStarViewer('{{ object.molstar_url }}', 'molStarViewport');
     </script>
 {% endblock js %}

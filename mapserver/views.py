@@ -1,7 +1,8 @@
 import json
 import subprocess
+import io
 from django.shortcuts import redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.urls import reverse_lazy
 from django.views import generic
 from django.utils.html import format_html
@@ -139,3 +140,13 @@ def get_commit_sha():
     return format_html(
         f'<a class="text-white px-5" href="https://bitbucket.org/lcbio/mapserver/commits/{sha}">{sha}</a>'
     )
+
+
+def molstar(request, pk):
+    identity = get_identity(request)
+    try:
+        project = models.Project.objects.get(identity=identity, pk=pk)
+    except models.Project.DoesNotExist:
+        return Http404
+
+    return HttpResponse(project.fixed_pdb)

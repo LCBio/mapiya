@@ -70,5 +70,21 @@ class Project(models.Model):
     def get_absolute_url(self):
         return reverse('project-detail', args=[self.id])
 
+    @property
+    def molstar_url(self):
+        return reverse('project-molstar', args=[self.pk])
+
+    @property
+    def fixed_pdb(self):
+        completed_jobs = self.job_set.filter(status='F')
+        pdb = []
+        for job in completed_jobs:
+            pdb.append(f'MODEL{job.model_index:9d}\n')
+            for line in job.pdb.open('rt').readlines():
+                if line.startswith('ATOM') or line.startswith('HETATM'):
+                    pdb.append(line)
+            pdb.append('ENDMDL\n')
+        return ''.join(pdb)
+
     def __str__(self):
         return self.filename
