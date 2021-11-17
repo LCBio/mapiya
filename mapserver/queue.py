@@ -44,8 +44,8 @@ def queue_manager():
         for worker in workers:
             worker.start()
 
-        # for worker in workers:
-        #     worker.join()
+        for worker in workers:
+            worker.join()
 
         time.sleep(settings.QUEUE_MANAGER_TIMEOUT_SECONDS)
 
