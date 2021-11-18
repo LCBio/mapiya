@@ -37,8 +37,54 @@ function initMolStarViewer(pdburl, viewport_id)
         */
         /* molstar_accessible_surface_area: true, */
 
-    }
+    };
     var viewerContainer = document.getElementById(viewport_id);
     viewerInstance.render(viewerContainer, options);
     return viewerInstance;
+};
+
+class getClickMapFromPlotly
+{
+    constructor()
+    {
+
+        this.click_map = document.getElementsByTagName("iframe")[0].contentDocument.getElementById("click-map");
+    };
+};
+
+function generateSelection(click_map)
+{
+    var click_map = JSON.parse(click_map.value);
+    var res1 = click_map["res1"].split("-");
+    var res2 = click_map["res2"].split("-");
+    var selectSections =
+    [
+        {
+            struct_asym_id: res1[0],
+            start_residue_number: res1[2],
+            end_residue_number: ++(res1[2]),
+            color:
+            {
+                r: 0,
+                g: 255,
+                b: 0
+            },
+            sideChain: true,
+            focus : true
+        },
+        {
+            struct_asym_id: res2[0],
+            start_residue_number: res2[2],
+            end_residue_number: ++(res2[2]),
+            color:
+            {
+                r: 255,
+                g: 0,
+                b: 0
+            },
+            sideChain: true,
+            focus : true
+        }
+    ];
+    return selectSections;
 };

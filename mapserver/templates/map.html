@@ -29,5 +29,13 @@
     <script src="{% static 'js/molstar.js' %}"></script>
     <script>
         let viewerInstance = initMolStarViewer('{{ object.molstar_url }}', 'molStarViewport');
+        $("rect", $("iframe").get(0).contentDocument).click(function() 
+        {
+            var dataFromPlotly = new getClickMapFromPlotly();
+            var click_map = JSON.parse(dataFromPlotly.click_map.value);
+            alert(click_map["res1"] + " " + click_map["res2"]);
+            var selectSections = generateSelection(dataFromPlotly.click_map);
+            viewerInstance.visual.select({ data: selectSections, nonSelectedColor: {r:255,g:255,b:255}});
+        });
     </script>
 {% endblock js %}
