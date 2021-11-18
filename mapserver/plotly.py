@@ -663,7 +663,7 @@ def display_circos(data):
     ideograms.extend(ribbon_info)
     fig = go.Figure(data=ideograms, layout=layout)
 
-    return [dcc.Graph(id='graph-circos', figure=fig), chains_colors]
+    return [dcc.Graph(id='graph-circos', figure=fig), json.dumps(chains_colors, indent=2)]
 
 
 @app.expanded_callback(Output('click-data', 'value'), Input('graph-circos', 'clickData'))
