@@ -1139,7 +1139,11 @@ def display_the_datasets(display, selected, model_data, counts, dist, data_1d):
     else:
         labels = model_data['info']['labels']
         objA = selected.split('|')[0].split(':')[0]
-        objB = selected.split('|')[1].split(':')[0]
+        objB = objA
+        objects = [objA]
+        if len(selected.split('|')) > 1:
+            objB = selected.split('|')[1].split(':')[0]
+            objects.append(objB)
         if display == 'contacts':
             residuesA = labels[objA][0]
             residuesB = labels[objB][0]
@@ -1152,7 +1156,7 @@ def display_the_datasets(display, selected, model_data, counts, dist, data_1d):
 
         if display == 'entropy':
             text = ''
-            for z in [objA, objB]:
+            for z in objects:
                 if z+':SEQ entropy' in data_1d:
                     entropy = data_1d[z+':SEQ entropy']
                     text += '> '+z+'\n'+'residue'.rjust(8)+'  '+'Entropy'.rjust(6)+'\n'
@@ -1164,7 +1168,7 @@ def display_the_datasets(display, selected, model_data, counts, dist, data_1d):
 
         if display == 'patterns':
             text = ''
-            for z in [objA, objB]:
+            for z in objects:
                 if z.startswith('protein'):
                     text += '> '+z+' [0-NO, 1-YES]'+'\n'+' residue hydrophobic amphipatic hydrophilic HB_donor HB_acceptor polar charged aromatic\n'
                     for n, i in enumerate(labels[z][0]):
