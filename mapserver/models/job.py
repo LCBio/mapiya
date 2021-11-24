@@ -192,7 +192,7 @@ class Job(models.Model):
 
         # Overwrite self.pdb with fixed structure
         with self.pdb.open('wt') as f:
-            PDBFile.writeFile(fixer.topology, fixer.positions, f)
+            PDBFile.writeFile(fixer.topology, fixer.positions, f, keepIds=True)
 
         # Add a water box
         if config['add_environment'] != 'none':
@@ -238,7 +238,7 @@ class Job(models.Model):
 
             # save environment file
             with io.StringIO() as f:
-                PDBFile.writeFile(fixer.topology, fixer.positions, f)
+                PDBFile.writeFile(fixer.topology, fixer.positions, f, keepIds=True)
                 self.environment = ContentFile(name=f'environment{self.model_index}.pdb', content=f.getvalue())
         else:
             logger.info('no solvent or membrane added')
@@ -252,16 +252,15 @@ class Job(models.Model):
         info = {}
         ix_from = 0
         for chainID, chain in atoms.chains.items():
-            protein, other = chain.partition('PROTEIN')
-            hetero, nucleic = other.partition('HETERO')
+            protein, nucleic = chain.partition('PROTEIN or HETERO')
 
-            for obj, type_ in zip([protein, nucleic, hetero], ['protein', 'nucleic', 'hetero']):
+            for obj, type_ in zip([protein, nucleic], ['protein', 'nucleic']):
                 if len(obj):
                     length = len(obj.residues_list)
                     residues.extend(obj.residues_list)
                     info[type_ + '-' + chainID] = [
                         [f'{r[0].resname}:{r[0].resid}' for r in obj.residues_list],
-                        [ix_from, ix_from+length]
+                        [ix_from, ix_from + length]
                     ]
                     ix_from += length
 
@@ -288,7 +287,7 @@ class Job(models.Model):
             args = ['pdb2pqr', '--ff=PARSE', '--titration-state-method=propka', '--with-ph=7.0',
                     '--apbs-input', apbs_in, input_path, pqr_file]
             proc = subprocess.run(args=args, capture_output=True)
-            if not proc.returncode:
+            if not proc.returncode and pqr_file.exists():
                 self.pqr = ContentFile(name=f'{pqr_file.name}', content=pqr_file.read_text())
                 self.info['apbs'] = apbs_in.read_text()
             self.logs['apbs'] = proc.stderr.decode()

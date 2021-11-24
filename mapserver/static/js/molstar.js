@@ -4,7 +4,7 @@ function initMolStarViewer(pdburl, viewport_id)
     var options =
     {
         customData: { url: pdburl , format: 'pdb', binary: false },
-        hideControls: false,
+        hideControls: true,
         bgColor: {r:255,g:255,b:255},
         pdbeLink: false,
         landscape: true,
@@ -41,4 +41,4 @@ function initMolStarViewer(pdburl, viewport_id)
     var viewerContainer = document.getElementById(viewport_id);
     viewerInstance.render(viewerContainer, options);
     return viewerInstance;
-};
+}
