@@ -184,6 +184,7 @@ app.layout = html.Div([
     dcc.Input(id="void2", value='', type='hidden'),
     dcc.Input(id="void3", value='', type='hidden'),
     dcc.Input(id="void4", value='', type='hidden'),
+    dcc.Input(id="void5", value='', type='hidden'),
     dcc.Input(id="slider", value='', type='hidden'),
 
     dcc.Interval(id="interval", interval=5000),
@@ -267,6 +268,26 @@ app.clientside_callback(
     };
     """,
     Output('void3', 'value'), [Input('opts', 'n_clicks'), Input('close', 'n_clicks')]
+)
+
+
+app.clientside_callback(
+    """
+    function (value) {
+      window.sessionStorage.setItem("chains-colors", value);
+    };
+    """,
+    Output('void4', 'value'), [Input('chains-colors', 'value')]
+)
+
+
+app.clientside_callback(
+    """
+    function (value) {
+      window.sessionStorage.setItem("click-map", value);
+    };
+    """,
+    Output('void5', 'value'), [Input('click-map', 'value')]
 )
 
 
@@ -1010,9 +1031,13 @@ def display_click_map(data, selected):
         ctx = ctx[0]['prop_id'].split('.')[0]
         if ctx == 'graph_map':
             selected = selected.split('|')
+            res2 = selected[0].split(':')[0].split('-')[1]
+            res1 = res2
+            if len(selected) > 1:
+                res1 = selected[1].split(':')[0].split('-')[1]
             data = data['points'][0]
-            return json.dumps({'res1' : selected[1].split(':')[0].split('-')[1]+'-'+data['x'].replace(':', '-'), 
-                               'res2' : selected[0].split(':')[0].split('-')[1]+'-'+data['y'].replace(':', '-')}, indent=2)
+            return json.dumps({'res1' : res1+'-'+data['x'].replace(':', '-'), 
+                               'res2' : res2+'-'+data['y'].replace(':', '-')}, indent=2)
     else:
         raise PreventUpdate
 
