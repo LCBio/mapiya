@@ -206,6 +206,14 @@ AA_CODES = {
 }
 
 
+A_CODE = {
+    'ALA': 'A', 'CYS': 'C', 'ASP': 'D', 'GLU': 'E', 'PHE': 'F',
+    'GLY': 'G', 'HIS': 'H', 'ILE': 'I', 'LYS': 'K', 'LEU': 'L',
+    'MET': 'M', 'ASN': 'N', 'PRO': 'P', 'GLN': 'Q', 'ARG': 'R',
+    'SER': 'S', 'THR': 'T', 'VAL': 'V', 'TRP': 'W', 'TYR': 'Y'
+}
+
+
 # id - mass - frequency - charge - aromatic - KD_hydropathy - color - sa (doi: https://doi.org/10.1371/journal.pone.0080635) [teoret, exp, Miller_1987, Rose_1985]
 AA_ATTRIBUTES = {
     'ALA': [ 0,  89.094, 8.76,  0.0, 0.0,  1.8, 0.75, [129, 121, 113, 118.1]],

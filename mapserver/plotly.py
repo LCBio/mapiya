@@ -5,6 +5,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import json
 import os
+from pathlib import Path
 import plotly.graph_objects as go
 from dash.dash import no_update
 from dash.dependencies import Input, State, Output
@@ -177,11 +178,13 @@ app.layout = html.Div([
     # list = [desc_d, residuesA, residuesB, objA, objB]
     dcc.Input(id="data_Con", value='', type='hidden'),  # contacts for selected cutoff
     dcc.Input(id="hbonds", value='', type='hidden'),  # path to hbonds
+    dcc.Input(id="download-text", value='', type='hidden'),  # path to hbonds
     # list = [distances, desc_c, cutoff]
     dcc.Input(id="void1", value='', type='hidden'),
     dcc.Input(id="void2", value='', type='hidden'),
     dcc.Input(id="void3", value='', type='hidden'),
     dcc.Input(id="void4", value='', type='hidden'),
+    dcc.Input(id="void5", value='', type='hidden'),
     dcc.Input(id="slider", value='', type='hidden'),
 
     dcc.Interval(id="interval", interval=5000),
@@ -201,7 +204,7 @@ app.layout = html.Div([
                   html.Button('×', id='close', style={**btn_style, **settings_close}, title='close options window'),
                  ], id='settings-dir', style={**settings_style, 'left': '4.5vw'}),
     ], style={'width': '4vw', 'position': 'absolute', 'left': '0', 'z-index': '100'}),
-    html.Div(id='tabs', style={'height': '94vh'}),
+    html.Div(id='tabs', style={'height': '93vh'}),
 ], style={'height': '97vh', 'width': '96vw', 'margin': '0', 'padding': '0'})
 
 
@@ -265,6 +268,26 @@ app.clientside_callback(
     };
     """,
     Output('void3', 'value'), [Input('opts', 'n_clicks'), Input('close', 'n_clicks')]
+)
+
+
+app.clientside_callback(
+    """
+    function (value) {
+      window.sessionStorage.setItem("chains-colors", value);
+    };
+    """,
+    Output('void4', 'value'), [Input('chains-colors', 'value')]
+)
+
+
+app.clientside_callback(
+    """
+    function (value) {
+      window.sessionStorage.setItem("click-map", value);
+    };
+    """,
+    Output('void5', 'value'), [Input('click-map', 'value')]
 )
 
 
@@ -596,8 +619,6 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
             ], id='settings_download'),
 
             html.Div([
-                dcc.Textarea(id='textarea', value='Textarea content initialized\nwith multiple lines of text',
-                         style={'width': '93.5vw', 'height': 300, 'margin-top': '0', 'margin-left': '4.5vw'}, ),
                 html.Div(id='text-output'),
             ])]
     else:
@@ -1010,16 +1031,237 @@ def display_click_map(data, selected):
         ctx = ctx[0]['prop_id'].split('.')[0]
         if ctx == 'graph_map':
             selected = selected.split('|')
+            res2 = selected[0].split(':')[0].split('-')[1]
+            res1 = res2
+            if len(selected) > 1:
+                res1 = selected[1].split(':')[0].split('-')[1]
             data = data['points'][0]
-            return json.dumps({'res1' : selected[1].split(':')[0].split('-')[1]+'-'+data['x'].replace(':', '-'), 
-                               'res2' : selected[0].split(':')[0].split('-')[1]+'-'+data['y'].replace(':', '-')}, indent=2)
+            return json.dumps({'res1' : res1+'-'+data['x'].replace(':', '-'), 
+                               'res2' : res2+'-'+data['y'].replace(':', '-')}, indent=2)
     else:
         raise PreventUpdate
 
 
 
-@app.expanded_callback([Output('text-output', 'children')],
-                       [Input('textarea', 'value'), Input('data_1d', 'value'), Input('options1', 'value')])
-def load_download_section(text, dat, val):
-    return ['You have entered: \n{}'.format(text)]
+@app.expanded_callback([Output('text-output', 'children')], [Input('model-data', 'value'), Input('selected', 'value'), Input('data_Con', 'value')])
+def load_download_section(model_data, selected, data_con):
+
+    keys = list(model_data['config'].keys())
+    cutoff = str(model_data['config'][keys[0]])
+    if len(data_con) == 6:
+        cutoff = str(data_con[2])
+    path = model_data['matrix'].split('matrix')
+    model = str(path[1].split('.')[0])
+    path = path[0]
+    files = {'fixed':'model'+model+'.pdb', 'envir':'environment'+model+'.pdb', 'struct':'data'+model+'.csv', 'hbonds':'hbonds'+model+'.csv', 'pqr':'model'+model+'.pqr', 'elec':'model'+model+'.dx'}
+    status = {'fixed': False, 'envir': False, 'struct': False, 'hbonds': False, 'pqr': False, 'elec': False, 'display': False}
+    for i in files.keys():
+        my_file = Path(path+files[i])
+        if not my_file.is_file():
+            status[i] = True
+    is_con = ""
+    if selected is None or selected == '':
+        is_con = "True"
+        status['display'] = True
+    opts = ["matrix of contact counts|counts|", "contact list from current map|contacts|"+is_con, 
+            "Shannon Entropy for map objects|entropy|", "Physicochemical properties|patterns|", "Sequence in FASTA format|seq|"]
+
+    return [
+        html.Div([
+            html.P('The Mapiya analysis for model '+model+' was performed with the following settings:', style={**lab_style, 'font-size': '2.5vh', 'margin': '1vh 0 1vh 0'}),
+            html.Table([
+                html.Tr([
+                    html.Td(keys[0]+': '+cutoff, style={'width': '25vh'}),
+                    html.Td(keys[2]+': '+str(model_data['config'][keys[2]]), style={'width': '25vh'}),
+                    html.Td(keys[6]+': '+str(model_data['config'][keys[6]]), style={'width': '25vh'}),
+                ]),
+                html.Tr([
+                    html.Td(keys[1]+': '+str(model_data['config'][keys[1]]), style={'width': '25vh'}),
+                    html.Td(keys[3]+': '+str(model_data['config'][keys[3]]), style={'width': '25vh'}),
+                    html.Td(keys[4]+': '+str(model_data['config'][keys[4]]), style={'width': '25vh'}),
+                    html.Td(keys[5]+': '+str(model_data['config'][keys[5]]), style={'width': '25vh'}),
+                ]),
+                html.Tr([
+                    html.Td(keys[8]+': '+str(model_data['config'][keys[8]]), style={'width': '25vh'}),
+                    html.Td(keys[9]+': '+str(model_data['config'][keys[9]]), style={'width': '25vh'}),
+                    html.Td(keys[10]+': '+str(model_data['config'][keys[10]]), style={'width': '25vh'}),
+                    html.Td(keys[11]+': '+str(model_data['config'][keys[11]]), style={'width': '25vh'}),
+                ]),
+                html.Tr([
+                    html.Td(keys[12]+': '+str(model_data['config'][keys[12]]), style={'width': '25vh'}),
+                    html.Td(keys[13]+': '+str(model_data['config'][keys[13]]), style={'width': '25vh'}),
+                    html.Td(keys[14]+': '+str(model_data['config'][keys[14]]), style={'width': '25vh'}),
+                    html.Td(keys[15]+': '+str(model_data['config'][keys[15]]), style={'width': '25vh'}),
+                ]),
+                html.Tr([
+                    html.Td(keys[7]+': '+str(model_data['config'][keys[7]]), style={'width': '25vh'}),
+                ]),
+            ], style={'font-size': '2vh', 'margin-bottom': '2vh', 'color': 'gray'}),
+
+
+            html.P('Please download the results:', style={**lab_style, 'font-size': '2.5vh', 'margin': '1vh 0 2vh 0'}),
+            dcc.Download(id="download-file"),
+            html.Div([
+                html.Button("FIXED PDB", id="btn_fixed", value="PDB", disabled=status['fixed'], style={'min-width': '100px'}),
+                html.P('PDB fixed with PDBFixer', style={'font-size': '2vh', 'margin': '0 0 1vh 1vw', 'display': 'inline-block', 'align': 'center'}),
+            ]),
+            html.Div([
+                html.Button("FIXED PDB", id="btn_envir", disabled=status['envir'], style={'min-width': '100px'}),
+                html.P('PDB fixed with PDBFixer; environment added', style={'font-size': '2vh', 'margin': '0 0 1vh 1vw', 'display': 'inline-block', 'align': 'center'}),
+            ]),
+            html.Div([
+                html.Button("DATA CSV", id="btn_struct", disabled=status['struct'], style={'min-width': '100px'}),
+                html.P('Structural properties calculated with STRIDE', style={'font-size': '2vh', 'margin': '0 0 1vh 1vw', 'display': 'inline-block', 'align': 'center'}),
+            ]),
+            html.Div([
+                html.Button("DATA CSV", id="btn_hbonds", disabled=status['hbonds'], style={'min-width': '100px'}),
+                html.P('Hydrogen Bonds calculated with EDHB', style={'font-size': '2vh', 'margin': '0 0 1vh 1vw', 'display': 'inline-block', 'align': 'center'}),
+            ]),
+            html.Div([
+                html.Button("DATA PQR", id="btn_pqr", disabled=status['pqr'], style={'min-width': '100px'}),
+                html.P('Electrostatics: partial charges calculated with APBS', style={'font-size': '2vh', 'margin': '0 0 1vh 1vw', 'display': 'inline-block', 'align': 'center'}),
+            ]),
+            html.Div([
+                html.Button("DATA DX", id="btn_elec", disabled=status['elec'], style={'min-width': '100px'}),
+                html.P('Electrostatics: electrostatic potential calculated with APBS', style={'font-size': '2vh', 'margin': '0 0 1vh 1vw', 'display': 'inline-block', 'align': 'center'}),
+            ]),
+
+            dcc.Download(id="download-txt"),
+            html.P('or display the other datasets:', style={**lab_style, 'font-size': '2.5vh', 'margin': '2vh 0 0vh 0'}),
+            html.Div([
+                dcc.Dropdown(id='display_data', placeholder="Select dataset", clearable=False,
+                    style={'width': '30vw', 'margin-right': '2vw', 'display': 'inline-block'}, optionHeight=30,
+                    options=[{'label': i.split('|')[0], 'value': i.split('|')[1], 'disabled': bool(i.split('|')[2])} for i in opts], value='contacts'),
+                html.Button("DATA TXT", id="btn_display", disabled=status['display'], style={'min-width': '100px', 'display': 'inline-block'}),
+                html.P('Custom dataset provided in TXT format', style={'font-size': '2vh', 'margin': '0 0 0 1vw', 'display': 'inline-block'}),
+            ], style={**drops, 'width': '80vw', 'margin': '1vh 0 1vh 0', 'display': 'flex', 'align-items': 'center'}),
+            html.Div(id='textarea', style={'width': '90vw', 'height': 250, 'margin-top': '0'}, ),
+        ], style={'width': '90vw', 'margin-top': '0', 'margin-left': '5vw'}),
+    ]
+
+
+@app.callback([Output('textarea', 'children'), Output('download-text', 'value')], [Input('display_data', 'value'),
+               Input('selected', 'value'), Input('model-data', 'value'), Input('contacts', 'value'), 
+               Input('data_Con', 'value'), Input('data_1d', 'value')])
+def display_the_datasets(display, selected, model_data, counts, dist, data_1d):
+
+    if display == 'counts':
+        keys = counts[0].copy()
+        keys.insert(0, ' ')
+        vals = counts[1]
+        text = ','.join(keys)+'\n'
+        for n,i in enumerate(vals):
+            i.insert(0, counts[0][n])
+            text += ','.join(str(j) for j in i)+'\n'
+        return [
+            [html.Table(
+                [html.Tr([html.Td(i, style={'min-width': '10vw', 'padding-left': '1vw'}) for i in keys], style={'background-color':'#eeece7'})] +
+                [html.Tr([html.Td(i, style={'min-width': '10vw', 'padding-left': '1vw'}) for i in j]) for j in vals]
+            )],
+            [text, display]
+        ]
+
+    else:
+        labels = model_data['info']['labels']
+        objA = selected.split('|')[0].split(':')[0]
+        objB = objA
+        objects = [objA]
+        if len(selected.split('|')) > 1:
+            objB = selected.split('|')[1].split(':')[0]
+            objects.append(objB)
+        if display == 'contacts':
+            residuesA = labels[objA][0]
+            residuesB = labels[objB][0]
+            con = np.array(dist[1])
+            distance = np.array(dist[0])
+            text = objA.rjust(10)+' '+objB.rjust(10)+'  distance  interaction_forces\n'
+            for (x,y) in zip(*np.where(con != 'NO')):
+                text += residuesA[x].rjust(10)+' '+residuesB[y].rjust(10)+'  '+str(distance[x][y]).rjust(8)+'  '+con[x][y].replace('YES<br>interaction forces:<br>- ','').replace('<br>','').replace('- ','')+'\n'
+            return [[dcc.Textarea(value='{}'.format(text), style={'width': '90vw', 'height': 250, 'margin-top': '0'}, ),], [text, display]]
+
+        if display == 'entropy':
+            text = ''
+            for z in objects:
+                if z+':SEQ entropy' in data_1d:
+                    entropy = data_1d[z+':SEQ entropy']
+                    text += '> '+z+'\n'+'residue'.rjust(8)+'  '+'Entropy'.rjust(6)+'\n'
+                    for n, i in enumerate(labels[z][0]):
+                        text += i.rjust(8)+'  '+str(entropy[n]).rjust(6)+'\n'
+                    text += '\n'
+
+            return [[dcc.Textarea(value='{}'.format(text), style={'width': '90vw', 'height': 250, 'margin-top': '0'}, ),], [text, display]]
+
+        if display == 'patterns':
+            text = ''
+            for z in objects:
+                if z.startswith('protein'):
+                    text += '> '+z+' [0-NO, 1-YES]'+'\n'+' residue hydrophobic amphipatic hydrophilic HB_donor HB_acceptor polar charged aromatic\n'
+                    for n, i in enumerate(labels[z][0]):
+                        text += i.rjust(8)+'  '
+                        res = i.split(':')[0]
+                        for feature in ['hydrophobic', 'amphipatic', 'hydrophilic', 'H-Bond donor', 'H-Bond acceptor', 'polar']:
+                            if res in PATTERNS[feature]:
+                                text += '1  '
+                            else:
+                                text += '0  '
+                        if res in PATTERNS['charged'][0]:
+                            text += '+  '
+                        elif res in PATTERNS['charged'][1]:
+                            text += '-  '
+                        else:
+                            text += '0  '
+                        if res in PATTERNS['aromatic']:
+                            text += '⌬   '
+                        elif res in PATTERNS['π-bond']:
+                            text += 'π  '
+                        else:
+                            text += '0  '
+                        text += '\n'
+                    text += '\n'
+
+            return [[dcc.Textarea(value='{}'.format(text), style={'width': '90vw', 'height': 250, 'margin-top': '0'}, ),], [text, display]]
+
+        if display == 'seq':
+            text = ''
+            for i in labels.keys():
+                if i.startswith('protein'):
+                    text += '> '+i+' : len='+str(labels[i][1][1]-labels[i][1][0])+'\n'
+                    text += ''.join([A_CODE[j.split(':')[0]] for j in labels[i][0]])+'\n\n'
+            return [[dcc.Textarea(value='{}'.format(text), style={'width': '90vw', 'height': 250, 'margin-top': '0'}, ),], [text, display]]
+
+        else:
+            return ['', ['', '']]
+
+
+@app.callback(Output("download-file", "data"), [Input("btn_fixed", "n_clicks"), Input("btn_envir", "n_clicks"),
+              Input("btn_struct", "n_clicks"), Input("btn_hbonds", "n_clicks"), Input("btn_pqr", "n_clicks"),
+              Input("btn_elec", "n_clicks"), Input('model-data', 'value')], prevent_initial_call=True)
+def download_the_results(fixed, envir, struct, hbonds, pqr, elec, model_data):
+
+    path = model_data['matrix']
+    ctx = dash.callback_context
+    button = ctx.triggered[0]['prop_id'].split('.')[0]
+    if button == 'btn_fixed':
+        return dcc.send_file(path.replace('matrix', 'model').replace('npy', 'pdb'))
+    elif button == 'btn_envir':
+        return dcc.send_file(path.replace('matrix', 'environment').replace('npy', 'pdb'))
+    elif button == 'btn_struct':
+        return dcc.send_file(model_data['struct'])
+    elif button == 'btn_hbonds':
+        return dcc.send_file(model_data['hbonds'])
+    elif button == 'btn_pqr':
+        return dcc.send_file(path.replace('matrix', 'model').replace('npy', 'pqr'))
+    elif button == 'btn_elec':
+        return dcc.send_file(path.replace('matrix', 'model').replace('npy', 'dx'))
+
+
+@app.callback(Output("download-txt", "data"), [Input("btn_display", "n_clicks"), Input("download-text", "value")], prevent_initial_call=True)
+def download_display(display, text):
+    ctx = dash.callback_context
+    button = ctx.triggered[0]['prop_id'].split('.')[0]
+    if button == 'btn_display':
+        return dict(content=text[0], filename="Mapiya_data_"+text[1]+".txt")
+    else:
+        raise PreventUpdate
+
 
