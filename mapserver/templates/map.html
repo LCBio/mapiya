@@ -29,6 +29,20 @@
     <script src="{% static 'js/molstar.js' %}"></script>
     <script>
         let viewerInstance = initMolStarViewer('{{ object.molstar_url }}', 'molStarViewport');
+        var selectSections = generateChainColourPairs();
+        viewerInstance.visual.select(
+        {
+            data: selectSections,
+            nonSelectedColor: 
+            {
+                r:255,
+                g:255,
+                b:255
+            }
+        });
+
+        
+
         $("rect", $("iframe").get(0).contentDocument).click(function() 
         {
             var dataFromPlotly = new getClickMapFromPlotly();
@@ -37,5 +51,6 @@
             var selectSections = generateSelection(dataFromPlotly.click_map);
             viewerInstance.visual.select({ data: selectSections, nonSelectedColor: {r:255,g:255,b:255}});
         });
+
     </script>
 {% endblock js %}
