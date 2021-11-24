@@ -1,52 +1,50 @@
-{% load static %}
+<header class="topnav">
 
-<nav class="navbar shadow navbar-dark bg-primary fixed-top py-3 {% if user.is_authenticated %}navbar-expand-lg{% endif %}">
+    <nav class="navbar navbar-expand-lg">
+        <a href="{% url 'home' %}" class="navbar-brand d-flex">
+            {% include 'logo.html' %}
+            <span class="brand-text ml-3">Mapiya</span>
+        </a>
 
-    <a href="{% url 'home' %}" class="navbar-brand">
-        <img src="{% static 'img/logo.png' %}" alt="logo" width="30" height="30"/>
-        <strong class="px-3">Mapserver</strong>
-    </a>
-
-    {% if commit_sha %}{{ commit_sha }}{% endif %}
-
-    {% if user.is_authenticated %}
-
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#topNavbar">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="collapse navbar-collapse" id="topNavbar">
             <ul class="navbar-nav mr-auto">
 
                 <li class="nav-item">
-                    <a class="nav-link active" href="#">LinkActive</a>
+                    <a class="nav-link active" href="{% url 'home' %}">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">LinkInactive</a>
+                    <a class="nav-link" href="/admin">About</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link disabled" href="#">LinkDisabled</a>
-                </li>
-
-            </ul>
-            <ul class="navbar-nav">
-                <li class="dropdown nav-item">
-                    <a href="#" class="text-white nav-link font-weight-bold dropdown-toggle" data-toggle="dropdown">
-                        {{ user }}
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right">
-                        <a href="/admin" class="dropdown-item">
-                            <i class="fas fa-cog"></i> Settings
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="{% url 'logout' %}" class="dropdown-item text-danger">
-                            <i class="fas fa-sign-out-alt"></i> Log out
-                        </a>
-                    </div>
+                    <a class="nav-link" href="/admin">Help</a>
                 </li>
             </ul>
         </div>
-    {% else %}
-        <a href="{% url 'login' %}" class="text-white font-weight-bold">Login / Register</a>
-    {% endif %}
-</nav>
+    </nav>
+
+    <div class="usermenu">
+        {% if user.is_authenticated %}
+            {% include 'user-menu.html' %}
+        {% else %}
+            <a href="{% url 'login' %}" class="text-dark">Login / Register</a>
+        {% endif %}
+    </div>
+</header>
+
+<style>
+.brand-text {
+    font-family: 'Bowlby One SC', cursive;
+    color: var(--dark);
+    font-size: 1.5rem;
+}
+
+#topNavbar a {
+    color: var(--dark);
+    font-weight: 600;
+}
+
+</style>

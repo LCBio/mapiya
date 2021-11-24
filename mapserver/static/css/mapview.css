@@ -1,0 +1,24 @@
+.content-wrapper {
+    background-color: #fff;
+}
+
+.plotly-app {
+    max-width: 50%;
+    padding: 1rem 0.25rem;
+}
+
+.plotly-app div {
+    height: calc(100vh - 7rem) !important;
+}
+
+.msp-plugin {
+    max-width: 50%;
+    max-height: calc(100vh - 5rem);
+    position: absolute;
+    left: 50%;
+    top: 3rem;
+}
+
+.msp-plugin-content {
+    border: none!important;
+}

@@ -2,7 +2,7 @@ import json
 
 from django import forms
 from django.urls import reverse
-from crispy_forms import layout, helper
+from crispy_forms import layout, helper, bootstrap
 from users.forms import CrispyFormMixin
 from . import layouts
 
@@ -63,13 +63,13 @@ class OptionsForm(forms.Form):
     }
 
     HELP_TEXT = {
-        'contact_cutoff': 'Example help text'
+        'protonation_ph': 'Example help text'
     }
 
     DEFAULTS = {
         'contact_cutoff': 8.0,
-        'add_atoms': 'none',
         'protonation_ph': 7.0,
+        'add_atoms': 'none',
         'add_residues': 'none',
         'max_loop_length': 5,
         'keep_heterogens': 'none',
@@ -82,7 +82,9 @@ class OptionsForm(forms.Form):
         'water_box': 'unit cell',
         'box_dimensions': '5, 5, 5',
         'lipid_type': 'POPC',
-        'membrane_position': '0, 1'
+        'membrane_position': '0, 1',
+        'hydrogen_bonds': False,
+        'secondary_structure': False
     }
 
     contact_cutoff = forms.FloatField(
@@ -90,6 +92,15 @@ class OptionsForm(forms.Form):
         max_value=20.0,
         widget=forms.NumberInput(attrs={'step': 0.1}),
         label='contact cutoff [&#8491;]',
+    )
+
+    protonation_ph = forms.FloatField(
+        min_value=0,
+        max_value=14.0,
+        widget=forms.NumberInput(attrs={
+            'step': 0.1,
+        }),
+        label='protonation pH',
     )
 
     add_atoms = forms.ChoiceField(
@@ -102,16 +113,6 @@ class OptionsForm(forms.Form):
             ('none', 'none')
         ],
         label='add atoms'
-    )
-
-    protonation_ph = forms.FloatField(
-        min_value=0,
-        max_value=14.0,
-        widget=forms.NumberInput(attrs={
-            'step': 0.1,
-            'data-requirements': json.dumps({'add_atoms': ['all', 'hydrogen']})
-        }),
-        label='&#8627; protonation pH',
     )
 
     add_residues = forms.ChoiceField(
@@ -246,6 +247,21 @@ class OptionsForm(forms.Form):
         label='&#8627; membrane position',
     )
 
+    hydrogen_bonds = forms.BooleanField(
+        required=False,
+        label='Calculate hydrogen bonds'
+    )
+
+    secondary_structure = forms.BooleanField(
+        required=False,
+        label='Calculate secondary structure'
+    )
+
+    electrostatics = forms.BooleanField(
+        required=False,
+        label='Calculate electrostatics'
+    )
+
     def clean_replace_non_standard(self):
         return self.cleaned_data['replace_non_standard'] in ['True', 'true', True]
 
@@ -269,13 +285,8 @@ class OptionsForm(forms.Form):
         self.helper.label_class = 'col-4 small'
         self.helper.field_class = 'col-8'
 
-        self.helper.layout = layout.Column(
-            layout.HTML('<h6 class="ml-3">Options:</h6>'),
-            layouts.RowField('contact_cutoff'),
-            layouts.HR,
-            layout.HTML('<h6 class="ml-3">Fix PDB file with PDBfixer:</h6>'),
+        pdbfixer_layout = layout.Column(
             layouts.RowField('add_atoms'),
-            layouts.RowField('protonation_ph'),
             layouts.RowField('add_residues'),
             layouts.RowField('max_loop_length'),
             layouts.RowField('keep_heterogens'),
@@ -289,10 +300,55 @@ class OptionsForm(forms.Form):
             layouts.RowField('box_dimensions'),
             layouts.RowField('lipid_type'),
             layouts.RowField('membrane_position'),
-            layouts.HR,
-            layouts.ButtonLink(
-                href=reverse('reset-options'),
-                text='Reset to defaults',
-                css_class='btn btn-danger btn-block'
-            )
+        )
+
+        options_layout = layout.Column(
+            layouts.RowField('contact_cutoff'),
+            layouts.RowField('protonation_ph'),
+            layouts.BoolField('hydrogen_bonds'),
+            layouts.BoolField('secondary_structure'),
+            layouts.BoolField('electrostatics'),
+        )
+
+        submit_button = layouts.ButtonLink(
+            href=reverse('reset-options'),
+            text='Reset to defaults',
+            css_class='btn btn-danger btn-block'
+        )
+
+        tab1header = 'General options'
+        tab2Header = 'Fix structure with pdb fixer'
+
+        nav_layout = layout.HTML(f'''
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab">{tab1header}</a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab">{tab2Header}</a>
+          </li>
+        </ul>
+        ''')
+
+        tabs_layout = layout.Div(
+            layout.Div(
+                options_layout,
+                css_class='tab-pane fade show active',
+                css_id='home',
+                role='tabpanel'
+            ),
+            layout.Div(
+                pdbfixer_layout,
+                css_class='tab-pane fade',
+                css_id='profile',
+                role='tabpanel'
+            ),
+            css_class='tab-content',
+            css_id='myTabContent'
+        )
+
+        self.helper.layout = layout.Div(
+            nav_layout,
+            tabs_layout,
+            submit_button
         )

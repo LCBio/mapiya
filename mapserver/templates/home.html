@@ -10,42 +10,37 @@
 {% endblock css %}
 
 {% block content %}
-    {% include 'modal.html' %}
-    <div class="container-fluid col-10 offset-1">
-        <div class="row py-lg-5">
 
-            <div class="dropzone-container col-xl-6 d-flex flex-column justify-content-between">
-                <form method="post" action="{% url 'home' %}" id="dropzone"
-                      class="dropzone shadow flex-grow-1 d-flex flex-column justify-content-center">
+    <div class="content-wrapper">
+        <div class="column-wrapper">
+            <div class="dropzone-container">
+                <form method="post" action="{% url 'home' %}" id="dropzone" class="dropzone">
                     {% csrf_token %}
                 </form>
-                <div>
-                    <h5 class="text-muted text-center my-3">or</h5>
-                    <div class="btn-group btn-block">
-                        <a href="{% url 'rcsb' %}" class="btn btn-primary" data-toggle="modal" data-target="#modal">
-                            Download structure from the RCSB.org
-                        </a>
-                    </div>
-                </div>
+                <div class="text-center">or</div>
+                <a href="{% url 'rcsb' %}" class="btn btn-primary btn-block" data-toggle="modal" data-target="#modal">
+                    Download structure from the <strong>rcsb.org</strong>
+                </a>
             </div>
 
-            <div class="col-xl-6">
+            <hr style="border: 1px solid rgba(0, 0, 0, 0.1)"/>
+
+            <div class="form-container">
                 {% crispy options_form %}
             </div>
-
         </div>
-
-        <div class="table-responsive">
-            <h5 class="text-muted">Your files:</h5>
-            {% if table.rows %}
-                {% render_table table %}
-            {% else %}
-                <div class="alert alert-danger">
-                    Drag and drop pdb files or use the link above to download structure from the RCSB.org
-                </div>
-            {% endif %}
+        <div class="column-wrapper">
+            <div class="table-wrapper">
+                <h5 class="font-weight-bold">Your files:</h5>
+                {% if table.rows %}
+                    {% render_table table %}
+                {% else %}
+                    <div class="alert alert-danger">
+                        Drag and drop pdb files or use the link above to download structure from the RCSB.org
+                    </div>
+                {% endif %}
+            </div>
         </div>
-
     </div>
 
 {% endblock content %}

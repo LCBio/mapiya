@@ -5,20 +5,20 @@
 {% block css %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/pdbe-molstar-light-1.1.0.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mapview.css' %}">
 {% endblock css %}
 
 {% block content %}
-    <div class="row viewport-container">
-        <div class="col-xl-6">
-          <div class="plotly-app">
+
+    <div class="content-wrapper">
+        <div class="plotly-app">
             {% load plotly_dash %}
             {% plotly_app name="ContactMap" initial_arguments=plotly %}
-          </div>
         </div>
-        <div class="col-xl-6">
-            <div class="molStarViewport" id="molStarViewport"></div>
-        </div>
+
+        <div id="molStarViewport"></div>
     </div>
+
 {% endblock content %}
 
 {% block js %}

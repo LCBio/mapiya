@@ -1238,5 +1238,3 @@ def download_display(display, text):
         return dict(content=text[0], filename="Mapiya_data_"+text[1]+".txt")
     else:
         raise PreventUpdate
-
-

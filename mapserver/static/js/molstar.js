@@ -10,7 +10,7 @@ function initMolStarViewer(pdburl, viewport_id)
         landscape: true,
         hideStructure: ['het', 'water', 'carbs', 'nonStandard', 'coarse'],
         subscribeEvents: true,
-        expanded: true
+        expanded: false
         /*
         assemblyId:
         domainAnnotation: false

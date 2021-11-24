@@ -15,6 +15,11 @@ class RowField(layout.Field):
         super().__init__(*args, **kwargs)
 
 
+class BoolField(layout.Field):
+
+    template = 'crispy/boolfield.html'
+
+
 class ButtonLink(layout.HTML):
 
     def __init__(self, href, text, css_class):

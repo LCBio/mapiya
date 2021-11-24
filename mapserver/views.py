@@ -1,13 +1,12 @@
 import json
-import subprocess
-import io
+
 from django.shortcuts import redirect
 from django.http import JsonResponse, HttpResponse, Http404
 from django.urls import reverse_lazy
 from django.views import generic
-from django.utils.html import format_html
 from django.core.files import File
 from django_tables2 import SingleTableView
+
 from . import models, forms, tables
 from users.views import get_identity
 from mollib import atom
@@ -16,6 +15,7 @@ from mollib import atom
 class Home(SingleTableView):
 
     table_class = tables.ProjectTable
+    table_pagination = False
     template_name = 'home.html'
 
     def get_context_data(self, **kwargs):
@@ -25,7 +25,6 @@ class Home(SingleTableView):
             identity.config = forms.OptionsForm.DEFAULTS
             identity.save(update_fields=['config'])
         data['options_form'] = forms.OptionsForm(data=identity.config)
-        data['commit_sha'] = get_commit_sha()
         return data
 
     def get_queryset(self):
@@ -130,16 +129,6 @@ def reset_options(request):
     identity.config = forms.OptionsForm.DEFAULTS
     identity.save(update_fields=['config'])
     return redirect('home')
-
-
-def get_commit_sha():
-    proc = subprocess.run(['git', 'log', '-n1', '--oneline', '--no-decorate'], capture_output=True)
-    if proc.returncode:
-        return None
-    sha = proc.stdout.decode(errors='ignore').split()[0]
-    return format_html(
-        f'<a class="text-white px-5" href="https://bitbucket.org/lcbio/mapserver/commits/{sha}">{sha}</a>'
-    )
 
 
 def molstar(request, pk):
