@@ -185,6 +185,7 @@ app.layout = html.Div([
     dcc.Input(id="void3", value='', type='hidden'),
     dcc.Input(id="void4", value='', type='hidden'),
     dcc.Input(id="void5", value='', type='hidden'),
+    dcc.Input(id="void6", value='', type='hidden'),
     dcc.Input(id="slider", value='', type='hidden'),
 
     dcc.Interval(id="interval", interval=5000),
@@ -274,10 +275,20 @@ app.clientside_callback(
 app.clientside_callback(
     """
     function (value) {
+      window.sessionStorage.setItem("model-ix", value);
+    };
+    """,
+    Output('void4', 'value'), [Input('model-ix', 'value')]
+)
+
+
+app.clientside_callback(
+    """
+    function (value) {
       window.sessionStorage.setItem("chains-colors", value);
     };
     """,
-    Output('void4', 'value'), [Input('chains-colors', 'value')]
+    Output('void5', 'value'), [Input('chains-colors', 'value')]
 )
 
 
@@ -287,7 +298,7 @@ app.clientside_callback(
       window.sessionStorage.setItem("click-map", value);
     };
     """,
-    Output('void5', 'value'), [Input('click-map', 'value')]
+    Output('void6', 'value'), [Input('click-map', 'value')]
 )
 
 
@@ -1060,11 +1071,13 @@ def load_download_section(model_data, selected, data_con):
         if not my_file.is_file():
             status[i] = True
     is_con = ""
+    display = "contacts"
     if selected is None or selected == '':
         is_con = "True"
-        status['display'] = True
+#        status['display'] = True
+        display = "counts"
     opts = ["matrix of contact counts|counts|", "contact list from current map|contacts|"+is_con, 
-            "Shannon Entropy for map objects|entropy|", "Physicochemical properties|patterns|", "Sequence in FASTA format|seq|"]
+            "Shannon Entropy for map objects|entropy|"+is_con, "Physicochemical properties|patterns|"+is_con, "Sequence in FASTA format|seq|"]
 
     return [
         html.Div([
@@ -1131,7 +1144,7 @@ def load_download_section(model_data, selected, data_con):
             html.Div([
                 dcc.Dropdown(id='display_data', placeholder="Select dataset", clearable=False,
                     style={'width': '30vw', 'margin-right': '2vw', 'display': 'inline-block'}, optionHeight=30,
-                    options=[{'label': i.split('|')[0], 'value': i.split('|')[1], 'disabled': bool(i.split('|')[2])} for i in opts], value='contacts'),
+                    options=[{'label': i.split('|')[0], 'value': i.split('|')[1], 'disabled': bool(i.split('|')[2])} for i in opts], value=display),
                 html.Button("DATA TXT", id="btn_display", disabled=status['display'], style={'min-width': '100px', 'display': 'inline-block'}),
                 html.P('Custom dataset provided in TXT format', style={'font-size': '2vh', 'margin': '0 0 0 1vw', 'display': 'inline-block'}),
             ], style={**drops, 'width': '80vw', 'margin': '1vh 0 1vh 0', 'display': 'flex', 'align-items': 'center'}),
@@ -1225,7 +1238,7 @@ def display_the_datasets(display, selected, model_data, counts, dist, data_1d):
             text = ''
             for i in labels.keys():
                 if i.startswith('protein'):
-                    text += '> '+i+' : len='+str(labels[i][1][1]-labels[i][1][0])+'\n'
+                    text += '> '+i+' : length='+str(labels[i][1][1]-labels[i][1][0])+'\n'
                     text += ''.join([A_CODE[j.split(':')[0]] for j in labels[i][0]])+'\n\n'
             return [[dcc.Textarea(value='{}'.format(text), style={'width': '90vw', 'height': 250, 'margin-top': '0'}, ),], [text, display]]
 
