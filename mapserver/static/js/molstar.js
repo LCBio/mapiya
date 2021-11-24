@@ -52,26 +52,10 @@ function initMolStarViewer(pdburl, viewport_id)
     return viewerInstance;
 };
 
-class getClickMapFromPlotly
+function generateChainColourPairs()
 {
-    constructor()
-    {
-        this.click_map = document.getElementsByTagName("iframe")[0].contentDocument.getElementById("click-map");
-    };
-};
-
-async function delay(time) 
-{
-    return new Promise(resolve => setTimeout(resolve, time));
-}
-
-
-async function generateChainColourPairs()
-{
-
-    await delay(10000);
-    var colors_plotly = document.getElementsByTagName("iframe")[0].contentDocument.getElementById("chains-colors");
-    var chains_colors = JSON.parse(colors_plotly.value);
+    var colors_plotly = sessionStorage.getItem("chains-colors");
+    var chains_colors = JSON.parse(colors_plotly);
     var selections = [];
     for (var k in chains_colors) 
     {
@@ -98,101 +82,17 @@ async function generateChainColourPairs()
     return selections;
 };
 
-function generateSelection(click_map)
+function updateMolStarViewer(viewerInstance)
 {
-    var click_map = JSON.parse(click_map.value);
-    var res1 = click_map["res1"].split("-");
-    var res2 = click_map["res2"].split("-");
-    var selectSections =
-    [
+    var selectSections = generateChainColourPairs();
+    viewerInstance.visual.select(
+    {
+        data: selectSections,
+        nonSelectedColor: 
         {
-            struct_asym_id: res1[0],
-            start_residue_number: res1[2],
-            end_residue_number: ++(res1[2]),
-            color:
-            {
-                r: 0,
-                g: 255,
-                b: 0
-            },
-            sideChain: true,
-            focus : true
-        },
-        {
-            struct_asym_id: res2[0],
-            start_residue_number: res2[2],
-            end_residue_number: ++(res2[2]),
-            color:
-            {
-                r: 255,
-                g: 0,
-                b: 0
-            },
-            sideChain: true,
-            focus : true
+            r:255,
+            g:255,
+            b:255
         }
-    ];
-    return selectSections;
-};
-
-
-function checkIframeLoaded(viewerInstance)
-{
-    var iframe = document.getElementsByTagName("iframe")[0];
-    var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-
-    // Check if loading is complete
-    if (  iframeDoc.readyState  == 'complete' )
-    {
-        return true;
-    } 
-    return false;
-};
-
-class getSessionStorageVariables
-{
-    constructor()
-    {
-        this.struct_asym_id = sessionStorage.getItem('struct_asym_id');
-        this.first_residue_number = sessionStorage.getItem('first_residue_number');
-        this.second_residue_number = sessionStorage.getItem('second_residue_number');
-        this.color_r = sessionStorage.getItem('color_r');
-        this.color_g = sessionStorage.getItem('color_g');
-        this.color_b = sessionStorage.getItem('color_b');
-    }
-};
-
-
-function setSessionStorageVariables (
-    struct_asym_id,
-    first_residue_number,
-    second_residue_number,
-    color_r,
-    color_g,
-    color_b
-    )
-{
-    sessionStorage.setItem('struct_asym_id', struct_asym_id);
-    sessionStorage.setItem('first_residue_number', first_residue_number);
-    sessionStorage.setItem('second_residue_number', second_residue_number);
-    sessionStorage.setItem('color_r', color_r);
-    sessionStorage.setItem('color_g', color_g);
-    sessionStorage.setItem('color_b', color_b);
-};
-
-function setSessionStorageVariablesChainColours(
-    struct_asym_id,
-    chains_color_r,
-    chains_color_g,
-    chains_color_b,
-    chains_color_a
-)
-{
-    sessionStorage.setItem('struct_asym_id', struct_asym_id);
-    sessionStorage.setItem('chains_color_r', chains_colors_r);
-    sessionStorage.setItem('chains_color_r', chains_colors_r);
-    sessionStorage.setItem('chains_color_r', chains_colors_r);
-    sessionStorage.setItem('chains_color_r', chains_colors_r);
-
-
-};
+    });
+}
