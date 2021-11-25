@@ -55,6 +55,10 @@ function initMolStarViewer(pdburl, viewport_id)
 function generateChainColourPairs()
 {
     var colors_plotly = sessionStorage.getItem("chains-colors");
+    if(sessionStorage.getItem("chains-colors") === null )
+    {
+        colors_plotly = sessionStorage.getItem("chains-colors-previous");
+    };
     var chains_colors = JSON.parse(colors_plotly);
     var selections = [];
     for (var k in chains_colors) 
@@ -78,6 +82,8 @@ function generateChainColourPairs()
             }
         );
     };
+    sessionStorage.setItem("chains-colors-previous", sessionStorage.getItem("chains-colors"));
+    sessionStorage.removeItem("chains-colors");
     return selections;
 };
 
@@ -87,6 +93,7 @@ function updateMolStarViewer(viewerInstance)
     viewerInstance.visual.select(
     {
         data: selectSections,
+        entity_id: CurrentModel(),
         nonSelectedColor: 
         {
             r:255,
@@ -134,3 +141,10 @@ function PrepareClickMapData()
     sessionStorage.removeItem("click-map");
     return selectSections;
 };
+
+function CurrentModel()
+{
+    var current_model = sessionStorage.getItem("model-ix");
+    if(sessionStorage.getItem("model-ix") === null) current_model = 0;
+    return current_model;
+}
