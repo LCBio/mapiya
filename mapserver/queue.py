@@ -5,24 +5,24 @@ import traceback
 import collections
 
 from django.conf import settings
-from django.db import transaction
 
 from . import models
 
 
 def queue_worker(queue):
-    job = queue.popleft()
-    job.status = 'R'
-    job.save(update_fields=['status'])
-    try:
-        job.run()
-    except Exception:
-        with io.StringIO() as f:
-            traceback.print_exc(file=f)
-            f.seek(0)
-            job.error = f.read()
-        job.status = 'E'
-        job.save(update_fields=['status', 'error'])
+    while queue:
+        job = queue.popleft()
+        job.status = 'R'
+        job.save(update_fields=['status'])
+        try:
+            job.run()
+        except Exception:
+            with io.StringIO() as f:
+                traceback.print_exc(file=f)
+                f.seek(0)
+                job.error = f.read()
+            job.status = 'E'
+            job.save(update_fields=['status', 'error'])
 
 
 def queue_manager():
@@ -30,10 +30,7 @@ def queue_manager():
     while True:
         jobs = models.Job.objects.filter(status='S').order_by('date_init')
         queue.extend(jobs)
-        with transaction.atomic():
-            for job in jobs:
-                job.status = 'Q'
-                job.save(update_fields=['status'])
+        jobs.update(status='Q')
 
         max_workers = min(settings.QUEUE_WORKERS_COUNT, len(queue))
         workers = [
@@ -50,4 +47,4 @@ def queue_manager():
         time.sleep(settings.QUEUE_MANAGER_TIMEOUT_SECONDS)
 
 
-threading.Thread(target=queue_manager, name='Queue manager').start()
+threading.Thread(target=queue_manager, name='Queue manager', daemon=True).start()
