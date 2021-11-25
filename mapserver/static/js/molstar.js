@@ -58,6 +58,10 @@ function generateChainColourPairs()
     if(sessionStorage.getItem("chains-colors") === null )
     {
         colors_plotly = sessionStorage.getItem("chains-colors-previous");
+    }
+    else
+    {
+        sessionStorage.setItem("chains-colors-previous", sessionStorage.getItem("chains-colors"));
     };
     var chains_colors = JSON.parse(colors_plotly);
     var selections = [];
@@ -82,7 +86,6 @@ function generateChainColourPairs()
             }
         );
     };
-    sessionStorage.setItem("chains-colors-previous", sessionStorage.getItem("chains-colors"));
     sessionStorage.removeItem("chains-colors");
     return selections;
 };
