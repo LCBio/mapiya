@@ -29,5 +29,6 @@
     <script src="{% static 'js/molstar.js' %}"></script>
     <script>
         let viewerInstance = initMolStarViewer('{{ object.molstar_url }}', 'molStarViewport');
+        window.addEventListener('storage', () => {updateMolStarViewer(viewerInstance);});
     </script>
 {% endblock js %}
