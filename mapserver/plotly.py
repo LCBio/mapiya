@@ -781,6 +781,8 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
     distances = np.array(data_dist[0])
     residues_a = [i.split(':')[0] for i in data_dist[1]]
     residues_b = [i.split(':')[0] for i in data_dist[2]]
+    obj_a_type = data_dist[3][0].split('-')[0]
+    obj_b_type = data_dist[4][0].split('-')[0]
 
     desc_c = np.zeros(distances.shape, 'U500')
     filtrated = np.zeros(distances.shape, 'U10')
@@ -799,7 +801,8 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
 
     if feature == 'hydrogen bonds':
         hbonds = pd.read_csv(hbonds, sep = ',', engine = 'python')
-        if data_dist[3][0].startswith('protein') and data_dist[4][0].startswith('protein'):
+#        if data_dist[3][0].startswith('protein') and data_dist[4][0].startswith('protein'):
+        if obj_a_type == 'protein' and obj_b_type == 'protein':
             donor = data_dist[3][0].split('-')[1]
             accep = data_dist[4][0].split('-')[1]
             ch_hb = hbonds[hbonds.chains == donor+':'+accep]
@@ -825,7 +828,9 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
     desc_c[distances > cutoff] = 'NO'
     for (x,y) in zip(*np.where(desc_c != 'NO')):
         hb_desc = ''
-        interaction = calc_contact_nature(residues_a[x], residues_b[y])
+        interaction = 'YES<br>'
+        if obj_a_type in ['protein', 'nucleic'] and obj_b_type in ['protein', 'nucleic']:
+            interaction = calc_contact_nature(residues_a[x], residues_b[y])
         if feature == 'hydrogen bonds':
             if is_hb:
                 hb = hbonds[(hbonds.donor == donor_set[x]) & (hbonds.acceptor == accep_set[y])]
@@ -1187,9 +1192,9 @@ def display_the_datasets(display, selected, model_data, counts, dist, data_1d):
             residuesB = labels[objB][0]
             con = np.array(dist[1])
             distance = np.array(dist[0])
-            text = objA.rjust(10)+' '+objB.rjust(10)+'  distance  interaction_forces\n'
+            text = objA.rjust(10)+' '+objB.rjust(10)+'  distance  possible_interaction_forces\n'
             for (x,y) in zip(*np.where(con != 'NO')):
-                text += residuesA[x].rjust(10)+' '+residuesB[y].rjust(10)+'  '+str(distance[x][y]).rjust(8)+'  '+con[x][y].replace('YES<br>interaction forces:<br>- ','').replace('<br>','').replace('- ','')+'\n'
+                text += residuesA[x].rjust(10)+' '+residuesB[y].rjust(10)+'  '+str(distance[x][y]).rjust(8)+'  '+con[x][y].replace('YES<br>possible interaction forces:<br>- ','').replace('<br>','').replace('- ','')+'\n'
             return [[dcc.Textarea(value='{}'.format(text), style={'width': '90vw', 'height': 250, 'margin-top': '0'}, ),], [text, display]]
 
         if display == 'entropy':
@@ -1240,6 +1245,10 @@ def display_the_datasets(display, selected, model_data, counts, dist, data_1d):
                 if i.startswith('protein'):
                     text += '> '+i+' : length='+str(labels[i][1][1]-labels[i][1][0])+'\n'
                     text += ''.join([A_CODE[j.split(':')[0]] for j in labels[i][0]])+'\n\n'
+                elif i.startswith('nucleic'):
+                    text += '> '+i+' : length='+str(labels[i][1][1]-labels[i][1][0])+'\n'
+                    text += ''.join([N_CODE[j.split(':')[0]] for j in labels[i][0]])+'\n\n'
+
             return [[dcc.Textarea(value='{}'.format(text), style={'width': '90vw', 'height': 250, 'margin-top': '0'}, ),], [text, display]]
 
         else:
