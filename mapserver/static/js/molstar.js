@@ -9,7 +9,7 @@ function initMolStarViewer(pdburl, viewport_id)
             format: 'pdb',
             binary: false 
         },
-        hideControls: false,
+        hideControls: true,
         bgColor: 
         {
             r:255,
@@ -93,10 +93,10 @@ function generateChainColourPairs()
 function updateMolStarViewer(viewerInstance)
 {
     var selectSections = generateChainColourPairs().concat(PrepareClickMapData());
+    viewerInstance.plugin.managers.camera.reset();
     viewerInstance.visual.select(
     {
         data: selectSections,
-        entity_id: CurrentModel(),
         nonSelectedColor: 
         {
             r:255,
