@@ -24,6 +24,7 @@ header.topnav {
     justify-content: space-between;
     align-items: center;
     padding: 0 1rem;
+    z-index: 1000;
 }
 
 footer {
@@ -42,5 +43,4 @@ footer {
 }
 
 .dropdown-menu {
-    z-index: 99999!important;
 }

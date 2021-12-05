@@ -317,7 +317,7 @@ class OptionsForm(forms.Form):
         )
 
         tab1header = 'General options'
-        tab2Header = 'Fix structure with pdb fixer'
+        tab2Header = 'Fix structure with PDBfixer'
 
         nav_layout = layout.HTML(f'''
         <ul class="nav nav-tabs" id="myTab" role="tablist">

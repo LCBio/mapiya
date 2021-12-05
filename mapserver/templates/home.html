@@ -30,14 +30,12 @@
             </div>
         </div>
         <div class="column-wrapper">
-            <div class="table-wrapper">
-                <h5 class="font-weight-bold">Your files:</h5>
+            <div class="table-wrapper"></div>
                 {% if table.rows %}
+                    <h5 class="font-weight-bold">Your files:</h5>
                     {% render_table table %}
                 {% else %}
-                    <div class="alert alert-danger">
-                        Drag and drop pdb files or use the link above to download structure from the RCSB.org
-                    </div>
+                    {% include 'help.html' %}
                 {% endif %}
             </div>
         </div>

@@ -1,6 +1,14 @@
 let $modal = $('.modal');
 
 $modal.on('show.bs.modal', function (event) {
+    let $dialog = $(this).find('.modal-dialog');
+    const modalSize = event.relatedTarget.getAttribute('data-size');
+    const validSizes = ['xl', 'lg', 'sm'];
+    if (validSizes.indexOf(modalSize) > -1) {
+        $dialog.removeClass().addClass(`modal-dialog modal-${modalSize}`);
+    } else {
+        $dialog.removeClass().addClass('modal-dialog');
+    }
     $(this).find('.modal-content').load(event.relatedTarget.href);
 });
 

@@ -139,3 +139,8 @@ def molstar(request, pk):
         return Http404
 
     return HttpResponse(project.fixed_pdb)
+
+
+class HelpView(generic.TemplateView):
+
+    template_name = 'help-modal.html'
