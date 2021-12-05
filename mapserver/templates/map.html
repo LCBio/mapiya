@@ -6,6 +6,7 @@
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/pdbe-molstar-light-1.1.0.css' %}">
     <link rel="stylesheet" href="{% static 'css/mapview.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pdbe-molstar-light-1.2.0.css' %}">
 {% endblock css %}
 
 {% block content %}
@@ -25,9 +26,10 @@
     {{ block.super }}
 
     <!-- Molstar -->
-    <script src="{% static 'js/pdbe-molstar-plugin-1.1.0.js' %}"></script>
+    <script src="{% static 'js/pdbe-molstar-plugin-1.2.0.js' %}"></script>
     <script src="{% static 'js/molstar.js' %}"></script>
     <script>
         let viewerInstance = initMolStarViewer('{{ object.molstar_url }}', 'molStarViewport');
+        window.addEventListener('storage', () => {updateMolStarViewer(viewerInstance);});
     </script>
 {% endblock js %}

@@ -184,6 +184,8 @@ app.layout = html.Div([
     dcc.Input(id="void2", value='', type='hidden'),
     dcc.Input(id="void3", value='', type='hidden'),
     dcc.Input(id="void4", value='', type='hidden'),
+    dcc.Input(id="void5", value='', type='hidden'),
+    dcc.Input(id="void6", value='', type='hidden'),
     dcc.Input(id="slider", value='', type='hidden'),
 
     dcc.Interval(id="interval", interval=5000),
@@ -267,6 +269,36 @@ app.clientside_callback(
     };
     """,
     Output('void3', 'value'), [Input('opts', 'n_clicks'), Input('close', 'n_clicks')]
+)
+
+
+app.clientside_callback(
+    """
+    function (value) {
+      window.sessionStorage.setItem("model-ix", value);
+    };
+    """,
+    Output('void4', 'value'), [Input('model-ix', 'value')]
+)
+
+
+app.clientside_callback(
+    """
+    function (value) {
+      window.sessionStorage.setItem("chains-colors", value);
+    };
+    """,
+    Output('void5', 'value'), [Input('chains-colors', 'value')]
+)
+
+
+app.clientside_callback(
+    """
+    function (value) {
+      window.sessionStorage.setItem("click-map", value);
+    };
+    """,
+    Output('void6', 'value'), [Input('click-map', 'value')]
 )
 
 
@@ -749,6 +781,8 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
     distances = np.array(data_dist[0])
     residues_a = [i.split(':')[0] for i in data_dist[1]]
     residues_b = [i.split(':')[0] for i in data_dist[2]]
+    obj_a_type = data_dist[3][0].split('-')[0]
+    obj_b_type = data_dist[4][0].split('-')[0]
 
     desc_c = np.zeros(distances.shape, 'U500')
     filtrated = np.zeros(distances.shape, 'U10')
@@ -767,7 +801,8 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
 
     if feature == 'hydrogen bonds':
         hbonds = pd.read_csv(hbonds, sep = ',', engine = 'python')
-        if data_dist[3][0].startswith('protein') and data_dist[4][0].startswith('protein'):
+#        if data_dist[3][0].startswith('protein') and data_dist[4][0].startswith('protein'):
+        if obj_a_type == 'protein' and obj_b_type == 'protein':
             donor = data_dist[3][0].split('-')[1]
             accep = data_dist[4][0].split('-')[1]
             ch_hb = hbonds[hbonds.chains == donor+':'+accep]
@@ -793,7 +828,9 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
     desc_c[distances > cutoff] = 'NO'
     for (x,y) in zip(*np.where(desc_c != 'NO')):
         hb_desc = ''
-        interaction = calc_contact_nature(residues_a[x], residues_b[y])
+        interaction = 'YES<br>'
+        if obj_a_type in ['protein', 'nucleic'] and obj_b_type in ['protein', 'nucleic']:
+            interaction = calc_contact_nature(residues_a[x], residues_b[y])
         if feature == 'hydrogen bonds':
             if is_hb:
                 hb = hbonds[(hbonds.donor == donor_set[x]) & (hbonds.acceptor == accep_set[y])]
@@ -1010,9 +1047,13 @@ def display_click_map(data, selected):
         ctx = ctx[0]['prop_id'].split('.')[0]
         if ctx == 'graph_map':
             selected = selected.split('|')
+            res2 = selected[0].split(':')[0].split('-')[1]
+            res1 = res2
+            if len(selected) > 1:
+                res1 = selected[1].split(':')[0].split('-')[1]
             data = data['points'][0]
-            return json.dumps({'res1' : selected[1].split(':')[0].split('-')[1]+'-'+data['x'].replace(':', '-'), 
-                               'res2' : selected[0].split(':')[0].split('-')[1]+'-'+data['y'].replace(':', '-')}, indent=2)
+            return json.dumps({'res1' : res1+'-'+data['x'].replace(':', '-'), 
+                               'res2' : res2+'-'+data['y'].replace(':', '-')}, indent=2)
     else:
         raise PreventUpdate
 
@@ -1035,11 +1076,13 @@ def load_download_section(model_data, selected, data_con):
         if not my_file.is_file():
             status[i] = True
     is_con = ""
+    display = "contacts"
     if selected is None or selected == '':
         is_con = "True"
-        status['display'] = True
+#        status['display'] = True
+        display = "counts"
     opts = ["matrix of contact counts|counts|", "contact list from current map|contacts|"+is_con, 
-            "Shannon Entropy for map objects|entropy|", "Physicochemical properties|patterns|", "Sequence in FASTA format|seq|"]
+            "Shannon Entropy for map objects|entropy|"+is_con, "Physicochemical properties|patterns|"+is_con, "Sequence in FASTA format|seq|"]
 
     return [
         html.Div([
@@ -1106,7 +1149,7 @@ def load_download_section(model_data, selected, data_con):
             html.Div([
                 dcc.Dropdown(id='display_data', placeholder="Select dataset", clearable=False,
                     style={'width': '30vw', 'margin-right': '2vw', 'display': 'inline-block'}, optionHeight=30,
-                    options=[{'label': i.split('|')[0], 'value': i.split('|')[1], 'disabled': bool(i.split('|')[2])} for i in opts], value='contacts'),
+                    options=[{'label': i.split('|')[0], 'value': i.split('|')[1], 'disabled': bool(i.split('|')[2])} for i in opts], value=display),
                 html.Button("DATA TXT", id="btn_display", disabled=status['display'], style={'min-width': '100px', 'display': 'inline-block'}),
                 html.P('Custom dataset provided in TXT format', style={'font-size': '2vh', 'margin': '0 0 0 1vw', 'display': 'inline-block'}),
             ], style={**drops, 'width': '80vw', 'margin': '1vh 0 1vh 0', 'display': 'flex', 'align-items': 'center'}),
@@ -1149,9 +1192,9 @@ def display_the_datasets(display, selected, model_data, counts, dist, data_1d):
             residuesB = labels[objB][0]
             con = np.array(dist[1])
             distance = np.array(dist[0])
-            text = objA.rjust(10)+' '+objB.rjust(10)+'  distance  interaction_forces\n'
+            text = objA.rjust(10)+' '+objB.rjust(10)+'  distance  possible_interaction_forces\n'
             for (x,y) in zip(*np.where(con != 'NO')):
-                text += residuesA[x].rjust(10)+' '+residuesB[y].rjust(10)+'  '+str(distance[x][y]).rjust(8)+'  '+con[x][y].replace('YES<br>interaction forces:<br>- ','').replace('<br>','').replace('- ','')+'\n'
+                text += residuesA[x].rjust(10)+' '+residuesB[y].rjust(10)+'  '+str(distance[x][y]).rjust(8)+'  '+con[x][y].replace('YES<br>possible interaction forces:<br>- ','').replace('<br>','').replace('- ','')+'\n'
             return [[dcc.Textarea(value='{}'.format(text), style={'width': '90vw', 'height': 250, 'margin-top': '0'}, ),], [text, display]]
 
         if display == 'entropy':
@@ -1200,8 +1243,12 @@ def display_the_datasets(display, selected, model_data, counts, dist, data_1d):
             text = ''
             for i in labels.keys():
                 if i.startswith('protein'):
-                    text += '> '+i+' : len='+str(labels[i][1][1]-labels[i][1][0])+'\n'
+                    text += '> '+i+' : length='+str(labels[i][1][1]-labels[i][1][0])+'\n'
                     text += ''.join([A_CODE[j.split(':')[0]] for j in labels[i][0]])+'\n\n'
+                elif i.startswith('nucleic'):
+                    text += '> '+i+' : length='+str(labels[i][1][1]-labels[i][1][0])+'\n'
+                    text += ''.join([N_CODE[j.split(':')[0]] for j in labels[i][0]])+'\n\n'
+
             return [[dcc.Textarea(value='{}'.format(text), style={'width': '90vw', 'height': 250, 'margin-top': '0'}, ),], [text, display]]
 
         else:
@@ -1238,3 +1285,5 @@ def download_display(display, text):
         return dict(content=text[0], filename="Mapiya_data_"+text[1]+".txt")
     else:
         raise PreventUpdate
+
+

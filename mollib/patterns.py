@@ -77,7 +77,7 @@ def calc_struct(seq, struct):
 
 def calc_contact_nature(res1, res2):
 
-    desc = 'YES<br>interaction forces:<br>'
+    desc = 'YES<br>possible interaction forces:<br>'
     key = sorted([AA_ATTRIBUTES[res1][0], AA_ATTRIBUTES[res2][0]])
     for i in INTERACTION[str(key[0])+':'+str(key[1])]:
         desc += DESCRIPTORS[i]
@@ -164,13 +164,13 @@ def filter_contact_by_nature(res1, res2, feature):
 
 
 PATTERNS = {
-    'hydrophobic'     : ['ALA', 'GLY', 'LEU', 'ILE', 'VAL', 'PRO', 'PHE'],
+    'hydrophobic'     : ['ALA', 'GLY', 'LEU', 'ILE', 'VAL', 'PRO', 'PHE', 'DA', 'DG', 'DT', 'DC', 'A', 'G', 'U', 'C'],
     'amphipatic'      : ['TRP', 'TYR', 'MET', 'LYS'],
     'hydrophilic'     : ['ARG', 'ASN', 'ASP', 'GLN', 'GLU', 'HIS', 'SER', 'THR', 'CYS'],
-    'charged'         : [['LYS', 'ARG', 'HIS'], ['GLU', 'ASP']],
-    'polar'           : ['CYS', 'MET', 'SER', 'THR', 'TYR', 'GLN', 'ASN'],
+    'charged'         : [['LYS', 'ARG', 'HIS'], ['GLU', 'ASP', 'DA', 'DG', 'DT', 'DC', 'A', 'G', 'U', 'C']],
+    'polar'           : ['CYS', 'MET', 'SER', 'THR', 'TYR', 'GLN', 'ASN', 'DA', 'DG', 'DT', 'DC', 'A', 'G', 'U', 'C'],
     'nonpolar'        : ['ALA', 'GLY', 'ILE', 'LEU', 'VAL', 'PHE', 'PRO', 'TRP'],
-    'aromatic'        : ['PHE', 'TYR', 'TRP', 'HIS'],
+    'aromatic'        : ['PHE', 'TYR', 'TRP', 'HIS', 'DA', 'DG', 'DT', 'DC', 'A', 'G', 'U', 'C'],
     'π-bond'          : ['ARG', 'ASN', 'ASP', 'GLN', 'GLU', 'GLY'],
     'sulfur'          : [['MET'], ['CYS']],
     'H-Bond donor'    : ['ARG', 'ASN', 'GLN', 'HIS', 'LYS', 'SER', 'THR', 'TRP', 'TYR'],
@@ -213,6 +213,11 @@ A_CODE = {
     'SER': 'S', 'THR': 'T', 'VAL': 'V', 'TRP': 'W', 'TYR': 'Y'
 }
 
+N_CODE = {
+    'DA': 'A', 'DC': 'C', 'DG': 'G', 'DT': 'T',
+    'A': 'A', 'C': 'C', 'G': 'G', 'U': 'U'
+}
+
 
 # id - mass - frequency - charge - aromatic - KD_hydropathy - color - sa (doi: https://doi.org/10.1371/journal.pone.0080635) [teoret, exp, Miller_1987, Rose_1985]
 AA_ATTRIBUTES = {
@@ -235,7 +240,15 @@ AA_ATTRIBUTES = {
     'THR': [16, 119.119, 5.53,  0.0, 0.0, -0.7, 0.40, [172, 163, 146, 152.5]],
     'VAL': [17, 117.148, 6.73,  0.0, 0.0,  4.2, 0.70, [174, 165, 160, 164.5]],
     'TRP': [18, 204.228, 1.25,  0.0, 1.0, -0.9, 0.00, [285, 264, 259, 266.3]],
-    'TYR': [19, 181.191, 2.91,  0.0, 1.0, -1.3, 0.10, [263, 255, 229, 236.8]]
+    'TYR': [19, 181.191, 2.91,  0.0, 1.0, -1.3, 0.10, [263, 255, 229, 236.8]],
+     'DA': [20, 331.200, 2.52, -1.0, 1.0, -2.8, 0.10, [400, 400, 400, 400]],
+     'DG': [20, 347.200, 2.48, -1.0, 1.0, -6.7, 0.10, [400, 400, 400, 400]],
+     'DT': [20, 322.200, 2.51, -1.0, 1.0, -2.2, 0.10, [350, 350, 350, 350]],
+     'DC': [20, 307.200, 2.52, -1.0, 1.0, -6.0, 0.10, [350, 350, 350, 350]],
+      'A': [20, 347.200, 2.50, -1.0, 1.0, -2.8, 0.10, [400, 400, 400, 400]],
+      'G': [20, 363.200, 2.50, -1.0, 1.0, -6.7, 0.10, [400, 400, 400, 400]],
+      'U': [20, 324.200, 2.50, -1.0, 1.0, -3.7, 0.10, [350, 350, 350, 350]],
+      'C': [20, 323.200, 2.50, -1.0, 1.0, -6.0, 0.10, [350, 350, 350, 350]],
 }
 
 
@@ -284,7 +297,15 @@ INTERACTION = {
    '14:19': ['C', 'P', 'H'], '15:15': ['D', 'H'], '15:16': ['D', 'H'], '15:17': ['I'],
    '15:18': ['H', 'O'], '15:19': ['D', 'H', 'O'], '16:16': ['D', 'H'], '16:17': ['I'],
    '16:18': ['H', 'O'], '16:19': ['D', 'H', 'O'], '17:17': ['F'], '17:18': ['F'], '17:19': ['F'],
-   '18:18': ['P', 'F'], '18:19': ['H', 'P', 'O'], '19:19': ['H', 'P', 'O', 'F']
+   '18:18': ['P', 'F'], '18:19': ['H', 'P', 'O'], '19:19': ['H', 'P', 'O', 'F'],
+   '20:20': ['Hn', 'Pn', 'D'], '0:20': ['Fb', 'Hb', 'I'], '1:20': ['H', 'Ep', 'Ds', 'Db'],
+   '2:20': ['H', 'Rp', 'Es', 'Ab', 'Pb'], '3:20': ['H', 'Rp', 'Es', 'Ab', 'Pb'],
+   '4:20': ['Ap', 'Pb', 'Fb', 'Hb'], '5:20': ['Fb', 'Hb', 'I'], '6:20': ['H', 'Bp', 'Es', 'Cb', 'Pb'],
+   '7:20': ['Fb', 'Hb', 'I'], '8:20': ['H', 'Bp', 'Es', 'Cb'], '9:20': ['Fb', 'Hb', 'I'],
+   '10:20': ['H', 'Ep', 'Ds', 'Db'], '11:20': ['H', 'Ep', 'Ds', 'Db',  'Pb'], '12:20': ['Fb', 'Hb', 'I'],
+   '13:20': ['H', 'Ep', 'Ds', 'Db', 'Pb'], '14:20': ['H', 'Bp', 'Es', 'Cb'], '15:20': ['H', 'Ep', 'Ds', 'Db'],
+   '16:20': ['H', 'Ep', 'Ds', 'Db'], '17:20': ['Fb', 'Hb', 'I'], '18:20': ['H', 'Ap', 'Pb'],
+   '19:20': ['H', 'Ap', 'Ds', 'Pb', 'Fb']
 }
 
 
@@ -302,7 +323,21 @@ DESCRIPTORS = {
     'P': '- π-π stacking,<br>',
     'O': '- dipole-π stacking<br>',
     'W': '- CH-π stacking,<br>',
-    'I': '- induction + dispersion<br>'
+    'I': '- induction + dispersion<br>',
+   'Hb': '- hydrogen bond with AA backbone,<br>',
+   'Fb': '- hydrophobic with NA base,<br>',
+   'Bp': '- salt bridge with NA phosphate,<br>',
+   'Rp': '- ionic repulsion with NA phosphate,<br>',
+   'Ep': '- electrostatic: ion-dipole with NA phosphate,<br>',
+   'Es': '- electrostatic: ion-dipole with NA sugar,<br>',
+   'Ds': '- electrostatic: dipole-dipole with NA sugar,<br>',
+   'Db': '- electrostatic: dipole-dipole with NA base,<br>',
+   'Cb': '- cation-π stacking with NA base,<br>',
+   'Pb': '- π-π stacking with NA base,<br>',
+   'Ab': '- anion-π stacking with NA base,<br>',
+   'Ap': '- anion-π stacking with NA phosphate,<br>',
+   'Hn': '- hydrogen bond between bases,<br>',
+   'Pn': '- π-π stacking between aromatic bases,<br>',
 }
 
 
