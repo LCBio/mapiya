@@ -144,3 +144,8 @@ def molstar(request, pk):
 class HelpView(generic.TemplateView):
 
     template_name = 'help-modal.html'
+
+
+class AboutView(generic.TemplateView):
+
+    template_name = 'about.html'
