@@ -35,7 +35,7 @@ btn_slider = {'height': '3vh', 'width': '4vw', 'display': 'inline-block', 'posit
               'font-size': '1.7vh'}
 tabs_style = {'height': '4vh', 'width': '89.5vw', 'overflow-x': 'hidden', 'overflow-y': 'hidden',
               'scrollbar-width': 'none', 'display': 'inline-block', 'margin-left': '4.5vw', 'margin-right': '0.5vw'}
-settings_style = {'width': '92.5vw', 'height': 'auto', 'display': 'block', 'background': '#eeece7', 'opacity': '0.97',
+settings_style = {'width': 'fit-content', 'height': 'auto', 'display': 'block', 'background': '#eeece7', 'opacity': '0.95',
                   'border-radius': '5px 5px 5px 5px', 'position': 'absolute', 'top': '0', 'left': '0.5vw', 'z-index': '101',
                   'padding': '1vh 1vw 1vh 1vw'}
 settings_close = {'margin': '0 1vw 0 0', 'border': '0px', 'color': '#63533c', 'font-size': '3vh', 'vertical-align': 'top', 
@@ -70,7 +70,8 @@ cs_sa = [[0, '#CC3300'], [0.2, '#CC3300'], [0.25, "#9999FF"], [0.4, "#9999FF"], 
 # const. data
 amino = ['W', 'F', 'Y', 'N', 'Q', 'D', 'E', 'S', 'T', 'H', 'K', 'R', 'L', 'I', 'V', 'A', 'G', 'M', 'C', 'P']
 
-title = {'intra-map' : 'The intramolecular map shows the internal contacts of the object.\n\
+title = {'basic_opts' : 'Set basic parameters of the chart, such as:\n• display mode,\n• contact cutoff,\n• color scale.',
+         'intra-map' : 'The intramolecular map shows the internal contacts of the object.\n\
 These contacts stabilize the secondary structure and topology of a single domain.',
          'inter-map' : 'The intermolecular map shows the spatial contacts between two different objects.\n\
 These contacts define binding interfaces, stabilize the quaternary structure,\nand are important for function.',
@@ -84,6 +85,7 @@ or a discrete color for the Contact Map visualization.',
          'reverse-cs' : 'Reverse the color order in the selected color scale.',
          'smoth-cs' : 'Convert the selected color to a continuous color scale fading to white.\n\
 This will visually distinguish between contacts closer and more distant in space.',
+         'filters' : 'Select filters that reduce the number of displayed contacts.',
          'intra-filter' : 'Filter out local contacts between neighboring residues.\n\
 As a result, the points along diagonal are dropped.\nThe filter takes an integer n, which defines the number \
 of amino acids (i, i+1, ..., i+n)\nalong the sequence, for which contacts are excluded.\n\
@@ -95,6 +97,7 @@ force types (e.g., electrostatics and π-stacking).\nMost filters are defined on
 of amino acid side groups. Hydrogen bonds are calculated using EDHB.\nFilters for interactions with other \
 biomacromolecules will be available\nin the next version of the Mapiya, so check out it frequently.\n',
          'interaction-only' : 'Display filtered contacts only.\nThis removes the other contacts from the background of the plot.',
+         'features' : 'Select one-dimensional features to be displayed along the sequence.',
          'feature-y' : 'Select the additional feature assigned with the residue-resolution along the protein sequence.\n\
 The bar-chart will be displayed on the right side parallel to the Y axis.\n\nAvailable options include:\n\
 • various physicochemical properties,\n• amino acid composition,\n• secondary structure, calculated using STRIDE,\n\
@@ -134,6 +137,7 @@ located between a pair of highly electronegative atoms (having a high affinity f
 Hydrogen bonds are calculated using EDHB. If the option is disabled, the process was unsuccessful.\n\
 Amino acids that can be proton donors: Arg, Asn, Gln, His, Ser, Thr, Tyr, Trp, Cys, Lys.\n\
 Amino acids that can be proton acceptors: Asn, Asp, Gln, Glu, His, Ser, Thr, Tyr.',
+         'title': 'Enter a customized title that will display above the chart.',
 }
 
 params = {'composition': [cs_seq, 'SEQUENCE', 0.45, [0.02, 0.07, 0.12, 0.17, 0.22, 0.27, 0.32, 0.37, 0.42, 0.47,
@@ -203,7 +207,7 @@ app.layout = html.Div([
         html.Button('⟱', id='tab-3', style={**btn_basic, **btn_style, **btn_opts}, title='download data'),
         html.Div([html.Div(id='settings', style={'display':'block', 'z-index':'110'}),
                   html.Button('×', id='close', style={**btn_style, **settings_close}, title='close options window'),
-                 ], id='settings-dir', style={**settings_style, 'left': '4.5vw'}),
+                 ], id='settings-dir', style={**settings_style, 'left': '4.5vw', 'min-width': '45vw'}),
     ], style={'width': '4vw', 'position': 'absolute', 'left': '0', 'z-index': '100'}),
     html.Div(id='tabs', style={'height': '93vh'}),
 ], style={'height': '97vh', 'width': '96vw', 'margin': '0', 'padding': '0'})
@@ -501,9 +505,9 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                                  optionHeight=30, options=[{'label': i, 'value': inter[i]} for i in inter], value='', style={'marginTop': '6px'})],
                     style={**drops, 'width': '20vw'}),
                 html.Div(
-                    [html.P(' or hover & click on the selected ribbon',
-                            style={'color': 'gray', 'text-align': 'left', })],
-                    style={'width': '40vw', 'display': 'inline-block', 'vertical-align': 'bottom', 'marginLeft': '2vw'}, ),
+                    [html.P('or hover & click on either end of the selected ribbon',
+                            style={**lab_style, 'color': 'gray', 'text-align': 'left', })],
+                    style={'width': '40vw', 'display': 'block', 'vertical-align': 'bottom', 'marginLeft': '0.5vw'}, ),
             ], id='settings_chord'),
             html.Div([
                 html.Div(id='dashbio-circos', style={'height': '90vh', 'width': '94vw', 'margin': '1vh 0 0 3vw'}),
@@ -524,32 +528,36 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
         return [
             html.Div([
                 html.Div([
+                  html.Div([
+                    html.Label('Basic options:', style={**lab_style, 'display':'block', 'color': 'rgb(149, 165, 166)', 'margin-bottom': '1vh', 'margin-left':'0.5vw', 'font-size': '2vh'}, title=title['basic_opts']),
                     html.Div([
                         html.Label('Display Mode', style=lab_style, title=title['display-mode']),
                         dcc.Dropdown(id='display_mode', placeholder="Select mode", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
                                      options=opts, value=val)],
-                        style={**drops, 'marginLeft': '0.5vw', 'width': '18vw'}),
+                        style={**drops, 'marginLeft': '0.5vw', 'width': '20vw'}),
                     html.Div([
                         html.Label('Cutoff [Å]', style=lab_style, title=title['cutoff']),
                         dcc.Input(id="cutoff", type="number", placeholder=" default: 8Å", min=0, value=model_data['config']["contact_cutoff"], step=0.1,
                                   debounce=False,
-                                  style=dict(height='29px', width='10vw', marginTop='6px', color='dimgrey',
+                                  style=dict(height='29px', width='10vw', marginTop='6px', color='dimgrey', display='block',
                                              borderRadius='5px 5px 5px 5px', borderColor='rgba(0,0,0,0)'))],
-                        style={**drops, 'vertical-align': 'top', 'width': '10vw', 'margin-right': '1vw'}, ),
+                        style={**drops, 'vertical-align': 'top', 'width': '18vw', 'margin-right': '1vw'}, ),
+                    ], style={'display':'block'}, ),
                     html.Div([
                         html.Label('ColorScale', style=lab_style, title=title['color-scale']),
                         dcc.Dropdown(id='color_selected', placeholder="Select Color", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
                                      options=opt_cs, value=opt_cs[0]['value'])],
-                        style={**drops, 'width': '16vw'}, ),
+                        style={**drops, 'marginLeft': '0.5vw', 'width': '18vw',}, ),
                     html.Div([
                         html.Label('Reverse', id='check-reverse', style=lab_style, title=title['reverse-cs']),
                         dcc.Checklist(id='reverse', options=[{'label': '', 'value': '_r'}, ], value='', ), ],
-                        style={'width': '12vw', 'marginTop': '3vh', 'marginLeft': '0.8vw', 'display': 'inline-block',
+                        style={'width': '22vw', 'marginTop': '3vh', 'marginLeft': '2vw', 'display': 'inline-block',
                                'vertical-align': 'top'}, ),
 
                     html.Hr(style={'border-top': '1px solid lightgray', 'margin': '0.7vw 0.5vw 0.7vw 0.5vw'}),
+                    html.Label('Filter contacts:', style={**lab_style, 'display':'block', 'color': 'rgb(149, 165, 166)', 'margin-bottom': '1vh', 'margin-left':'0.5vw', 'font-size': '2vh'}, title=title['filters']),
                     html.Div([
                         html.Label('intra-Contact Filter', id='intra_contact', style=lab_style, title=title['intra-filter']),
                         dcc.Input(id="filter_cutoff", type="number", placeholder=" i, i+n: n=0", min=0, value=0, step=1,
@@ -580,20 +588,27 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                                'vertical-align': 'top'}, ),
 
                     html.Hr(style={'border-top': '1px solid lightgray', 'margin': '0.7vw 0.5vw 0.7vw 0.5vw'}),
+                    html.Label('Display 1D data along sequence:', style={**lab_style, 'display':'block', 'color': 'rgb(149, 165, 166)', 'margin-bottom': '1vh', 'margin-left':'0.5vw', 'font-size': '2vh'}, title=title['features']),
                     html.Div([
                         html.Div([
-                            html.Label('Select 1D-Y Feature', style=lab_style, title=title['feature-y']),
+                            html.Label('Select Y-axis Feature', style=lab_style, title=title['feature-y']),
                             dcc.Dropdown(id='1dy', placeholder="Select 1D Feature", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
                                      options=[{'label': i, 'value': i, 'disabled': False} for i in opt_1D], value='none')],
                             style={**drops, 'width': '18vw', 'marginLeft': '0.5vw'}, ),
                         html.Div([
-                            html.Label('Select 1D-X Feature', style=lab_style, title=title['feature-x']),
+                            html.Label('Select X-axis Feature', style=lab_style, title=title['feature-x']),
                             dcc.Dropdown(id='1dx', placeholder="Select 1D Feature", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
                                      options=[{'label': i, 'value': i, 'disabled': False} for i in opt_1D], value='none')],
                             style={**drops, 'width': '18vw'}),
                     ], style={'display': 'block'}),
+
+                    html.Hr(style={'border-top': '1px solid lightgray', 'margin': '0.7vw 0.5vw 0.7vw 0.5vw'}),
+                    html.Label('Change the chart title:', style={**lab_style, 'display':'block', 'color': 'rgb(149, 165, 166)', 'margin-bottom': '1vh', 'margin-left':'0.5vw', 'font-size': '2vh'}, title=title['title']),
+                    dcc.Input(id="map-title", type="text", placeholder="Provide new title", debounce=False, value='',
+                            style=dict(height='29px', width='40vw', margin='6px 0 1vh 0.5vw', color='dimgrey',
+                                borderRadius='5px 5px 5px 5px', borderColor='rgba(0,0,0,0)')),
                 ]),
             ], id='settings_map'),
 
@@ -616,18 +631,7 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
 
     elif tab == 'tab-3':
         return [
-            html.Div([
-                html.Div([
-                    html.Label('Some options_1', style=lab_style),
-                    dcc.Dropdown(id='options1', placeholder="Select ...", clearable=False, optionHeight=30,
-                                 options=[{'label': 'H bonds', 'value': 'HB'},
-                                          {'label': 'interactions', 'value': 'I'}, ], value='', style={'marginTop': '6px'})],
-                    style={**drops, 'marginLeft': '0.5vw'},),
-                html.Div([
-                    html.Label('Some options_2', style=lab_style),
-                    dcc.Dropdown(id='options2', placeholder="Select ...", clearable=False, optionHeight=30,
-                                 options=[], value='', style={'marginTop': '6px'})], style={**drops}, ),
-            ], id='settings_download'),
+            html.Div([], id='settings_download'),
 
             html.Div([
                 html.Div(id='text-output'),
@@ -750,6 +754,18 @@ def disable_map_button(selected, style):
         return [{**style, 'color': '#63533c'}, {**lab_style, 'color': '#95A5A6'}, True]
     else:
         return [{**style, 'color': '#63533c'}, lab_style, False]
+
+
+@app.expanded_callback([Output('opts', 'style'), Output('opts', 'disabled'), Output('settings-dir', 'style')], [Input('tab-1', 'n_clicks'), Input('tab-2', 'n_clicks'), Input('tab-3', 'n_clicks')], [State('opts', 'style'), State('settings-dir', 'style')])
+def disable_opts_button(tab1, tab2, tab3, opts, style):
+    ctx = dash.callback_context.triggered
+    if len(ctx):
+        ctx = ctx[0]['prop_id'].split('.')[0]
+    if ctx == 'tab-3':
+        return [{**opts, 'color': '#95A5A6'}, True, {**style, 'display': 'none'}]
+    else:
+        return [{**opts, 'color': '#63533c'}, False, {**style, 'display': 'block'}]
+
 
 
 @app.expanded_callback(Output('data_Dist', 'value'), [Input('selected', 'value'), Input('model-data', 'value')])
@@ -876,8 +892,8 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
                        [Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'),
                         Input('1dy', 'value'), Input('1dx', 'value'), Input('data_1d', 'value'),
                         Input('data_Dist', 'value'), Input('data_Con', 'value'), Input('model-data', 'value'),
-                        Input('feature_selected', 'value'), Input('filter', 'value')])
-def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_con, model_data, filtr, only):
+                        Input('feature_selected', 'value'), Input('filter', 'value'), Input('map-title', 'value')])
+def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_con, model_data, filtr, only, desc_title):
     pdb_name = model_data['protein']
     if len(pdb_name) > 10:
         pdb_name = pdb_name[:11]
@@ -1014,10 +1030,13 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
                                       tickmode='array', tickvals=cs_tmp[3], ticktext=cs_tmp[4]),)
         dataset.append(trace4)
 
+    if desc_title == '':
+        desc_title = "PDB: " + pdb_name + ", Contact Map between objects: " + obj_a[0] + " and " + obj_b[0]
+
     return {
         'data': dataset,
         'layout': go.Layout(
-            title={'text': "PDB: " + pdb_name + ", Contact Map between objects: " + obj_a[0] + " and " + obj_b[0],
+            title={'text': desc_title,
                    'y': 0.99, 'x': 0.43,
                    'xanchor': 'center', 'yanchor': 'top'},
             title_font=dict(size=16, color="gray"),
