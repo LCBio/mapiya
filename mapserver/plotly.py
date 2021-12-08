@@ -683,10 +683,10 @@ def display_circos(data):
     ideograms = []
     ribbon_info = []
 
-    layout = go.Layout(title='', plot_bgcolor='#FFFFFF', height=680,
+    layout = go.Layout(title='', plot_bgcolor='#FFFFFF',
                        showlegend=False, margin=dict(t=20, b=0, l=0, r=0),
                        xaxis=dict(range=[-1.4, 1.4], gridcolor='rgba(0,0,0,0)', zeroline=False, tickmode='array',
-                                  tickvals=[0], ticktext=[''], ),
+                                  tickvals=[0], ticktext=[''], scaleanchor = "y", scaleratio = 1,),
                        yaxis=dict(range=[-1.15, 1.15], gridcolor='rgba(0,0,0,0)', zeroline=False, tickmode='array',
                                   tickvals=[0], ticktext=[''], ),
                        )
@@ -695,7 +695,7 @@ def display_circos(data):
     ideograms.extend(ribbon_info)
     fig = go.Figure(data=ideograms, layout=layout)
 
-    return [dcc.Graph(id='graph-circos', figure=fig), json.dumps(chains_colors, indent=2)]
+    return [dcc.Graph(id='graph-circos', figure=fig, config={'responsive':True}, style={'height':'78vw', 'margin-top': '0',}), json.dumps(chains_colors, indent=2)]
 
 
 @app.expanded_callback(Output('click-data', 'value'), Input('graph-circos', 'clickData'))
