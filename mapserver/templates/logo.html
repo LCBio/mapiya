@@ -1,10 +1,10 @@
-<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="2rem" class="">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="1.8rem" class="">
+    <rect id="logoFrame" x="5" y="5" width="90" height="90" fill="none" stroke-width="5"></rect>
     <g class="logo-rect">
-        <rect x="5" y="5" height="30" width="30"></rect>
-        <rect x="35" y="35" height="30" width="30"></rect>
-        <rect x="65" y="65" height="30" width="30"></rect>
+        <rect id="logoRectTop" x="5" y="5" height="30" width="30"></rect>
+        <rect id="logoRectMid" x="35" y="35" height="30" width="30"></rect>
+        <rect id="logoRectBot" x="65" y="65" height="30" width="30"></rect>
     </g>
-    <rect x="5" y="5" width="90" height="90" fill="none" stroke-width="5"></rect>
 </svg>
 
 <style>
@@ -13,8 +13,24 @@ svg {
     fill: var(--dark);
 }
 
-svg.white {
-    stroke: var(--light);
-    fill: var(--light);
+svg:hover .logo-rect #logoRectTop {
+    fill: yellow;
+    stroke: yellow;
 }
+
+svg:hover .logo-rect #logoRectMid {
+    fill: crimson;
+    stroke: crimson;
+}
+
+svg:hover .logo-rect #logoRectBot {
+    fill: yellow;
+    stroke: yellow;
+}
+
+svg:hover #logoFrame {
+    stroke: darkblue;
+    fill: darkblue;
+}
+
 </style>

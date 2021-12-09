@@ -6,7 +6,7 @@ BR = layout.HTML('<br/>')
 
 class RowField(layout.Field):
 
-    WRAPPER_CLASSES = 'd-flex justify-content-start align-items-baseline'
+    WRAPPER_CLASSES = 'row-field-wrapper'
     CSS_CLASSES = 'form-control-sm custom-select-sm'
 
     def __init__(self, *args, **kwargs):

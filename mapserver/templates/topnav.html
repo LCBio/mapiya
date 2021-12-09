@@ -1,50 +1,93 @@
 <header class="topnav">
 
-    <nav class="navbar navbar-expand-lg">
-        <a href="{% url 'home' %}" class="navbar-brand d-flex">
-            {% include 'logo.html' %}
-            <span class="brand-text ml-3">Mapiya</span>
-        </a>
+    <nav class="topnav-left">
+        <div class="topnav-brand">
+            <a href="{% url 'home' %}" >{% include 'logo.html' %}</a>
+            <a href="{% url 'home' %}" class="brand-title">MAPIYA</a>
+        </div>
+        <div class="brand-subtitle">Contact Map Server</div>
+    </nav>
 
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#topNavbar">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="topNavbar">
-            <ul class="navbar-nav mr-auto">
-
-                <li class="nav-item">
-                    <a class="nav-link active" href="{% url 'home' %}">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'about' %}">About</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-toggle="modal" data-target="#modal" data-size="xl" href="{% url 'help' %}">Help</a>
-                </li>
-            </ul>
+    <nav class="topnav-right">
+        <a href="{% url 'about' %}">About</a>
+        <a data-toggle="modal" data-target="#modal" data-size="xl" href="{% url 'help' %}">Help</a>
+        <div class="usermenu">
+            {% if user.is_authenticated %}
+                {% include 'user-menu.html' %}
+            {% else %}
+                <a href="{% url 'login' %}">Login / Register</a>
+            {% endif %}
         </div>
     </nav>
 
-    <div class="usermenu">
-        {% if user.is_authenticated %}
-            {% include 'user-menu.html' %}
-        {% else %}
-            <a href="{% url 'login' %}" class="text-dark">Login / Register</a>
-        {% endif %}
-    </div>
+
 </header>
 
 <style>
-.brand-text {
-    font-family: 'Bowlby One SC', cursive;
+
+.topnav {
+    position: sticky;
+    top:0;
+    width: 100%;
+    background-color: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 0.25rem 2rem;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.topnav a {
     color: var(--dark);
+    margin: 0 0.5rem;
+}
+
+.topnav a:hover {
+    color: #000;
+    text-decoration: none;
+}
+
+.topnav-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.topnav-right {
+    display: flex;
+    align-items: center;
+}
+
+.topnav-brand {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.brand-title {
+    font-family: var(--fancy-font);
+    font-weight: 700;
     font-size: 1.5rem;
 }
 
-#topNavbar a {
-    color: var(--dark);
-    font-weight: 600;
+.brand-subtitle {
+    font-family: var(--fancy-font);
+    font-weight: 700;
+    font-size: 1rem;
 }
 
+@media only screen and (max-width: 768px) {
+    .topnav-left {
+        flex-direction: column;
+        gap: unset;
+        padding: 0.25rem 0;
+    }
+}
+
+@media only screen and (max-width: 425px) {
+    .topnav-right > a {
+        display: none;
+    }
+}
 </style>

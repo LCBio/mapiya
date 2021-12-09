@@ -2,7 +2,7 @@ import json
 
 from django import forms
 from django.urls import reverse
-from crispy_forms import layout, helper, bootstrap
+from crispy_forms import layout, helper
 from users.forms import CrispyFormMixin
 from . import layouts
 
@@ -282,16 +282,35 @@ class OptionsForm(forms.Form):
         self.helper.form_action = reverse('update-options')
         self.helper.form_method = 'post'
         self.helper.form_id = 'optionsForm'
-        self.helper.label_class = 'col-4 small'
-        self.helper.field_class = 'col-8'
 
-        pdbfixer_layout = layout.Column(
+        pane1_col1 = layout.Div(
+            layout.HTML('<h6 class="form-column-heading">Basic options</h6>'),
+            layouts.RowField('contact_cutoff'),
+            layouts.RowField('protonation_ph'),
+            css_class='form-column-wrapper'
+        )
+
+        pane1_col2 = layout.Div(
+            layout.HTML('<h6 class="form-column-heading">Advanced options</h6>'),
+            layouts.BoolField('hydrogen_bonds'),
+            layouts.BoolField('secondary_structure'),
+            layouts.BoolField('electrostatics'),
+            css_class='form-column-wrapper'
+        )
+
+        pane2_col1 = layout.Div(
+            layout.HTML('<h6 class="form-column-heading">Fix structure</h6>'),
             layouts.RowField('add_atoms'),
             layouts.RowField('add_residues'),
             layouts.RowField('max_loop_length'),
             layouts.RowField('keep_heterogens'),
             layouts.RowField('replace_non_standard'),
             layouts.RowField('apply_mutations'),
+            css_class='form-column-wrapper'
+        )
+
+        pane2_col2 = layout.Div(
+            layout.HTML('<h6 class="form-column-heading">Add environment</h6>'),
             layouts.RowField('add_environment'),
             layouts.RowField('positive_ion'),
             layouts.RowField('negative_ion'),
@@ -300,14 +319,7 @@ class OptionsForm(forms.Form):
             layouts.RowField('box_dimensions'),
             layouts.RowField('lipid_type'),
             layouts.RowField('membrane_position'),
-        )
-
-        options_layout = layout.Column(
-            layouts.RowField('contact_cutoff'),
-            layouts.RowField('protonation_ph'),
-            layouts.BoolField('hydrogen_bonds'),
-            layouts.BoolField('secondary_structure'),
-            layouts.BoolField('electrostatics'),
+            css_class='form-column-wrapper'
         )
 
         submit_button = layouts.ButtonLink(
@@ -316,31 +328,39 @@ class OptionsForm(forms.Form):
             css_class='btn btn-danger btn-block'
         )
 
-        tab1header = 'General options'
-        tab2Header = 'Fix structure with PDBfixer'
+        tab1header = '1. Select options'
+        tab2Header = '2. Fix structure'
 
         nav_layout = layout.HTML(f'''
         <ul class="nav nav-tabs" id="myTab" role="tablist">
           <li class="nav-item" role="presentation">
-            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab">{tab1header}</a>
+            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#pane1" role="tab">{tab1header}</a>
           </li>
           <li class="nav-item" role="presentation">
-            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab">{tab2Header}</a>
+            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#pane2" role="tab">{tab2Header}</a>
           </li>
         </ul>
         ''')
 
         tabs_layout = layout.Div(
             layout.Div(
-                options_layout,
+                layout.Div(
+                    pane1_col1,
+                    pane1_col2,
+                    css_class='form-row-wrapper'
+                ),
                 css_class='tab-pane fade show active',
-                css_id='home',
+                css_id='pane1',
                 role='tabpanel'
             ),
             layout.Div(
-                pdbfixer_layout,
+                layout.Div(
+                    pane2_col1,
+                    pane2_col2,
+                    css_class='form-row-wrapper'
+                ),
                 css_class='tab-pane fade',
-                css_id='profile',
+                css_id='pane2',
                 role='tabpanel'
             ),
             css_class='tab-content',

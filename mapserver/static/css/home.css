@@ -10,15 +10,8 @@
     overflow: scroll;
 }
 
-@media only screen and (max-width: 1200px) {
-    .content-wrapper {
-        display: block;
-        max-height: unset;
-    }
-
-    .column-wrapper {
-        min-width: unset;
-    }
+.column-wrapper::-webkit-scrollbar {
+    display: none;
 }
 
 .dropzone-container {
@@ -31,28 +24,34 @@
 form.dropzone {
     background-color: #fff;
     border: 3px dashed rgba(0, 0, 0, 0.5);
-    font-family: "Bowlby One SC", sans-serif;
-    font-size: xx-large;
+    font-family: var(--fancy-font);
+    font-size: 2rem;
+    font-weight: 700;
 }
 
-.form-container {
-    padding: 1rem 3rem;
-}
-
-#optionsForm .form-group {
-    margin: 0.5rem 0;
-}
-
-#optionsForm .tab-pane {
-    padding: 1rem 0;
-}
-
-#myTab .nav-item {
-    color: var(--dark);
-    font-weight: 600;
+.table-heading {
+    font-family: var(--fancy-font);
+    font-weight: 700;
     font-size: 1.2rem;
 }
 
-.pagination li {
-    padding: 0 0.25rem;
+@media only screen and (max-width: 1200px) {
+    .content-wrapper {
+        display: block;
+        max-height: unset;
+    }
+
+    .column-wrapper {
+        min-width: unset;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .form-container {
+        padding: 0;
+    }
+
+    .dropzone-container {
+        padding: 0;
+    }
 }

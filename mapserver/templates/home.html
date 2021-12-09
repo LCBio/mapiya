@@ -7,40 +7,39 @@
     {{  block.super }}
     <link rel="stylesheet" href="{% static 'vendors/dropzone-5.7.0/dist/dropzone.css' %}">
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/options-form.css' %}">
 {% endblock css %}
 
 {% block content %}
-
-    <div class="content-wrapper">
-        <div class="column-wrapper">
-            <div class="dropzone-container">
-                <form method="post" action="{% url 'home' %}" id="dropzone" class="dropzone">
-                    {% csrf_token %}
-                </form>
-                <div class="text-center">or</div>
-                <a href="{% url 'rcsb' %}" class="btn btn-primary btn-block" data-toggle="modal" data-target="#modal">
-                    Download structure from the <strong>rcsb.org</strong>
-                </a>
-            </div>
-
-            <hr style="border: 1px solid rgba(0, 0, 0, 0.1)"/>
-
-            <div class="form-container">
-                {% crispy options_form %}
-            </div>
+<div class="content-wrapper">
+    <div class="column-wrapper">
+        <div class="form-container">
+            {% crispy options_form %}
         </div>
-        <div class="column-wrapper">
-            <div class="table-wrapper"></div>
-                {% if table.rows %}
-                    <h5 class="font-weight-bold">Your files:</h5>
-                    {% render_table table %}
-                {% else %}
-                    {% include 'help.html' %}
-                {% endif %}
-            </div>
+
+        <hr style="border: 1px solid rgba(0, 0, 0, 0.1)"/>
+
+        <div class="dropzone-container">
+            <form method="post" action="{% url 'home' %}" id="dropzone" class="dropzone">
+                {% csrf_token %}
+            </form>
+            <div class="text-center">or</div>
+            <a href="{% url 'rcsb' %}" class="btn btn-primary btn-block" data-toggle="modal" data-target="#modal">
+                Download structure from the <strong>rcsb.org</strong>
+            </a>
         </div>
     </div>
-
+    <div class="column-wrapper">
+        <div class="table-wrapper">
+            {% if table.rows %}
+                <p class="table-heading">Your files:</p>
+                {% render_table table %}
+            {% else %}
+                {% include 'help.html' %}
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock content %}
 
 {% block js %}

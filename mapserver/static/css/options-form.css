@@ -1,0 +1,56 @@
+.form-container {
+    padding: 1rem 3rem;
+}
+
+#optionsForm .tab-pane {
+    padding: 1rem 0;
+}
+
+#myTab .nav-item {
+    color: var(--dark);
+    font-family: var(--fancy-font);
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+#optionsForm label {
+    font-size: 0.875rem;
+    min-width: 10rem;
+}
+
+#optionsForm .form-group {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    margin: .25rem 0;
+}
+
+#optionsForm .row-field-wrapper {
+    justify-content: space-between;
+}
+
+#optionsForm .form-control {
+    min-width: 12rem;
+}
+
+#optionsForm .checkbox-label-wrapper {
+    font-size: .875rem;
+    min-width: 12rem;
+}
+
+#optionsForm .checkbox-field-wrapper {
+    margin-right: 1em;
+}
+
+#optionsForm .form-row-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0 1rem;
+}
+
+#optionsForm .form-column-heading {
+    font-family: var(--fancy-font);
+    font-weight: 700;
+}
