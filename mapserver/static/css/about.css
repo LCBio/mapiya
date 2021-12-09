@@ -1,3 +1,16 @@
-.costam {
-    background-color: deeppink;
+.about-container {
+/*    height: calc(100vh - 5rem);*/
+    height: flex;
+    margin: 0 10vw;
+    background-color: white;
+}
+
+.general {
+    padding: 1rem 3rem 0 3rem;
+}
+
+h1 {
+    padding: 0.7rem 0;
+    margin: 0;
+    font-weight: 900;
 }

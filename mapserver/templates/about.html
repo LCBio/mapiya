@@ -8,8 +8,32 @@
 
 {% block content %}
 
-<div class="costam">
-    Replace this div with content
+<div class="about-container">
+    <div class="general">
+        <div class="row">
+            <div class="col-8">
+                <h1>About</h1>
+                <h5><b>MAPIYA</b> is an efficient tool for the identification of molecular contacts in multi-component systems composed 
+                       of various types of biomolecules, including proteins, nucleic acids (DNA, RNA), peptides, and other small ligands.<br>
+                    <br>MAPIYA is composed of four analytical modules:
+                    <br>&bull; chord diagram, shows the network of interacting componensts within the biological system
+                    <br>&bull; heatmap chart, shows the residue-resolution map of intra- or intermolecular contacts
+                    <br>&bull; molstar visualizer, shows the three-dimensional struture of the biological complex
+                    <br>&bull; download section, shows the results as a raw data converted to user-friendly format.
+                </h5><br>
+                <h1>Analysis of contact interactions</h1>
+            </div>
+            <div class="col-4"><img style="width:100%; height:auto" src="{% static 'img/about-chord.png' %}"/></div>
+        </div>
+        <h5>
+            Proteins can interact multivalently with a myriad of various bimolecules, including other proteins and nucleic acids.<br>
+            The strength and physicochemical character of intermolecular contacts between these complex systems is a driving force 
+            of signaling or regulatory processes, while the identification of these contacts in the available 3D structures is 
+            essential for biomedical and biotechnological applications.<br>
+        </h5><br>
+        <div><img style="width:100%; height:auto" src="{% static 'img/about-map1.png' %}"/></div>
+
+    </div>
 </div>
 
 {% endblock content %}
