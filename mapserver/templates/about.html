@@ -8,8 +8,92 @@
 
 {% block content %}
 
-<div class="costam">
-    Replace this div with content
+<div class="about-container">
+    <div class="general">
+        <div class="row">
+            <div class="col-8">
+                <h1>About</h1>
+                <h5><b>MAPIYA</b> is an efficient tool for the identification of molecular contacts in multi-component systems composed 
+                       of various types of biomolecules, including proteins, nucleic acids (DNA, RNA), peptides, and other small ligands.<br>
+                    <br>MAPIYA is composed of four analytical modules:
+                    <br>&bull; chord diagram, shows the network of interacting componensts within the biological system
+                    <br>&bull; heatmap chart, shows the residue-resolution map of intra- or intermolecular contacts
+                    <br>&bull; molstar visualizer, shows the three-dimensional struture of the biological complex
+                    <br>&bull; download section, shows the results as a raw data converted to user-friendly format.
+                </h5>
+                <h1>Analysis of contact interactions</h1>
+            </div>
+            <div class="col-4"><img style="width:100%; height:auto" src="{% static 'img/about-chord.png' %}"/></div>
+        </div>
+        <h5>Proteins can interact multivalently with a myriad of various bimolecules, including other proteins and nucleic acids.<br>
+            The strength and physicochemical character of intermolecular contacts between these complex systems is a driving force 
+            of signaling or regulatory processes, while the identification of these contacts in the available 3D structures is 
+            essential for biomedical and biotechnological applications.<br>
+        </h5><br>
+        <div><img style="width:100%; height:auto" src="{% static 'img/about-map.png' %}"/></div>
+        <br>
+        <div class="row">
+            <div class="col-6">
+                <h5>The MapView of the <b>MAPIYA</b> web server consists of interactive heatmap chart. The graph has three available display modes:
+                <br>&bull; DM, <i class="sc">Distance Map</i>, where the points are colored with a continous color scale according to the distance between corresponding residue pairs,
+                <br>&bull; CM, <i class="sc">Contact Map</i>, where the points are colored with a discrete (or smooth) color scale according to the identified spatial contacts,
+                <br>&bull; CM | DM, where the chart is split into two triangles <i>(this mode is available only for INTRA molecular maps)</i>.
+                <br>The <i>display mode</i> can be selected within <b>Basic options</b> section of settings. There you can also change on-the-fly the distance cutoff for contacts.
+                <br>Multiple <i class="sc">Color scales</i> are available for user convenience. Discrete (binary) color scales for CM mode can be easily smoothed to continuous scales, 
+                making it easy to distinguish the strength of contacts by distance of interacting residues.</h5>
+            </div>
+            <div class="col-6">
+                <h5>Using <b>Filter contacts</b> options, you can cross-select contacts by properties or screen-out them by sequential neighborhood.
+                    <br>Specifically, the <i class="sc">Interaction Filter</i> selects contacts by various physicochemical properties of interacting residues. The available options include:
+                    <br>&bull; hydropathy: hydrophobic, hydrophilic, amphipatic
+                    <br>&bull; electrostatics: ion-ion, ion-dipole, dipole-dipole
+                    <br>&bull; π-electron stacking: π-π, cation-π, anion-π, dipole-π
+                    <br>&bull; hydrogen bonds <i>(calculated using EDHB)</i>
+                    <br>Additionally, the <i class="sc">intra-Contact Filter</i> removes local contacts between residues neighboring along the sequence. 
+                        As a result, the points along diagonal of intramolecular (internal) contact map are dropped. The filter takes an integer <i>n</i>, 
+                        which defines the number of amino acids <i>(i, i+1, ..., i+n)</i> along the sequence, for which contacts are excluded.
+                </h5>
+            </div>
+        </div>
+        <div><img style="width:100%; height:auto" src="{% static 'img/about-params.png' %}"/></div>
+        <div class="row">
+            <div class="col-8">
+                <h5><br>The maps are customizable in multiple ways. 
+                    <br>Using <b>Display 1D data</b> options, you can add various one-dimensional features along the objects' sequence. 
+                        The residue-resolution bar-chart will be displayed on the right side parallel to the Y, or on the top side parallel to the X axis.
+                        Note, that some contacts can be multivalent (e.g., have both charge and π-electrons) thus such additional sequence- and structure-dependent data
+                        facilitate the comprehensive analysis of interactions contributions.
+                </h5>
+            </div>
+            <div class="col-4">
+                <h5>The available options include:
+                    <br>&bull; various physicochemical properties,
+                    <br>&bull; amino acid composition,
+                    <br>&bull; secondary structure, calculated using STRIDE,
+                    <br>&bull; solvent accessibility, calculated using STRIDE,
+                    <br>&bull; Shannon enthropy, calculated on-the-fly,
+                    <br>&bull; hydrogen bond donor/acceptor,
+                    <br>&bull; and more.
+                </h5>
+            </div>
+        </div>
+        <h1>Example case study</h1>
+        <h5>The selected example shows the MAPIYA results for a Human DNA polymerase beta complexed with gapped DNA (PDB: 1BPY).
+            <br>The MapView presents the intermolecular contact map <b class="sc">(CM mode)</b> between protein chain A (<i>protein-A</i>, on the X-axis) 
+                and DNA strand T (<i>nucleic-T</i>, on the Y-axis).
+                Gray points on the heatplot <i>(left panel)</i> are contacts identified below the distance cutoff of 8.0 A. From these, contacts stabilized by attractive 
+                electrostatic interactions (<i>A</i>, marked in red-purple palette) were selected using an <i class="sc">Interaction Filter</i>. More specifically, 
+                we want to see which contacts are bound by the salt bridge. Therefore, we selected <i>'charged'</i> from the options available for protein-A (feature for the X-axis) 
+                in the <i class="sc">Display 1D data</i> section of settings. The bar-chart displayed on the top of the Contact Map shows the pattern of positively (light blue) 
+                and negatively (dark blue) charged amino acids along the sequence of protein-A. Since nucleic acid is strongly negatively charged, salt bridges can be formed 
+                with positively charged amino acids such as Arg, Lys, and His. For a better view, we zoomed the interactive graph to the 225-305 fragment along the protein-A sequence.
+                We found an isolated contact beetween ARG:258 and DG:9 (marked with black dot). 
+            <br>Clicking on a selected point invokes two actions:
+            <br>&bull; displays an interactive label with details describing the contact (residues identifiers, distance, possible interaction forces),
+            <br>&bull; automatically zooms the Mol* Viewer window <i>(right panel)</i> on the residues that are in contact, revealing the atomic details of the interaction.
+        </h5>
+        <div><img style="width:100%; height:auto" src="{% static 'img/about-map1.png' %}"/></div>
+    </div>
 </div>
 
 {% endblock content %}
