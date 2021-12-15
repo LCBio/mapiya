@@ -103,11 +103,11 @@ let initMapTable = function () {
 // Dropzone
 Dropzone.options.dropzone = {
     uploadMultiple: true,
-    dictDefaultMessage: "3. Drop files here to download",
+    dictDefaultMessage: "3. Drop files here",
     success: function (file, data) {
         let $table = $('table');
         if (! $table.exists()) {
-            let $alert = $('.table-responsive .alert');
+            let $alert = $('.help-wrapper');
             $alert.replaceWith(data.table);
         }
         $table.html(data.table);
