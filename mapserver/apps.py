@@ -8,4 +8,3 @@ class MapserverConfig(AppConfig):
     def ready(self):
         from .models import signals
         from . import queue
-        from . import plotly

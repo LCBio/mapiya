@@ -311,11 +311,11 @@ app.clientside_callback(
      Output('proteins', 'style'), Output('slide', 'style'), Output('slideBack', 'style')],
     [Input('input-pk', 'value'), Input("interval", "n_intervals"), Input('model-ix', 'value')])
 def load_models(pk, n, model_ix):
-    models = {}
+    models = {j.model_index: j.status for j in Job.objects.filter(project_id=pk)}
     status = 0
-    for i in list(Job.objects.all()):
-        if i.project_id == pk:
-            models[i.model_index] = i.status
+    #for i in list(Job.objects.all()):
+    #    if i.project_id == pk:
+    #        models[i.model_index] = i.status
     n_models = len(models)
     if n_models > 1:
         buttons = []
