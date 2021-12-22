@@ -155,6 +155,19 @@ def molstar_model(request, pk, model_index):
     return HttpResponse(job.pdb)
 
 
+def get_pqr(request, pk, model_index):
+    identity = get_identity(request)
+    try:
+        project = models.Project.objects.get(identity=identity, pk=pk)
+        job = project.job_set.filter(model_index=model_index).first()
+        if not job:
+            raise models.Project.DoesNotExist
+    except models.Project.DoesNotExist:
+        return Http404
+
+    return HttpResponse(job.pqr)
+
+
 class HelpView(generic.TemplateView):
 
     template_name = 'help-modal.html'
