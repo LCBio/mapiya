@@ -10,7 +10,6 @@ from django_tables2 import SingleTableView
 from . import models, forms, tables
 from users.views import get_identity
 from mollib import atom
-from . import plotly
 
 
 class Home(SingleTableView):
