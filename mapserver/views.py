@@ -141,6 +141,20 @@ def molstar(request, pk):
     return HttpResponse(project.fixed_pdb)
 
 
+def molstar_model(request, pk, model_index):
+    identity = get_identity(request)
+    # TODO: fix the 404 error
+    try:
+        project = models.Project.objects.get(identity=identity, pk=pk)
+        job = project.job_set.filter(model_index=model_index).first()
+        if not job:
+            raise models.Project.DoesNotExist
+    except models.Project.DoesNotExist:
+        return Http404
+
+    return HttpResponse(job.pdb)
+
+
 class HelpView(generic.TemplateView):
 
     template_name = 'help-modal.html'
