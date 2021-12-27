@@ -66,6 +66,17 @@ class Job(models.Model):
         status = dict(self.StatusChoices.choices).get(self.status, 'Unknown')
         return f'{self.project.filename}:{self.model_index} [{status}]'
 
+    @property
+    def data(self):
+        return {
+            'model_index': self.model_index,
+            'dir': self.project.media_dir,
+            'status': self.status,
+            'info': self.info,
+            'logs': self.logs,
+            'error': self.error
+        }
+
     def cleanup(self):
         self.info = {}
         self.logs = {}
