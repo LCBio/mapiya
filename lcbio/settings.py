@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django_plotly_dash',
     'users',
     'mapserver',
+    'django_rq'
 ]
 
 MIDDLEWARE = [
@@ -82,3 +83,12 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+
+RQ_QUEUES = {
+    'default': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+        'DEFAULT_TIMEOUT': 360,
+    },
+}

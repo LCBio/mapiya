@@ -2,6 +2,8 @@ from django.dispatch import receiver
 from django.db.models import signals
 from django.core.files.storage import default_storage as storage
 
+import django_rq
+
 from . import Project, Job
 
 
@@ -23,8 +25,14 @@ def project_init_extras(**kwargs):
             'labels': list(instance.atoms.models.keys())
         }
         instance.save(update_fields=['info'])
+
+        # TODO: delegate job creation outside of this signal handler,
+        #  possibly into queue jobs for larger files
+
         for model_index in instance.atoms.models:
-            Job.objects.create(
+            job = Job.objects.create(
                 project=instance,
-                model_index=model_index if model_index else 0
+                model_index=model_index if model_index else 0,
+                status='Q'
             )
+            django_rq.enqueue(job.run)

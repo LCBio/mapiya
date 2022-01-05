@@ -13,3 +13,5 @@ pandas
 openmm
 pdbfixer
 pdb2pqr
+redis
+rq

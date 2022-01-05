@@ -16,6 +16,7 @@ from simtk import unit
 
 from mollib.atom import Atoms
 from mollib.utils import DistanceMatrix
+
 from . import Project
 
 
@@ -397,10 +398,14 @@ class Job(models.Model):
             self.info['ss_elements'] = ss_elements
 
     def run(self):
+        self.status = 'R'
+        self.save()
         self.save_pdb()
         self.run_pdbfixer()
         self.save()
+        self.compute_matrix()
+        self.run_edhb()
         self.run_apbs()
         self.run_stride()
-        self.run_edhb()
-        self.compute_matrix()
+        self.status = 'F'
+        self.save()
