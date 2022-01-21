@@ -234,3 +234,34 @@ function UrlExists(url)
     else
         return false;
 };
+
+
+async function add_representations(viewerInstance, type, alpha)
+{
+    const cell = viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell;
+    const components = 
+    {
+        polymer: await viewerInstance.plugin.builders.structure.tryCreateComponentStatic(cell, 'polymer'),
+        ligand: await viewerInstance.plugin.builders.structure.tryCreateComponentStatic(cell, 'ligand'),
+        water: await viewerInstance.plugin.builders.structure.tryCreateComponentStatic(cell, 'water')
+    };
+    const builder = viewerInstance.plugin.builders.structure.representation;
+    const update = viewerInstance.plugin.build();
+    if (components.polymer) 
+    {
+        builder.buildRepresentation(update, components.polymer, 
+        { 
+            type: type, 
+            typeParams: 
+            {
+                alpha: alpha
+            } 
+        }, 
+        { 
+            tag: type
+        }
+        );
+    }
+    await update.commit();
+    updateMolStarViewer(viewerInstance);
+};

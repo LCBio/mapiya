@@ -29,6 +29,15 @@
     <script src="{% static 'js/molstar.js' %}"></script>
     <script>
         let viewerInstance = initMolStarViewer('molStarViewport', '{{object.pk}}');
-        window.addEventListener('storage', () => {LoadCurrentModel('{{object.pk}}',viewerInstance);});
+        viewerInstance.events.loadComplete.subscribe(() => 
+        {
+            add_representations(viewerInstance, 'gaussian-surface', 0.15);
+        }
+        );
+        window.addEventListener('storage', () => 
+        {
+            LoadCurrentModel('{{object.pk}}',viewerInstance);
+        }
+        );
     </script>
 {% endblock js %}
