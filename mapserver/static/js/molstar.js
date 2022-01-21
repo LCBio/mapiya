@@ -1,5 +1,15 @@
-function initMolStarViewer(pdburl, viewport_id)
+function initMolStarViewer(viewport_id, project_id)
 {
+    var CurrentModel = 0;
+    if ( UrlExists(`/project/${project_id}/molstar/0`) )
+    {
+        CurrentModel = 0;
+    }
+    else if( UrlExists(`/project/${project_id}/molstar/1`) )
+    {
+        CurrentModel = 1;
+    }
+    var pdburl = `/project/${project_id}/molstar/${CurrentModel}`;
     var viewerInstance = new PDBeMolstarPlugin();
     var options =
     {
@@ -49,6 +59,12 @@ function initMolStarViewer(pdburl, viewport_id)
     };
     var viewerContainer = document.getElementById(viewport_id);
     viewerInstance.render(viewerContainer, options);
+    viewerInstance.events.loadComplete.subscribe(() => 
+    {
+        viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data._props.label = `Model${CurrentModel}`;
+    }
+    );
+    sessionStorage.setItem("model-loaded", CurrentModel);
     return viewerInstance;
 };
 
@@ -145,9 +161,107 @@ function PrepareClickMapData()
     return selectSections;
 };
 
-function CurrentModel()
+function getCurrentModelNumber()
 {
-    var current_model = sessionStorage.getItem("model-ix");
-    if(sessionStorage.getItem("model-ix") === null) current_model = 0;
-    return current_model;
+    if(sessionStorage.getItem("model-ix") === null)
+    {
+        CurrentModel = 0;
+    }
+    else
+    {
+        CurrentModel = sessionStorage.getItem("model-ix");
+    }
+    return CurrentModel;
 }
+
+async function LoadCurrentModel(project_id, viewerInstance)
+{   
+    CurrentModel = getCurrentModelNumber();    
+    var current_url = `/project/${project_id}/molstar/${CurrentModel}`;
+    var ModelLoaded = sessionStorage.getItem("model-loaded");
+    if(CurrentModel == ModelLoaded)
+    {
+        updateMolStarViewer(viewerInstance);
+    }
+    else
+    {
+        viewerInstance.clear();
+        viewerInstance.visual.update(
+        {
+            customData:
+            {
+                url: current_url ,
+                label : 'Model'+CurrentModel,
+                format: 'pdb',
+                binary: false
+            },
+            hideControls: true,
+            bgColor:
+            {
+                r:255,
+                g:255,
+                b:255
+            },
+            pdbeLink: false,
+            landscape: true,
+            hideStructure: ['het', 'water', 'carbs', 'nonStandard', 'coarse'],
+            subscribeEvents: true,
+            expanded: true,
+            selectInteraction: true,
+            molstar_accessible_surface_area: true,
+            loadCartoonsOnly: false,
+            alphafoldView: false,
+            visualStyle: 'cartoon'
+        }
+        );
+        viewerInstance.events.loadComplete.subscribe(() => 
+        {
+            viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data._props.label = `Model${CurrentModel}`;
+        }
+        );
+        updateMolStarViewer(viewerInstance);
+        sessionStorage.setItem("model-loaded", CurrentModel);
+    };
+};
+
+function UrlExists(url)
+{
+    var request = new XMLHttpRequest();
+    request.open('HEAD', url, false);
+    request.send();
+    if (request.status != 404)
+        return true;
+    else
+        return false;
+};
+
+
+async function add_representations(viewerInstance, type, alpha)
+{
+    const cell = viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell;
+    const components = 
+    {
+        polymer: await viewerInstance.plugin.builders.structure.tryCreateComponentStatic(cell, 'polymer'),
+        ligand: await viewerInstance.plugin.builders.structure.tryCreateComponentStatic(cell, 'ligand'),
+        water: await viewerInstance.plugin.builders.structure.tryCreateComponentStatic(cell, 'water')
+    };
+    const builder = viewerInstance.plugin.builders.structure.representation;
+    const update = viewerInstance.plugin.build();
+    if (components.polymer) 
+    {
+        builder.buildRepresentation(update, components.polymer, 
+        { 
+            type: type, 
+            typeParams: 
+            {
+                alpha: alpha
+            } 
+        }, 
+        { 
+            tag: type
+        }
+        );
+    }
+    await update.commit();
+    updateMolStarViewer(viewerInstance);
+};
