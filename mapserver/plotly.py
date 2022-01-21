@@ -384,19 +384,19 @@ def select_model(btn, project_data, ix, interval, **kwargs):
             media_path = Path(model_data['dir']).parent.absolute()
             if media_path.is_dir():
                 try:
-                    s = str(media_path)+"/matrix0.npy"
+                    s = str(media_path)+"/matrix"+str(btn)+".npy"
                     if Path(s).is_file():
                         matrix = s
                 except FileNotFoundError:
                     pass
                 try:
-                    s = str(media_path)+"/data0.csv"
+                    s = str(media_path)+"/data"+str(btn)+".csv"
                     if Path().is_file():
                         struct = s
                 except FileNotFoundError:
                     pass
                 try:
-                    s = str(media_path)+"/hbonds0.csv"
+                    s = str(media_path)+"/hbonds"+str(btn)+".csv"
                     if Path(s).is_file:
                         hbonds = s
                 except FileNotFoundError:
