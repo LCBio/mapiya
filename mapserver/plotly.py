@@ -15,7 +15,8 @@ from django_plotly_dash import DjangoDash
 
 from mollib.chord import *
 from mollib.patterns import * #calc_patterns, calc_entropy
-from .models import Job
+#from .models import Job
+from . import views
 
 #np.set_printoptions(threshold=sys.maxsize)				### testing mode
 #    print('Start... ', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))	### testing mode
@@ -172,6 +173,7 @@ app.layout = html.Div([
     dcc.Input(id="input-pk", value='', type='hidden'),  # current object pk - initial input from django
     dcc.Input(id="interval_status", value=1, type='hidden'),  # fire callback until all models have 'F' status
     dcc.Input(id="model-ix", value='', type='hidden'),  # index of selected model
+    dcc.Input(id="project-data", value='', type='hidden'), # initial project-data comes from django
     dcc.Input(id="model-data", value='', type='hidden'),  # [PDB code, matrix_path, indo]
     dcc.Input(id="con-intra", value='', type='hidden'),  # intramolecular contacts (options1)
     dcc.Input(id="con-inter", value='', type='hidden'),  # intermolecular contacts (options2)
@@ -307,15 +309,17 @@ app.clientside_callback(
 
 
 @app.expanded_callback(
-    [Output('interval_status', 'value'), Output('protein-models', 'children'),
+    [Output('interval_status', 'value'), Output('project-data', 'value'), Output('protein-models', 'children'),
      Output('proteins', 'style'), Output('slide', 'style'), Output('slideBack', 'style')],
     [Input('input-pk', 'value'), Input("interval", "n_intervals"), Input('model-ix', 'value')])
-def load_models(pk, n, model_ix):
+def load_models(pk, n, model_ix, **kwargs):
+
+    project_data = json.loads(views.project_data(kwargs['request'],pk).getvalue().decode())	#dict of keys: 'filename', 'info', 'config', 'jobs': 'index' & 'status'
+    project_data['pk'] = pk
     models = {}
     status = 0
-    for i in list(Job.objects.all()):
-        if i.project_id == pk:
-            models[i.model_index] = i.status
+    for i in project_data['jobs']:
+        models[i['index']] = i['status']
     n_models = len(models)
     if n_models > 1:
         buttons = []
@@ -333,7 +337,7 @@ def load_models(pk, n, model_ix):
                         dcc.Tab(label='M' + str(i), id={'type': 'dynamic-button', 'index': i}, value=i, disabled=True,
                                 style={**btn_basic, **btn_style}, selected_style={**btn_basic, **btn_selected_style},
                                 disabled_style={**btn_basic, **btn_disabled_style}))
-            return [status,
+            return [status, project_data,
                     html.Div([dcc.Tabs(id='buttons', value=model_ix, children=buttons)], style={'width': '200vw'}),
                     tabs_style, btn_slider, btn_slider]
         else:
@@ -345,7 +349,7 @@ def load_models(pk, n, model_ix):
                 else:
                     status = 1
                     buttons.append({'label': 'MODEL ' + str(i), 'value': i, 'disabled': True})
-            return [status, dcc.Dropdown(id='buttons', options=buttons, value=model_ix, placeholder='Select Model',
+            return [status, project_data, dcc.Dropdown(id='buttons', options=buttons, value=model_ix, placeholder='Select Model',
                                          style={'width': '20vw'}),
                     {'width': '20vw', 'vertical-align': 'middle', 'margin-left': '4.5vw'},
                     {'display': 'none'}, {'display': 'none'}]
@@ -355,7 +359,7 @@ def load_models(pk, n, model_ix):
             model_ix = ix
         else:
             status = 1
-        return [status, html.Div([html.Button('M' + str(model_ix), id='buttons', value=model_ix,
+        return [status, project_data, html.Div([html.Button('M' + str(model_ix), id='buttons', value=model_ix,
                                               style={**btn_basic, **btn_selected_style, 'border': '1px solid gray'})],
                                  style={'width': '20vw'}), tabs_style, {'display': 'none'}, {'display': 'none'}]
 
@@ -369,87 +373,112 @@ def toggle_interval(status):
 
 
 @app.expanded_callback([Output('model-ix', 'value'), Output('model-data', 'value')],
-                       [Input('buttons', 'value'), Input('input-pk', 'value')], [State('model-ix', 'value')])
-def select_model(btn, pk, ix):
-    if btn == '' or btn == ix:
-        raise PreventUpdate
+                       [Input('buttons', 'value'), Input('project-data', 'value'),], [State('model-ix', 'value'), State('interval_status', 'value')])
+def select_model(btn, project_data, ix, interval, **kwargs):
+
+    if interval == 0 and btn != '' and btn != ix:
+        pk = project_data['pk']
+        model_data = json.loads(views.project_data_model(kwargs['request'],pk,btn).getvalue().decode())	#dict of keys: 'model_index', 'dir', 'status', 'info', 'logs', 'error'
+        matrix = struct = hbonds = ''
+        try:
+            media_path = Path(model_data['dir']).parent.absolute()
+            if media_path.is_dir():
+                try:
+                    s = str(media_path)+"/matrix0.npy"
+                    if Path(s).is_file():
+                        matrix = s
+                except FileNotFoundError:
+                    pass
+                try:
+                    s = str(media_path)+"/data0.csv"
+                    if Path().is_file():
+                        struct = s
+                except FileNotFoundError:
+                    pass
+                try:
+                    s = str(media_path)+"/hbonds0.csv"
+                    if Path(s).is_file:
+                        hbonds = s
+                except FileNotFoundError:
+                    pass
+        except FileNotFoundError:
+            pass
+
+        return [btn, {'protein': project_data['filename'], 'matrix': matrix, 'info': model_data['info'], 
+                      'config': project_data['config'], 'struct': struct, 'hbonds': hbonds}]
     else:
-        struct = hbonds = ''
-        if btn == 0:
-            model = Job.objects.get(project_id=pk)
-        elif btn >= 1:
-            model = Job.objects.get(project_id=pk, model_index=btn)
-        try:
-            struct = model.structural_data.path
-        except ValueError:
-            pass
-        try:
-            hbonds = model.hydrogen_bonds.path
-        except ValueError:
-            pass
-        return [btn, {'protein': model.project.filename, 'matrix': model.matrix.path, 'info': model.info, 
-                      'config': model.project.config, 'struct': struct, 'hbonds': hbonds}]
+        raise PreventUpdate
 
 
 @app.expanded_callback([Output('con-intra', 'value'), Output('con-inter', 'value'), Output('contacts', 'value')],
-                       [Input('model-data', 'value')])
-def load_basic_data(model_data):
-    info = model_data['info']['labels']  # dict = {'protein-A':[['AA:200','AA:201', ...],[from:to]]}
-    matrix = np.load(model_data['matrix'])
-    options1 = {}
-    options2 = {}
-    objects = []
-    contacts = np.zeros(shape=(len(info), len(info)), dtype=int)
+                       [Input('model-data', 'value')], State('model-data', 'value'))
+def load_basic_data(model_data, initial):
 
-    n = len(info)
-    for num1, i in enumerate(info):
-        objects.append(i)
-        r1 = info[i][1]  # range1
-        for num2, j in enumerate(info):
-            if num2 >= num1:
-                r2 = info[j][1]  # range2
-                mat = matrix[r1[0]:r1[1], r2[0]:r2[1]]
-                mat = mat[np.nonzero(mat)]
-                counts = 0
-                try:
-                    counts = len(mat[mat <= model_data['config']["contact_cutoff"]])
-                    if counts > 0:
-                        if num1 == num2:
-                            val = i + ":" + str(r1[0]) + ":" + str(r1[1]) + ":" + str(counts)
-                            options1[i] = val
-                        else:
-                            val = i + ":" + str(r1[0]) + ":" + str(r1[1]) + "|" + j + ":" + str(r2[0]) + ":" + \
-                                  str(r2[1]) + "|" + str(counts)
-                            options2[i + ":" + j] = val
-                except ValueError:
-                    pass
-                contacts[num1][num2] = counts
-                contacts[num2][num1] = counts
-    return [options1, options2, [objects, contacts]]
+    if initial != '':
+        info = model_data['info']['labels']  # dict = {'protein-A':[['AA:200','AA:201', ...],[from:to]]}
+        matrix = np.load(model_data['matrix'])
+        options1 = {}
+        options2 = {}
+        objects = []
+        contacts = np.zeros(shape=(len(info), len(info)), dtype=int)
+
+        n = len(info)
+        for num1, i in enumerate(info):
+            objects.append(i)
+            r1 = info[i][1]  # range1
+            for num2, j in enumerate(info):
+                if num2 >= num1:
+                    r2 = info[j][1]  # range2
+                    mat = matrix[r1[0]:r1[1], r2[0]:r2[1]]
+                    mat = mat[np.nonzero(mat)]
+                    counts = 0
+                    try:
+                        counts = len(mat[mat <= model_data['config']["contact_cutoff"]])
+                        if counts > 0:
+                            if num1 == num2:
+                                val = i + ":" + str(r1[0]) + ":" + str(r1[1]) + ":" + str(counts)
+                                options1[i] = val
+                            else:
+                                val = i + ":" + str(r1[0]) + ":" + str(r1[1]) + "|" + j + ":" + str(r2[0]) + ":" + \
+                                      str(r2[1]) + "|" + str(counts)
+                                options2[i + ":" + j] = val
+                    except ValueError:
+                        pass
+                    contacts[num1][num2] = counts
+                    contacts[num2][num1] = counts
+        return [options1, options2, [objects, contacts]]
+
+    else:
+        raise PreventUpdate
 
 
-@app.expanded_callback(Output('data_1d', 'value'), [Input('model-data', 'value')])
-def calc_1d_data(model_data):
-    info = model_data['info']['labels']
-    struct = pd.DataFrame()
-    if model_data['struct'] != '':
-        struct = pd.read_csv(model_data['struct'], sep = ',', engine = 'python')
-    data_1d = {}
-    for i in info:
-        if i.startswith('protein'):
-            residues = list(j.split(':')[0] for j in info[i][0])
-            patterns = calc_patterns(residues)
-            for z in patterns:
-                data_1d[i + ':' + z] = patterns[z]
-            data_1d[i + ':SEQ entropy'] = calc_entropy(residues)
-            if not struct.empty:
-                struct_data = struct[struct.chain == i.split('-')[1]]
-                if not struct_data.empty:
-                    data_1d[i + ':II-structure'], data_1d[i + ':solvent access'] = calc_struct(info[i][0], struct_data)
-                else:
-                    data_1d[i + ':II-structure'] = ''
-                    data_1d[i + ':solvent access'] = ''
-    return data_1d
+@app.expanded_callback(Output('data_1d', 'value'), [Input('model-data', 'value')], State('model-data', 'value'))
+def calc_1d_data(model_data, initial):
+
+    if initial != '':
+        info = model_data['info']['labels']
+        struct = pd.DataFrame()
+        if model_data['struct'] != '':
+            struct = pd.read_csv(model_data['struct'], sep = ',', engine = 'python')
+        data_1d = {}
+        for i in info:
+            if i.startswith('protein'):
+                residues = list(j.split(':')[0] for j in info[i][0])
+                patterns = calc_patterns(residues)
+                for z in patterns:
+                    data_1d[i + ':' + z] = patterns[z]
+                data_1d[i + ':SEQ entropy'] = calc_entropy(residues)
+                if not struct.empty:
+                    struct_data = struct[struct.chain == i.split('-')[1]]
+                    if not struct_data.empty:
+                        data_1d[i + ':II-structure'], data_1d[i + ':solvent access'] = calc_struct(info[i][0], struct_data)
+                    else:
+                        data_1d[i + ':II-structure'] = ''
+                        data_1d[i + ':solvent access'] = ''
+        return data_1d
+
+    else:
+        raise PreventUpdate
 
 
 @app.expanded_callback([Output('1dx', 'options'), Output('1dy', 'options')], [Input('data_1d', 'value'), Input('selected', 'value')])

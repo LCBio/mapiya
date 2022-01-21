@@ -89,6 +89,7 @@ class Project(models.Model):
     @property
     def data(self):
         return {
+            'filename': self.filename,
             'info': self.info,
             'config': self.config,
             'jobs': [{
