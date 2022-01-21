@@ -265,3 +265,68 @@ async function add_representations(viewerInstance, type, alpha)
     await update.commit();
     updateMolStarViewer(viewerInstance);
 };
+
+function getPQRfileURL(project_id)
+{
+    CurrentModel = getCurrentModelNumber();
+    var current_pqr_url = `/project/${project_id}/pqr/${CurrentModel}`;
+    if ( UrlExists(current_pqr_url) )
+    {
+        return current_pqr_url;
+    }
+    else
+    {
+        current_pqr_url = "";
+        console.log("PQR file not found");
+    }
+    return "";
+};
+
+function colorbyPQR(project_id, viewerInstance)
+{
+    var current_url = getPQRfileURL(project_id);
+    if (current_url == "")
+    {
+
+    }
+    else
+    {
+        viewerInstance.clear();
+        viewerInstance.visual.update(
+        {
+            customData:
+            {
+                url: current_url ,
+                label : 'Model'+CurrentModel,
+                format: 'pdb',
+                binary: false
+            },
+            hideControls: true,
+            bgColor:
+            {
+                r:255,
+                g:255,
+                b:255
+            },
+            pdbeLink: false,
+            landscape: true,
+            hideStructure: ['het', 'water', 'carbs', 'nonStandard', 'coarse'],
+            subscribeEvents: true,
+            expanded: true,
+            selectInteraction: true,
+            molstar_accessible_surface_area: true,
+            loadCartoonsOnly: false,
+            alphafoldView: false,
+            visualStyle: 'cartoon'
+        }
+        );
+        viewerInstance.events.loadComplete.subscribe(() => 
+        {
+            viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data._props.label = `Model${CurrentModel}`;
+        }
+        );
+        updateMolStarViewer(viewerInstance);
+        sessionStorage.setItem("model-loaded", 10000);
+    }
+
+};
