@@ -528,9 +528,9 @@ def disable_1d_options(selected, data_1d):
 
 
 @app.callback([Output('settings', 'children'), Output('tabs', 'children')],
-              [Input('tab-1', 'n_clicks'), Input('tab-2', 'n_clicks'), Input('tab-3', 'n_clicks')],
-              [State('con-intra', 'data'), State('con-inter', 'data'), State('selected', 'value'), 
-               State('model-data', 'data'), State('config', 'data')])
+              [Input('tab-1', 'n_clicks'), Input('tab-2', 'n_clicks'), Input('tab-3', 'n_clicks'),
+               Input('con-intra', 'data'), Input('con-inter', 'data')], 
+              [State('selected', 'value'), State('model-data', 'data'), State('config', 'data')])
 def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inter, selected, model_data, config):
     tab = 'tab-1'
     ctx = dash.callback_context.triggered
