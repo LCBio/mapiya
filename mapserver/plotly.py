@@ -49,9 +49,9 @@ colors = ['ice', 'Viridis', 'Cividis', 'Inferno', 'Magma', 'Plasma', 'Turbo', 'B
           'solar', 'gray', 'deep', 'dense', 'algae', 'matter', 'speed', 'amp', 'tempo', 'Burg', 'Burgyl',
           'Redor', 'Oryel', 'Peach', 'Pinkyl', 'Mint', 'Blugrn', 'Darkmint', 'Emrld', 'Aggrnyl', 'Bluyl', 'Teal',
           'Tealgrn', 'Purp', 'Purpor', 'Sunset', 'Magenta', 'Sunsetdark', 'Agsunset', 'Brwnyl']
-colors_binary = {'Purple': '#800080', 'Fuchsia': '#FF00FF', 'Navy': '#000080', 'Blue': '#0000FF', 'Skyblue': '#1DACD6', 
-          'Teal': '#008080', 'Aqua': '#00FFFF', 'Green': '#008000', 'Lime': '#00FF00', 'Olive': '#808000', 'Yellow': '#FFFF00',
-          'Orange': '#FF8000', 'Maroon': '#800000', 'Red': '#FF0000', 'Silver': '#C0C0C0', 'Gray': '#808080', 'Black': '#000000'}
+colors_binary = {'Purple': 'rgb(128,0,128)', 'Fuchsia': 'rgb(255,0,255)', 'Navy': 'rgb(0,0,128)', 'Blue': 'rgb(0,0,255)', 'Skyblue': 'rgb(29,172,214)', 
+          'Teal': 'rgb(0,128,128)', 'Aqua': 'rgb(0,255,255)', 'Green': 'rgb(0,128,0)', 'Lime': 'rgb(0,255,0)', 'Olive': 'rgb(128,128,0)', 'Yellow': 'rgb(255,255,0)',
+          'Orange': 'rgb(255,128,0)', 'Maroon': 'rgb(128,0,0)', 'Red': 'rgb(255,0,0)', 'Silver': 'rgb(192,192,192)', 'Gray': 'rgb(128,128,128)', 'Black': 'rgb(0,0,0)'}
 cs_seq = [[0, "rgb(210,255,0)"], [0.05, "rgb(210,255,0)"], [0.051, "rgb(255,255,0)"], [0.1, "rgb(255,255,0)"],
           [0.101, "rgb(250,220,10)"], [0.15, "rgb(250,220,10)"], [0.151, "rgb(255,160,25)"], [0.2, "rgb(255,160,25)"],
           [0.201, "rgb(240,110,0)"], [0.25, "rgb(240,110,0)"], [0.251, "rgb(225,0,0)"], [0.3, "rgb(225,0,0)"],
@@ -335,8 +335,6 @@ app.clientside_callback(
     """
     function (value) {
       window.sessionStorage.setItem("click-map", value);
-      alert(Object.keys(window.sessionStorage));
-      var _lsTotal=0,_xLen,_x;for(_x in window.sessionStorage){ if(!window.sessionStorage.hasOwnProperty(_x)){continue;} _xLen= ((window.sessionStorage[_x].length + _x.length)* 2);_lsTotal+=_xLen; console.log(_x.substr(0,50)+" = "+ (_xLen/1024).toFixed(2)+" KB")}; alert("Total = " + (_lsTotal / 1024).toFixed(2) + " KB");
     };
     """,
     Output('void6', 'value'), [Input('click-map', 'value')]
@@ -1017,6 +1015,51 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
     return data_con
 
 
+@app.expanded_callback(Output('colors_con', 'data'),
+                      [Input('data_Con', 'data'), Input('color_selected', 'value')],
+                      [State('data_Dist', 'data'), State('display_mode', 'value'), State('cutoff', 'value')])
+def prepare_colors_for_contacts(data_con, cs_con, data_dist, mode, cutoff):
+    
+    obj_a = data_dist[3][0]
+    obj_b = data_dist[4][0]
+    residues_a = data_dist[1]
+    residues_b = data_dist[2]
+    contacts = np.array(data_con[0])
+    if mode != 'C':
+        cs_con = 'rgb(128,128,0)'
+    filtrated = cs = cs_a = ''
+    try:
+        filtrated = np.array(data_con[3])
+        cs = data_con[4][0]
+        cs_a = np.array([i[0] for i in cs])
+    except:
+        pass
+
+    is_intra = False
+    if obj_a == obj_b:
+        is_intra = True
+
+    values = {'objects' : obj_a+":"+obj_b}
+    colors = {}
+    for ni, i in enumerate(residues_a):
+        is_valid = True
+        for nj, j in enumerate(residues_b):
+            if is_intra == True and nj > ni:
+                is_valid = False
+            if contacts[ni][nj] < cutoff and is_valid == True:
+                colors[i+"-"+j] = cs_con
+                if cs != '':
+                    val = '-'
+                    try:
+                        val = float(filtrated[ni][nj])
+                    except:
+                        pass
+                    if val != '-':
+                        colors[i+"-"+j] = cs[np.abs(cs_a - float(val)).argmin()][1]
+    values['contacts'] = colors
+    return values
+
+
 
 @app.expanded_callback(Output('graph_map', 'figure'),
                        [Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'),
@@ -1041,13 +1084,13 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
     sc_len = 0.5
 
     if len(rv) > 0 and rv[0] == '_r':
-        if cs.startswith('#'):
+        if cs.startswith('rgb'):
             cs = [[0, cs], [0.999, '#F8F8F8'], [1, 'rgba(255,255,255, 0.0)']]
             cf = cutoff - 0.5
             sc_len = 0.12
         else:
             cs = cs + rv[0]
-    elif cs.startswith('#'):
+    elif cs.startswith('rgb'):
         cs = [[0, cs], [0.999, cs], [1, 'rgba(255,255,255, 0.0)']]
         cf = cutoff/2
         sc_len = 0.12
