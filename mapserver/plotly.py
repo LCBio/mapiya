@@ -536,13 +536,7 @@ def calc_1d_data(ix, model_data, pdb_code, data_prev):
 def disable_1d_options(selected, data_1d):
     opts_a = []
     opts_b = []
-
     obj_a, obj_b = get_objects_in_contact(selected)
-#    selected = selected.split('|')
-#    obj_a = selected[0].split(':')[0]
-#    obj_b = obj_a
-#    if len(selected) > 1:
-#        obj_b = selected[1].split(':')[0]
 
     if obj_a.startswith('protein'):
         if len(data_1d[obj_a + ':II-structure']):
