@@ -52,34 +52,33 @@ colors = ['ice', 'Viridis', 'Cividis', 'Inferno', 'Magma', 'Plasma', 'Turbo', 'B
 colors_binary = {'Purple': '#800080', 'Fuchsia': '#FF00FF', 'Navy': '#000080', 'Blue': '#0000FF', 'Skyblue': '#1DACD6', 
           'Teal': '#008080', 'Aqua': '#00FFFF', 'Green': '#008000', 'Lime': '#00FF00', 'Olive': '#808000', 'Yellow': '#FFFF00',
           'Orange': '#FF8000', 'Maroon': '#800000', 'Red': '#FF0000', 'Silver': '#C0C0C0', 'Gray': '#808080', 'Black': '#000000'}
-cs_seq = [[0, "rgb(210,255,0)"], [0.05, "rgb(210,255,0)"], [0.05, "rgb(255,255,0)"], [0.1, "rgb(255,255,0)"],
-          [0.1, "rgb(250,220,10)"], [0.15, "rgb(250,220,10)"], [0.15, "rgb(255,160,25)"], [0.2, "rgb(255,160,25)"],
-          [0.2, "rgb(240,110,0)"], [0.25, "rgb(240,110,0)"], [0.25, "rgb(225,0,0)"], [0.3, "rgb(225,0,0)"],
-          [0.3, "rgb(175,5,0)"], [0.35, "rgb(175,5,0)"], [0.35, "rgb(220,0,75)"], [0.4, "rgb(220,0,75)"],
-          [0.4, "rgb(255,35,150)"], [0.45, "rgb(255,35,150)"], [0.45, "rgb(255,0,255)"], [0.5, "rgb(255,0,255)"],
-          [0.5, "rgb(190,0,215)"], [0.55, "rgb(190,0,215)"], [0.55, "rgb(115,0,160)"], [0.6, "rgb(115,0,160)"],
-          [0.6, "rgb(15,15,130)"], [0.65, "rgb(15,15,130)"], [0.65, "rgb(30,30,220)"], [0.7, "rgb(30,30,220)"],
-          [0.7, "rgb(0,130,255)"], [0.75, "rgb(0,130,255)"], [0.75, "rgb(0,195,255)"], [0.8, "rgb(0,195,255)"],
-          [0.8, "rgb(100,255,255)"], [0.85, "rgb(100,255,255)"], [0.85, "rgb(0,240,170)"], [0.9, "rgb(0,240,170)"],
-          [0.9, "rgb(0,190,0)"], [0.95, "rgb(0,190,0)"], [0.95, "rgb(80,130,0)"], [0.999, "rgb(80,130,0)"], [1, "rgb(0,0,0)"]]
-cs_ss8 = [[0, "rgb(30,140,35)"], [0.13, "rgb(30,140,35)"], [0.13, "rgb(100,185,40)"], [0.25, "rgb(100,185,40)"],
-          [0.25, "rgb(200,255,50)"], [0.37, "rgb(200,255,50)"], [0.37, "rgb(215,0,65)"], [0.50, "rgb(215,0,65)"],
-          [0.50, "rgb(255,50,150)"], [0.63, "rgb(255,50,150)"], [0.63, "rgb(255,100,255)"], [0.75, "rgb(255,100,255)"],
-          [0.75, "rgb(160,140,255)"], [0.87, "rgb(160,140,255)"], [0.87, "rgb(90,220,255)"], [0.999, "rgb(90,220,255)"],
-          [0.999, "rgb(0,0,0)"], [1, "rgb(0,0,0)"]]
+cs_seq = [[0, "rgb(210,255,0)"], [0.05, "rgb(210,255,0)"], [0.051, "rgb(255,255,0)"], [0.1, "rgb(255,255,0)"],
+          [0.101, "rgb(250,220,10)"], [0.15, "rgb(250,220,10)"], [0.151, "rgb(255,160,25)"], [0.2, "rgb(255,160,25)"],
+          [0.201, "rgb(240,110,0)"], [0.25, "rgb(240,110,0)"], [0.251, "rgb(225,0,0)"], [0.3, "rgb(225,0,0)"],
+          [0.301, "rgb(175,5,0)"], [0.35, "rgb(175,5,0)"], [0.351, "rgb(220,0,75)"], [0.4, "rgb(220,0,75)"],
+          [0.401, "rgb(255,35,150)"], [0.45, "rgb(255,35,150)"], [0.451, "rgb(255,0,255)"], [0.5, "rgb(255,0,255)"],
+          [0.501, "rgb(190,0,215)"], [0.55, "rgb(190,0,215)"], [0.551, "rgb(115,0,160)"], [0.6, "rgb(115,0,160)"],
+          [0.601, "rgb(15,15,130)"], [0.65, "rgb(15,15,130)"], [0.651, "rgb(30,30,220)"], [0.7, "rgb(30,30,220)"],
+          [0.701, "rgb(0,130,255)"], [0.75, "rgb(0,130,255)"], [0.751, "rgb(0,195,255)"], [0.8, "rgb(0,195,255)"],
+          [0.801, "rgb(100,255,255)"], [0.85, "rgb(100,255,255)"], [0.851, "rgb(0,240,170)"], [0.9, "rgb(0,240,170)"],
+          [0.901, "rgb(0,190,0)"], [0.95, "rgb(0,190,0)"], [0.951, "rgb(80,130,0)"], [0.999, "rgb(80,130,0)"], [1, "rgb(0,0,0)"]]
+cs_ss8 = [[0, "rgb(30,140,35)"], [0.13, "rgb(30,140,35)"], [0.131, "rgb(100,185,40)"], [0.25, "rgb(100,185,40)"],
+          [0.251, "rgb(200,255,50)"], [0.37, "rgb(200,255,50)"], [0.371, "rgb(215,0,65)"], [0.50, "rgb(215,0,65)"],
+          [0.501, "rgb(255,50,150)"], [0.63, "rgb(255,50,150)"], [0.631, "rgb(255,100,255)"], [0.75, "rgb(255,100,255)"],
+          [0.751, "rgb(160,140,255)"], [0.87, "rgb(160,140,255)"], [0.871, "rgb(90,220,255)"], [0.999, "rgb(90,220,255)"], [1, "rgb(0,0,0)"]]
 cs_sa = [[0, "rgb(215,0,0)"], [0.2, "rgb(215,0,0)"], [0.25, "rgb(155,155,255)"], [0.4, "rgb(155,155,255)"],
          [0.5, "rgb(155,155,255)"], [0.8, "rgb(0,0,105)"], [0.99, "rgb(0,0,105)"], [1, 'rgb(0,0,0)']]
-cs_polar = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.5, 'rgb(255,85,85)'], [1, 'rgb(255,85,85)']]
-cs_npolar = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.5, 'rgb(50,165,220)'], [1, 'rgb(50,165,220)']]
-cs_pi = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.5, 'rgb(255,100,0)'], [1, 'rgb(255,100,0)']]
-cs_aromatic = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.5, 'rgb(255,205,0)'], [1, 'rgb(255,205,0)']]
-cs_hdonor = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.5, 'rgb(50,165,220)'], [1, 'rgb(50,165,220)']]
-cs_haccep = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.5, 'rgb(255,50,155)'], [1, 'rgb(255,50,155)']]
-cs_phobic = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.5, 'rgb(50,165,220)'], [1, 'rgb(50,165,220)']]
-cs_amphi = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.5, 'rgb(180,0,180)'], [1, 'rgb(180,0,180)']]
-cs_philic = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.5, 'rgb(255,85,85)'], [1, 'rgb(255,85,85)']]
-cs_charge = [[0, 'rgb(255,255,255)'], [0.33, 'rgb(255,255,255)'], [0.33, 'rgb(215,0,0)'], [0.66, 'rgb(215,0,0)'], [0.66, 'rgb(0,0,105)'], [1, 'rgb(0,0,105)']]
-cs_sulfur = [[0, 'rgb(255,255,255)'], [0.33, 'rgb(255,255,255)'], [0.33, 'rgb(0,190,0)'], [0.66, 'rgb(0,190,0)'], [0.66, 'rgb(0,240,170)'], [1, 'rgb(0,240,170)']]
+cs_polar = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(255,85,85)'], [1, 'rgb(255,85,85)']]
+cs_npolar = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(50,165,220)'], [1, 'rgb(50,165,220)']]
+cs_pi = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(255,100,0)'], [1, 'rgb(255,100,0)']]
+cs_aromatic = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(255,205,0)'], [1, 'rgb(255,205,0)']]
+cs_hdonor = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(50,165,220)'], [1, 'rgb(50,165,220)']]
+cs_haccep = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(255,50,155)'], [1, 'rgb(255,50,155)']]
+cs_phobic = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(50,165,220)'], [1, 'rgb(50,165,220)']]
+cs_amphi = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(180,0,180)'], [1, 'rgb(180,0,180)']]
+cs_philic = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(255,85,85)'], [1, 'rgb(255,85,85)']]
+cs_charge = [[0, 'rgb(255,255,255)'], [0.33, 'rgb(255,255,255)'], [0.331, 'rgb(215,0,0)'], [0.66, 'rgb(215,0,0)'], [0.661, 'rgb(0,0,105)'], [1, 'rgb(0,0,105)']]
+cs_sulfur = [[0, 'rgb(255,255,255)'], [0.33, 'rgb(255,255,255)'], [0.331, 'rgb(0,190,0)'], [0.66, 'rgb(0,190,0)'], [0.661, 'rgb(0,240,170)'], [1, 'rgb(0,240,170)']]
 cs_rdbu = [[0, "rgb(103,0,31)"], [0.1, "rgb(178,24,43)"], [0.2, "rgb(214,36,77)"], [0.3, "rgb(244,165,130)"],
            [0.4, "rgb(253,219,199)"], [0.5, "rgb(247,247,247)"], [0.6, "rgb(209,229,240)"],
            [0.7, "rgb(146,197,222)"], [0.8, "rgb(67,147,195)"], [0.9, "rgb(33,102,172)"], [1, "rgb(5,48,97)"]]
@@ -186,6 +185,19 @@ opt_1D = ['none', 'composition', 'hydropathy', 'hydropathy_n', 'hydrophobic', 'a
           'polar', 'nonpolar', 'aromatic', 'π-bond', 'sulfur', 'H-Bond donor', 'H-Bond acceptor',
           'SEQ entropy', 'II-structure', 'solvent access']
 
+
+def get_objects_in_contact(selected):
+    
+    selected = selected.split('|')
+    obj_a = selected[0].split(':')[0]
+    obj_b = obj_a
+    if len(selected) > 1:
+        obj_b = selected[1].split(':')[0]
+    return obj_a, obj_b
+
+##########################################################
+
+
 app = DjangoDash('ContactMap')
 app.css.append_css({'external_url': '/static/css/app.css'})
 
@@ -203,6 +215,8 @@ app.layout = html.Div([
     dcc.Store(id="data_1d", data='', storage_type='session'),  # dict of features for 1D plots
     dcc.Store(id="data_Dist", data='', storage_type='session'),  # list = [desc_d, residuesA, residuesB, objA, objB]
     dcc.Store(id="data_Con", data='', storage_type='session'),  # contacts for selected cutoff
+    dcc.Store(id="colors_1d", data='', storage_type='session'), # residues colors according to selected param-1d
+    dcc.Store(id="colors_con", data='', storage_type='session'), # residues colors according to selected contact filter
     dcc.Input(id="hbonds", value='', type='hidden'),  # path to hbonds
     dcc.Input(id="download-text", value='', type='hidden'),  # list = [distances, desc_c, cutoff]
     dcc.Input(id="void1", value='', type='hidden'),
@@ -435,7 +449,7 @@ def select_model(btn, ix, pk, **kwargs):
 
 
 @app.expanded_callback([Output('con-intra', 'data'), Output('con-inter', 'data'), Output('contacts', 'data')],
-                       [Input('model-ix', 'value')], 
+                       [Input('model-ix', 'value')],
                        [State('model-data', 'data'), State('config', 'data'), State('pdb-code', 'data'),
                         State('con-intra', 'data'), State('con-inter', 'data'), State('contacts', 'data')])
 def load_basic_data(ix, model_data, config, pdb_code, intra, inter, contacts):
@@ -522,11 +536,13 @@ def calc_1d_data(ix, model_data, pdb_code, data_prev):
 def disable_1d_options(selected, data_1d):
     opts_a = []
     opts_b = []
-    selected = selected.split('|')
-    obj_a = selected[0].split(':')[0]
-    obj_b = obj_a
-    if len(selected) > 1:
-        obj_b = selected[1].split(':')[0]
+
+    obj_a, obj_b = get_objects_in_contact(selected)
+#    selected = selected.split('|')
+#    obj_a = selected[0].split(':')[0]
+#    obj_b = obj_a
+#    if len(selected) > 1:
+#        obj_b = selected[1].split(':')[0]
 
     if obj_a.startswith('protein'):
         if len(data_1d[obj_a + ':II-structure']):
@@ -840,9 +856,53 @@ def disable_opts_button(tab1, tab2, tab3, opts, style):
         return [{**opts, 'color': '#63533c'}, False, {**style, 'display': 'block'}]
 
 
+@app.expanded_callback(Output('colors_1d', 'data'),
+                      [Input('1dy', 'value'), Input('1dx', 'value')],
+                      [State('selected', 'value'), State('data_1d', 'data'), State('colors_1d', 'data')])
+def prepare_colors_for_1d_params(param_y, param_x, selected, data_1d, prev_colors):
+    
+    obj_a, obj_b = get_objects_in_contact(selected)
+    param_x = param_x.replace('_n', '')
+    param_y = param_y.replace('_n', '')
+    hash_x = obj_b+":"+param_x
+    hash_y = obj_a+":"+param_y
+    mol_colors = {'x': '', 'y': ''}
+    if param_y != "none" and obj_a.startswith('protein'):
+        prev = ''
+        try:
+            prev = prev_colors['y'][0]
+        except:
+            pass
+        if prev != hash_y:
+            cs = params[param_y][0]
+            cs_a = np.array([i[0] for i in cs])
+            mol_colors['y'] = [hash_y, [cs[np.abs(cs_a - float(val)).argmin()][1] for val in data_1d[hash_y]]]
+        else:
+            try:
+                mol_colors['y'] = prev_colors['y']
+            except:
+                pass
 
-@app.expanded_callback(Output('data_Dist', 'data'), 
-                      Input('selected', 'value'), 
+    if param_x != "none" and obj_b.startswith('protein'):
+        prev = ''
+        try:
+            prev = prev_colors['x'][0]
+        except:
+            pass
+        if prev != hash_x:
+            cs = params[param_x][0]
+            cs_a = np.array([i[0] for i in cs])
+            mol_colors['x'] = [hash_x, [cs[np.abs(cs_a - float(val)).argmin()][1] for val in data_1d[hash_x]]]
+        else:
+            try:
+                mol_colors['x'] = prev_colors['x']
+            except:
+                pass
+    return mol_colors
+
+
+@app.expanded_callback(Output('data_Dist', 'data'),
+                      Input('selected', 'value'),
                       State('model-data', 'data'))
 def prepare_distance_data(selected, model_data):
     if selected == '':
