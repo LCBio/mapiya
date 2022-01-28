@@ -1,4 +1,5 @@
 #import sys ###
+from colorsys import hls_to_rgb
 import dash
 import pandas as pd
 import dash_core_components as dcc
@@ -195,8 +196,8 @@ def get_objects_in_contact(selected):
         obj_b = selected[1].split(':')[0]
     return obj_a, obj_b
 
-##########################################################
 
+####--- PLOTLY APP BELOW ---####
 
 app = DjangoDash('ContactMap')
 app.css.append_css({'external_url': '/static/css/app.css'})
@@ -205,8 +206,9 @@ app.layout = html.Div([
     dcc.Input(id="input-pk", value='', type='hidden'),  # current pk - initial input from django
     dcc.Input(id="interval_status", value=1, type='hidden'),  # fire callback until all models have 'F' status
     dcc.Input(id="model-ix", value='', type='hidden'),  # index of selected model
-    dcc.Input(id="selected", value='', type='hidden'),  # selected object or interaction
     dcc.Store(id="pdb-code", data='', storage_type='session'), # PDB code or filename
+    dcc.Store(id="prev-id", data='', storage_type='session'), # last loaded: pdb-code and model-ix
+    dcc.Input(id="selected", value='', type='hidden'),  # selected object or interaction
     dcc.Store(id="config", data='', storage_type='session'), # main settings for external software
     dcc.Store(id="model-data", data='', storage_type='session'),  # [info, matrix_path, struct_path, hbond_path]
     dcc.Store(id="con-intra", data='', storage_type='session'),  # intramolecular contacts (options1)
@@ -739,45 +741,40 @@ def update_cs(mode):
         return [[{'label': i, 'value': i} for i in colors], colors[0], R]
 
 
-@app.expanded_callback([Output('dashbio-circos', 'children'), Output('chains-colors', 'value')], Input('contacts', 'data'))
+@app.expanded_callback([Output('dashbio-circos', 'children'), Output('chains-colors', 'value')],
+                        Input('contacts', 'data'))
 def display_circos(data):
     if not len(data):
         raise PreventUpdate
-    labels = data[0]
-    contacts = data[1]
-    matrix = normalize_contact_counts(contacts)
-    radii_sribb = [0.3] * len(labels)
-    ideo_colors = ['rgba(186,225,255,0.9)', 'rgba(186,255,201,0.9)', 'rgba(255,255,186,0.9)',
-                   'rgba(255,223,186,0.9)', 'rgba(224,194,143,0.9)', 'rgba(255,154,130,0.9)',
-                   'rgba(255,179,186,0.9)', 'rgba(209, 135, 135,0.9)', 'rgba(184,161,177,0.9)',
-                   'rgba(211,195,181,0.9)', ]  # pink, orange, yellow, green, blue, purple, brown, gray
+    else:
+        ideo_colors = ['rgba(174,195,249,0.9)', 'rgba(200,253,144,0.9)']
+        contacts = data[1]
+        matrix = normalize_contact_counts(contacts)
+        labels = data[0]
+        n = len(labels)
+        radii_sribb = [0.3] * n
 
-    k = len(labels) / len(ideo_colors)
-    if k > 1:
-        new_colors = []
-        for i in range(int(k) + 1):
-            new_colors.extend(ideo_colors)
-        ideo_colors = new_colors
+        if n > 2:
+            ideo_colors = [ 'rgba'+str(tuple(255*np.array(hls_to_rgb(0.95 * i/(n-1), 0.8, 1)))+(0.9,)) for i in range(n) ]
 
-    chains_colors = {i:ideo_colors[n] for n, i in enumerate(labels)}
+        chains_colors = {i:ideo_colors[n] for n, i in enumerate(labels)}
+        shapes = []
+        ideograms = []
+        ribbon_info = []
 
-    shapes = []
-    ideograms = []
-    ribbon_info = []
-
-    layout = go.Layout(title='', plot_bgcolor='#FFFFFF',
+        layout = go.Layout(title='', plot_bgcolor='#FFFFFF',
                        showlegend=False, margin=dict(t=20, b=0, l=0, r=0),
                        xaxis=dict(range=[-1.4, 1.4], gridcolor='rgba(0,0,0,0)', zeroline=False, tickmode='array',
                                   tickvals=[0], ticktext=[''], scaleanchor = "y", scaleratio = 1,),
                        yaxis=dict(range=[-1.15, 1.15], gridcolor='rgba(0,0,0,0)', zeroline=False, tickmode='array',
                                   tickvals=[0], ticktext=[''], ),
                        )
-    shapes, ideograms, ribbon_info = make_shapes_and_info(matrix, contacts, labels, ideo_colors, radii_sribb)
-    layout['shapes'] = shapes
-    ideograms.extend(ribbon_info)
-    fig = go.Figure(data=ideograms, layout=layout)
+        shapes, ideograms, ribbon_info = make_shapes_and_info(matrix, contacts, labels, ideo_colors, radii_sribb)
+        layout['shapes'] = shapes
+        ideograms.extend(ribbon_info)
+        fig = go.Figure(data=ideograms, layout=layout)
 
-    return [dcc.Graph(id='graph-circos', figure=fig, config={'responsive':True}, style={'height':'78vw', 'margin-top': '0',}), json.dumps(chains_colors, indent=2)]
+        return [dcc.Graph(id='graph-circos', figure=fig, config={'responsive':True}, style={'height':'78vw', 'margin-top': '0',}), json.dumps(chains_colors, indent=2)]
 
 
 @app.expanded_callback(Output('click-data', 'value'), Input('graph-circos', 'clickData'))
@@ -1055,7 +1052,7 @@ def prepare_colors_for_contacts(data_con, cs_con, data_dist, mode, cutoff):
                     except:
                         pass
                     if val != '-':
-                        colors[i+"-"+j] = cs[np.abs(cs_a - float(val)).argmin()][1]
+                        colors[i+"-"+j] = cs[np.abs(cs_a - val).argmin()][1]
     values['contacts'] = colors
     return values
 
