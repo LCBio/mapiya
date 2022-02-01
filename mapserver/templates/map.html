@@ -27,17 +27,11 @@
     <!-- Molstar -->
     <script src="{% static 'js/pdbe-molstar-plugin-1.2.0.js' %}"></script>
     <script src="{% static 'js/molstar.js' %}"></script>
+    {% comment %} <script>var exports = {};</script>
+    <script src="{% static 'vendors/mol-script/script.js' %}"></script> {% endcomment %}
     <script>
         let viewerInstance = initMolStarViewer('molStarViewport', '{{object.pk}}');
-        viewerInstance.events.loadComplete.subscribe(() => 
-        {
-            add_representations(viewerInstance, 'gaussian-surface', 0.15);
-        }
-        );
-        window.addEventListener('storage', () => 
-        {
-            LoadCurrentModel('{{object.pk}}',viewerInstance);
-        }
-        );
+        process_events(viewerInstance);
+        
     </script>
 {% endblock js %}

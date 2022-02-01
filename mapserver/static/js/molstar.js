@@ -1,14 +1,6 @@
 function initMolStarViewer(viewport_id, project_id)
 {
-    var CurrentModel = 0;
-    if ( UrlExists(`/project/${project_id}/molstar/0`) )
-    {
-        CurrentModel = 0;
-    }
-    else if( UrlExists(`/project/${project_id}/molstar/1`) )
-    {
-        CurrentModel = 1;
-    }
+    var CurrentModel = getFirstModelNumber(project_id);
     var pdburl = `/project/${project_id}/molstar/${CurrentModel}`;
     var viewerInstance = new PDBeMolstarPlugin();
     var options =
@@ -59,16 +51,11 @@ function initMolStarViewer(viewport_id, project_id)
     };
     var viewerContainer = document.getElementById(viewport_id);
     viewerInstance.render(viewerContainer, options);
-    viewerInstance.events.loadComplete.subscribe(() => 
-    {
-        viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data._props.label = `Model${CurrentModel}`;
-    }
-    );
     sessionStorage.setItem("model-loaded", CurrentModel);
     return viewerInstance;
 };
 
-function generateChainColourPairs()
+function UpdateChainColourPairs(viewerInstance)
 {
     var colors_plotly = sessionStorage.getItem("chains-colors");
     if(sessionStorage.getItem("chains-colors") === null )
@@ -102,27 +89,16 @@ function generateChainColourPairs()
             }
         );
     };
+    viewerInstance.plugin.managers.camera.reset();
+    viewerInstance.visual.select(
+    {
+        data: selections
+    });
     sessionStorage.removeItem("chains-colors");
     return selections;
 };
 
-function updateMolStarViewer(viewerInstance)
-{
-    var selectSections = generateChainColourPairs().concat(PrepareClickMapData());
-    viewerInstance.plugin.managers.camera.reset();
-    viewerInstance.visual.select(
-    {
-        data: selectSections,
-        nonSelectedColor:
-        {
-            r:255,
-            g:255,
-            b:255
-        }
-    });
-}
-
-function PrepareClickMapData()
+function HighlightClickMapData(viewerInstance)
 {
     if(sessionStorage.getItem("click-map") === null ) return [];
     var click_map = JSON.parse(sessionStorage.getItem("click-map"));
@@ -157,9 +133,28 @@ function PrepareClickMapData()
             focus : true
         }
     ];
+    viewerInstance.plugin.managers.camera.reset();
+    viewerInstance.visual.select(
+    {
+        data: selectSections
+    });
     sessionStorage.removeItem("click-map");
     return selectSections;
 };
+
+function getFirstModelNumber(project_id)
+{
+    var CurrentModel = 0;
+    if ( UrlExists(`/project/${project_id}/molstar/0`) )
+    {
+        CurrentModel = 0;
+    }
+    else if( UrlExists(`/project/${project_id}/molstar/1`) )
+    {
+        CurrentModel = 1;
+    }
+    return CurrentModel;
+}
 
 function getCurrentModelNumber()
 {
@@ -179,12 +174,8 @@ async function LoadCurrentModel(project_id, viewerInstance)
     CurrentModel = getCurrentModelNumber();    
     var current_url = `/project/${project_id}/molstar/${CurrentModel}`;
     var ModelLoaded = sessionStorage.getItem("model-loaded");
-    if(CurrentModel == ModelLoaded)
-    {
-        updateMolStarViewer(viewerInstance);
-    }
-    else
-    {
+    if(!(CurrentModel == ModelLoaded))
+    {    
         viewerInstance.clear();
         viewerInstance.visual.update(
         {
@@ -214,12 +205,6 @@ async function LoadCurrentModel(project_id, viewerInstance)
             visualStyle: 'cartoon'
         }
         );
-        viewerInstance.events.loadComplete.subscribe(() => 
-        {
-            viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data._props.label = `Model${CurrentModel}`;
-        }
-        );
-        updateMolStarViewer(viewerInstance);
         sessionStorage.setItem("model-loaded", CurrentModel);
     };
 };
@@ -263,5 +248,128 @@ async function add_representations(viewerInstance, type, alpha)
         );
     }
     await update.commit();
-    updateMolStarViewer(viewerInstance);
+    UpdateChainColourPairs(viewerInstance);
 };
+
+function UpdateColours1D(viewerInstance)
+{
+    if(sessionStorage.getItem("colors_1d") === null ) return [];
+    var colours_1d = JSON.parse(sessionStorage.getItem("colors_1d"));
+    var x = colours_1d.x;
+    var y = colours_1d.y;
+    if(!(x == ""))
+    {
+        var selections_x = [];
+        var chain_x = x[0].split("-")[1].split(':')[0];
+        var entity_id_x = viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data.models[0].properties.structAsymMap.get(chain_x).entity_id;
+        var residue_numbers = Array.from(viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data._props.models[0].sequence.sequences[entity_id_x-1].sequence.indexMap.keys());
+        var j = x[1];
+        for (var k in j)
+        {
+            var rgb = j[k].split('(')[1].split(')')[0].split(',');
+            var current_resnum = residue_numbers[k];
+            selections_x.push(
+                {
+                    struct_asym_id: chain_x,
+                    start_residue_number: current_resnum,
+                    end_residue_number: current_resnum+1,
+                    color:
+                    {
+                        r: rgb[0],
+                        g: rgb[1],
+                        b: rgb[2]
+                    },
+                    sideChain: false,
+                    focus : false
+                }
+            );
+        };
+        viewerInstance.plugin.managers.camera.reset();
+        viewerInstance.visual.select(
+        {
+            data: selections_x
+        }
+        );
+    };
+    if(!(y == ""))
+    {
+        var selections_y = [];
+        var chain_y = y[0].split("-")[1].split(':')[0];
+        var entity_id_y = viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data.models[0].properties.structAsymMap.get(chain_y).entity_id;
+        var residue_numbers = Array.from(viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data._props.models[0].sequence.sequences[entity_id_y-1].sequence.indexMap.keys());
+        var j = y[1];
+        for (var k in j)
+        {
+            var rgb = j[k].split('(')[1].split(')')[0].split(',');
+            var current_resnum = residue_numbers[k];
+            selections_y.push(
+                {
+                    struct_asym_id: chain_y,
+                    start_residue_number: current_resnum,
+                    end_residue_number: current_resnum+1,
+                    color:
+                    {
+                        r: rgb[0],
+                        g: rgb[1],
+                        b: rgb[2]
+                    },
+                    sideChain: false,
+                    focus : false
+                }
+            );
+        };
+        viewerInstance.plugin.managers.camera.reset();
+        viewerInstance.visual.select(
+        {
+            data: selections_y
+        }
+        );
+    };
+    sessionStorage.removeItem("colors_1d");
+};
+
+
+function process_events(viewerInstance)
+{
+    viewerInstance.events.loadComplete.subscribe(() => 
+    {
+        viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data._props.label = `Model${getCurrentModelNumber()}`;
+        add_representations(viewerInstance, 'gaussian-surface', 0.15);
+        UpdateChainColourPairs(viewerInstance);
+    }
+    );
+    window.addEventListener('storage', e =>
+    {
+        if(e.key === 'colors_1d')
+        {
+            UpdateColours1D(viewerInstance);
+        }
+        if(e.key === 'model-ix')
+        {
+            LoadCurrentModel('{{object.pk}}',viewerInstance);
+        }
+        if(e.key === 'click-map')
+        {
+            HighlightClickMapData(viewerInstance);
+        }
+        //if(e.key === 'colors_con'){UpdateColoursContact(viewerInstance);}
+        
+    }
+    );
+};
+
+function resetColours(viewerInstance)
+{
+    var selections = [];
+    viewerInstance.visual.select(
+    {
+        data: selections,
+        nonSelectedColor:
+        {
+            r:255,
+            g:255,
+            b:255
+        }
+    }
+    );
+}
