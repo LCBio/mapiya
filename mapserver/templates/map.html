@@ -31,7 +31,7 @@
     <script src="{% static 'vendors/mol-script/script.js' %}"></script> {% endcomment %}
     <script>
         let viewerInstance = initMolStarViewer('molStarViewport', '{{object.pk}}');
-        process_events(viewerInstance);
+        process_events(viewerInstance, '{{object.pk}}');
         
     </script>
 {% endblock js %}

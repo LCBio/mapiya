@@ -1,6 +1,14 @@
 function initMolStarViewer(viewport_id, project_id)
 {
     var CurrentModel = getFirstModelNumber(project_id);
+    if ( UrlExists(`/project/${project_id}/molstar/0`) )
+    {
+        CurrentModel = 0;
+    }
+    else if( UrlExists(`/project/${project_id}/molstar/1`) )
+    {
+        CurrentModel = 1;
+    }
     var pdburl = `/project/${project_id}/molstar/${CurrentModel}`;
     var viewerInstance = new PDBeMolstarPlugin();
     var options =
@@ -51,6 +59,12 @@ function initMolStarViewer(viewport_id, project_id)
     };
     var viewerContainer = document.getElementById(viewport_id);
     viewerInstance.render(viewerContainer, options);
+    viewerInstance.events.loadComplete.subscribe(() => 
+    {
+        viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data._props.label = `Model${CurrentModel}`;
+        viewerInstance.plugin.build().commit();
+    }
+    );    
     sessionStorage.setItem("model-loaded", CurrentModel);
     return viewerInstance;
 };
@@ -206,7 +220,14 @@ async function LoadCurrentModel(project_id, viewerInstance)
         }
         );
         sessionStorage.setItem("model-loaded", CurrentModel);
+        viewerInstance.events.loadComplete.subscribe(() => 
+        {
+            viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data._props.label = `Model${CurrentModel}`;
+            viewerInstance.plugin.build().commit();
+        }
+        );
     };
+    
 };
 
 function UrlExists(url)
@@ -328,12 +349,67 @@ function UpdateColours1D(viewerInstance)
     sessionStorage.removeItem("colors_1d");
 };
 
+function UpdateColoursContact(viewerInstance)
+{
+    if(sessionStorage.getItem("colors_con") === null ) return [];
+    var colours_contacts = JSON.parse(sessionStorage.getItem("colors_con"));
+    
+    var selections = [];
+    if(colours_contacts == "")  return[];
+    var chain1 = colours_contacts.objects.split(':')[0].split('-')[1];
+    var chain2 = colours_contacts.objects.split(':')[1].split('-')[1];
+    var contacts = colours_contacts.contacts;
+    for (var i in contacts)
+    {
+        var res_data = i.split('-');
+        var rgb = contacts[i].split('(')[1].split(')')[0].split(',');
+        selections.push(
+        {
+            struct_asym_id: chain1,
+            start_residue_number: res_data[0].split(':')[1],
+            end_residue_number: (res_data[0].split(':')[1])+1,
+            color:
+            {
+                r: rgb[0],
+                g: rgb[1],
+                b: rgb[2]
+            },
+            sideChain: false,
+            focus : false
+        },
+        {
+            struct_asym_id: chain2,
+            start_residue_number: res_data[1].split(':')[1],
+            end_residue_number: (res_data[1].split(':')[1])+1,
+            color:
+            {
+                r: rgb[0],
+                g: rgb[1],
+                b: rgb[2]
+            },
+            sideChain: false,
+            focus : false
+        }
+        );
+    };
+    viewerInstance.plugin.managers.camera.reset();
+    viewerInstance.visual.select(
+    {
+        data: selections,
+        nonSelectedColor:
+        {
+            r:255,
+            g:255,
+            b:255
+        }
+    });
+    sessionStorage.removeItem("colors_con");
+};
 
-function process_events(viewerInstance)
+function process_events(viewerInstance,project_id)
 {
     viewerInstance.events.loadComplete.subscribe(() => 
     {
-        viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data._props.label = `Model${getCurrentModelNumber()}`;
         add_representations(viewerInstance, 'gaussian-surface', 0.15);
         UpdateChainColourPairs(viewerInstance);
     }
@@ -346,14 +422,16 @@ function process_events(viewerInstance)
         }
         if(e.key === 'model-ix')
         {
-            LoadCurrentModel('{{object.pk}}',viewerInstance);
+            LoadCurrentModel(project_id,viewerInstance);
         }
         if(e.key === 'click-map')
         {
             HighlightClickMapData(viewerInstance);
         }
-        //if(e.key === 'colors_con'){UpdateColoursContact(viewerInstance);}
-        
+        if(e.key === 'colors_con')
+        {
+            UpdateColoursContact(viewerInstance);
+        }
     }
     );
 };
