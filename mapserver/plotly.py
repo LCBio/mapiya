@@ -25,7 +25,7 @@ from . import views
 # CSS style
 drops = {'margin': '0 0 0.4vh 2vw', 'width': '13vw', 'display': 'inline-block', 'font-size': '2vh',
          'font-family': 'Ubuntu, sans-serif', 'color': 'dimgrey'}
-lab_style = {'color': '#63533c', 'text-align': 'left', 'font-size': '0.85rem', 'font-weight': '500',
+lab_style = {'color': '#63533c', 'text-align': 'left', 'font-size': '0.9rem', 'font-weight': '500',
              'margin-left': '2px', 'font-family': 'Ubuntu, sans-serif'}
 btn_basic = {'margin': '0 0.5vw 0 0', 'padding': '0.2vh 0', 'font-size': '2vh', 'height': '3vh', 'width': '7vw'}
 btn_style = {'background-color': '#eeece7', 'color': '#63533c'}
@@ -227,6 +227,7 @@ app.layout = html.Div([
     dcc.Input(id="void4", value='', type='hidden'),
     dcc.Input(id="void5", value='', type='hidden'),
     dcc.Input(id="void6", value='', type='hidden'),
+    dcc.Input(id="void7", value='', type='hidden'),
     dcc.Input(id="slider", value='', type='hidden'),
 
     dcc.Interval(id="interval", interval=5000),
@@ -340,6 +341,16 @@ app.clientside_callback(
     };
     """,
     Output('void6', 'value'), [Input('click-map', 'value')]
+)
+
+
+app.clientside_callback(
+    """
+    function (value) {
+      window.sessionStorage.setItem("active-colors", value);
+    };
+    """,
+    Output('void7', 'value'), [Input('active_colors', 'value')]
 )
 
 
@@ -625,13 +636,20 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                         html.Label('ColorScale', style=lab_style, title=title['color-scale']),
                         dcc.Dropdown(id='color_selected', placeholder="Select Color", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
-                                     options=opt_cs, value=opt_cs[0]['value'])],
+                                     options=opt_cs, value=opt_cs[0]['value']),],
                         style={**drops, 'marginLeft': '0.5vw', 'width': '18vw',}, ),
                     html.Div([
                         html.Label('Reverse', id='check-reverse', style=lab_style, title=title['reverse-cs']),
                         dcc.Checklist(id='reverse', options=[{'label': '', 'value': '_r'}, ], value='', ), ],
                         style={'width': '22vw', 'marginTop': '3vh', 'marginLeft': '2vw', 'display': 'inline-block',
                                'vertical-align': 'top'}, ),
+                    html.Div([
+                        html.Label('Interactive structure coloring', style={**lab_style, 'margin-bottom': '2vh' }, 
+                                   title="Interactive structure coloring in the molecular visualizer (right panel)"),
+                        dcc.RadioItems(id="active_colors", options=[{'label': 'none	', 'value': '0'}, {'label': 'using contacts	', 'value': '1'},
+                                                {'label': 'using 1D features	', 'value': '2'}], value='0', 
+                                       labelStyle={**lab_style, 'font-size': '2vh', 'font-weight': '400', 'color': '#333'}), ],
+                        style={'width': '60vw', 'marginLeft': '0.5vw', 'marginTop': '1vh', 'marginBottom': '0.5vh', 'display': 'inline-block',}, ),
 
                     html.Hr(style={'border-top': '1px solid lightgray', 'margin': '0.7vw 0.5vw 0.7vw 0.5vw'}),
                     html.Label('Filter contacts:', style={**lab_style, 'display':'block', 'color': 'rgb(149, 165, 166)', 'margin-bottom': '1vh', 'margin-left':'0.5vw', 'font-size': '2vh'}, title=title['filters']),
@@ -682,10 +700,18 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                     ], style={'display': 'block'}),
 
                     html.Hr(style={'border-top': '1px solid lightgray', 'margin': '0.7vw 0.5vw 0.7vw 0.5vw'}),
-                    html.Label('Change the chart title:', style={**lab_style, 'display':'block', 'color': 'rgb(149, 165, 166)', 'margin-bottom': '1vh', 'margin-left':'0.5vw', 'font-size': '2vh'}, title=title['title']),
+                    html.Label('Change the chart title:', style={**lab_style, 'display':'block', 'color': 'rgb(149, 165, 166)', 
+                               'marginBottom': '1vh', 'margin-left':'0.5vw', 'font-size': '2vh'}, title=title['title']),
                     dcc.Input(id="map-title", type="text", placeholder="Provide new title", debounce=False, value='',
-                            style=dict(height='29px', width='40vw', margin='6px 0 1vh 0.5vw', color='dimgrey',
+                            style=dict(height='29px', width='40vw', margin='5px 0 1vh 0.5vw', color='dimgrey',
                                 borderRadius='5px 5px 5px 5px', borderColor='rgba(0,0,0,0)')),
+                    html.Label('Select image format:', style={**lab_style, 'display':'block', 'color': 'rgb(149, 165, 166)', 
+                               'marginBottom': '1vh', 'margin-left':'0.5vw', 'font-size': '2vh'}, 
+                               title="The generated image will be available to save in either vector (SVG) or raster (JPEG, PNG) graphics format. "),
+                    dcc.RadioItems(id="image-format", options=[{'label': 'SVG ', 'value': 'svg'}, {'label': 'WebP ', 'value': 'webp'},
+                                                               {'label': 'JPEG ', 'value': 'jpeg'}, {'label': 'PNG ', 'value': 'png'}], value='png', 
+                                   labelStyle={**lab_style, 'font-size': '2vh', 'font-weight': '400', 'color': '#333', 'marginBottom': '1vh'}),
+
                 ]),
             ], id='settings_map'),
 
@@ -695,12 +721,13 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                             children=[html.Div(dcc.Graph(id='graph_map',
                                                          style={'height': '94vh', 'width': '95vw', 'margin-top': '0',
                                                                 'margin-left': '4vw'},
-                                                         config={'responsive': True,
+                                                         config={'responsive': True, 'showTips': True,
                                                                  'modeBarButtonsToAdd':['drawline', 'drawopenpath',
                                                                      'drawclosedpath', 'drawcircle', 'drawrect',
                                                                      'eraseshape', 'resetViews', 'toggleHover', 'toggleSpikelines'],
-                                                             'toImageButtonOptions': {'format': 'svg', 'width': 1400,
-                                                                     'filename': 'mapiya.svg', 'height': 1000, 'scale': 1.5}}))]),
+                                                                 'toImageButtonOptions': {'format': 'svg', 'width': 1100,
+                                                                     'filename': 'mapiya.svg', 'height': 1000, 'scale': 2}
+                                                                }), id="graph")]),
                 ], className='graph-parent'),
                 dcc.Input(id='click-map', type='hidden'),
             # return info of clicked point on the map;
@@ -735,7 +762,7 @@ def update_filter_options(model_data, options):
 def update_cs(mode):
     if mode == 'C':
         S = html.Label('Smoth CS', style=lab_style, title=title['smoth-cs'])
-        return [[{'label': i, 'value': colors_binary[i]} for i in colors_binary], colors_binary['Silver'], S]
+        return [[{'label': i, 'value': colors_binary[i]} for i in colors_binary], colors_binary['Olive'], S]
     else:
         R = html.Label('Reverse', style=lab_style, title=title['reverse-cs'])
         return [[{'label': i, 'value': i} for i in colors], colors[0], R]
@@ -1057,12 +1084,20 @@ def prepare_colors_for_contacts(data_con, cs_con, data_dist, mode, cutoff):
     return values
 
 
+@app.expanded_callback(Output('graph', 'children'),
+                       Input('image-format', 'value'),
+                      [State('graph_map', 'figure'), State('graph_map', 'config'), State('pdb-code', 'data')])
+def change_image_format(img_format, fig, config, pdb_name, ):
+    config = {**config, 'toImageButtonOptions': {'format': img_format, 'width': 1100, 'filename': 'mapiya_'+pdb_name, 'height': 1000, 'scale': 2}}
+    return dcc.Graph(id="graph_map", figure=fig if fig else {}, config=config)
+
 
 @app.expanded_callback(Output('graph_map', 'figure'),
                        [Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'),
                         Input('1dy', 'value'), Input('1dx', 'value'), Input('data_1d', 'data'),
                         Input('data_Dist', 'data'), Input('data_Con', 'data'),
-                        Input('feature_selected', 'value'), Input('filter', 'value'), Input('map-title', 'value')],
+                        Input('feature_selected', 'value'), Input('filter', 'value'), 
+                        Input('map-title', 'value')],
                         State('pdb-code', 'data'))
 def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_con, filtr, only, desc_title, pdb_name):
     if len(pdb_name) > 10:
@@ -1093,6 +1128,8 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
         sc_len = 0.12
 
     dataset = []
+    at = 0.485
+    ay = 0.98
     ax = 0.96
     if x_val != 'none':
         ax = 0.88
@@ -1102,6 +1139,8 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
     sc_x = 0.98
     sc_y = 0.98
     if y_val != 'none':
+        ay = 0.9
+        at = 0.46
         sc_x = sc_y - params[y_val][2]
     if y_val == 'composition' or x_val == 'composition':
         shift = 0.02
@@ -1207,16 +1246,16 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
         'data': dataset,
         'layout': go.Layout(
             title={'text': desc_title,
-                   'y': 0.99, 'x': 0.43,
+                   'y': 0.99, 'x': at,
                    'xanchor': 'center', 'yanchor': 'top'},
-            title_font=dict(size=16, color="gray"),
-            paper_bgcolor='rgba(0,0,0,0)',
+            title_font=dict(size=18, color="gray"),
+            paper_bgcolor='rgba(255,255,255,1)',
             autosize=True,
             hovermode='closest',
-            xaxis1=dict(tickfont=dict(size=17), title=dict(text=obj_b[0], font=dict(color="black", size=24)),
-                        automargin=True, domain=[0, 0.87], range=[-1, int(obj_b[2]) - int(obj_b[1]) + 1], tickangle=45,
+            xaxis1=dict(tickfont=dict(size=16), title=dict(text=obj_b[0], font=dict(color="black", size=24)),
+                        automargin=True, domain=[0, ay], range=[-1, int(obj_b[2]) - int(obj_b[1]) + 1], tickangle=45,
                         showline=True),
-            xaxis2=dict(tickfont=dict(size=18, color="gray"), automargin=True, domain=[0.87, 0.955], tickmode='array',
+            xaxis2=dict(tickfont=dict(size=16, color="gray"), automargin=True, domain=[0.9, 0.985], tickmode='array',
                         tickvals=[0.5], ticktext=[y_val + '-' + obj_a[0].split('-')[1]], tickangle=45),
             yaxis1=dict(tickfont=dict(size=16), title=dict(text=obj_a[0], font=dict(color="black", size=24)),
                         domain=[0, ax], range=[-0.9, int(obj_a[2]) - int(obj_a[1]) + 1], tickangle=0, showline=True,
@@ -1224,9 +1263,11 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
             yaxis2=dict(tickfont=dict(size=16, color="gray"), tickmode='array', tickvals=[0.5],
                         ticktext=[x_val + '-' + obj_b[0].split('-')[1]], domain=[0.88, 0.965], showline=False,
                         automargin=True),
-            margin=dict(t=0),
+            margin=dict(t=0, l=110),
+            modebar={'bgcolor': 'rgba(52,58,64,0.9)'},
         )
     }
+
 
 
 @app.expanded_callback(Output('click-map', 'value'), 
@@ -1234,7 +1275,7 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
                        State('selected', 'value'))
 def display_click_map(data, selected):
     ctx = dash.callback_context.triggered
-    if len(ctx):
+    if len(ctx) and data is not None:
         ctx = ctx[0]['prop_id'].split('.')[0]
         if ctx == 'graph_map':
             selected = selected.split('|')
