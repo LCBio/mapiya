@@ -113,7 +113,7 @@ function UpdateChainColourPairs(viewerInstance)
 };
 
 function HighlightClickMapData(viewerInstance)
-{
+{    
     if(sessionStorage.getItem("click-map") === null ) return [];
     var click_map = JSON.parse(sessionStorage.getItem("click-map"));
     var res1 = click_map["res1"].split("-");
@@ -274,6 +274,7 @@ async function add_representations(viewerInstance, type, alpha)
 
 function UpdateColours1D(viewerInstance)
 {
+    if(!(sessionStorage.getItem("active-colors") == 2)) return[];
     if(sessionStorage.getItem("colors_1d") === null ) return [];
     var colours_1d = JSON.parse(sessionStorage.getItem("colors_1d"));
     var x = colours_1d.x;
@@ -351,6 +352,7 @@ function UpdateColours1D(viewerInstance)
 
 function UpdateColoursContact(viewerInstance)
 {
+    if(!(sessionStorage.getItem("active-colors") == 1)) return[];
     if(sessionStorage.getItem("colors_con") === null ) return [];
     var colours_contacts = JSON.parse(sessionStorage.getItem("colors_con"));
     
@@ -416,7 +418,7 @@ function process_events(viewerInstance,project_id)
     );
     window.addEventListener('storage', e =>
     {
-        if(e.key === 'colors_1d')
+        if(e.key === 'colors_1d' || e.key === 'active-colors')
         {
             UpdateColours1D(viewerInstance);
         }
@@ -428,7 +430,7 @@ function process_events(viewerInstance,project_id)
         {
             HighlightClickMapData(viewerInstance);
         }
-        if(e.key === 'colors_con')
+        if(e.key === 'colors_con' || e.key === 'active-colors')
         {
             UpdateColoursContact(viewerInstance);
         }
