@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('', include('mapserver.urls')),
+    path('rq/', include('django_rq.urls')),
     path('users/', include('users.urls')),
     path('admin/', admin.site.urls),
 ]

@@ -21,10 +21,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-QUEUE_WORKERS_COUNT = 10
-QUEUE_MANAGER_TIMEOUT_SECONDS = 1
-DATA_UPLOAD_MAX_MEMORY_SIZE = 100000000
-FILE_UPLOAD_MAX_MEMORY_SIZE = 100000000
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -38,6 +34,7 @@ INSTALLED_APPS = [
     'django_plotly_dash',
     'users',
     'mapserver',
+    'django_rq'
 ]
 
 MIDDLEWARE = [
@@ -81,3 +78,12 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+
+RQ_QUEUES = {
+    'default': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+        'DEFAULT_TIMEOUT': 360,
+    },
+}

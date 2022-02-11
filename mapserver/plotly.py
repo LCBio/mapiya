@@ -1,4 +1,5 @@
 #import sys ###
+from colorsys import hls_to_rgb
 import dash
 import pandas as pd
 import dash_core_components as dcc
@@ -15,7 +16,8 @@ from django_plotly_dash import DjangoDash
 
 from mollib.chord import *
 from mollib.patterns import * #calc_patterns, calc_entropy
-from .models import Job
+#from .models import Job
+from . import views
 
 #np.set_printoptions(threshold=sys.maxsize)				### testing mode
 #    print('Start... ', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))	### testing mode
@@ -23,7 +25,7 @@ from .models import Job
 # CSS style
 drops = {'margin': '0 0 0.4vh 2vw', 'width': '13vw', 'display': 'inline-block', 'font-size': '2vh',
          'font-family': 'Ubuntu, sans-serif', 'color': 'dimgrey'}
-lab_style = {'color': '#63533c', 'text-align': 'left', 'font-size': '0.85rem', 'font-weight': '500',
+lab_style = {'color': '#63533c', 'text-align': 'left', 'font-size': '0.9rem', 'font-weight': '500',
              'margin-left': '2px', 'font-family': 'Ubuntu, sans-serif'}
 btn_basic = {'margin': '0 0.5vw 0 0', 'padding': '0.2vh 0', 'font-size': '2vh', 'height': '3vh', 'width': '7vw'}
 btn_style = {'background-color': '#eeece7', 'color': '#63533c'}
@@ -48,23 +50,43 @@ colors = ['ice', 'Viridis', 'Cividis', 'Inferno', 'Magma', 'Plasma', 'Turbo', 'B
           'solar', 'gray', 'deep', 'dense', 'algae', 'matter', 'speed', 'amp', 'tempo', 'Burg', 'Burgyl',
           'Redor', 'Oryel', 'Peach', 'Pinkyl', 'Mint', 'Blugrn', 'Darkmint', 'Emrld', 'Aggrnyl', 'Bluyl', 'Teal',
           'Tealgrn', 'Purp', 'Purpor', 'Sunset', 'Magenta', 'Sunsetdark', 'Agsunset', 'Brwnyl']
-colors_binary = {'Purple': '#800080', 'Fuchsia': '#FF00FF', 'Navy': '#000080', 'Blue': '#0000FF', 'Skyblue': '#1DACD6', 
-          'Teal': '#008080', 'Aqua': '#00FFFF', 'Green': '#008000', 'Lime': '#00FF00', 'Olive': '#808000', 'Yellow': '#FFFF00',
-          'Orange': '#FF8000', 'Maroon': '#800000', 'Red': '#FF0000', 'Silver': '#C0C0C0', 'Gray': '#808080', 'Black': '#000000'}
-cs_seq = [[0, "#c6ff1a"], [0.05, "#c6ff1a"], [0.05, "#ffff00"], [0.1, "#ffff00"], [0.1, "#ffcc00"], [0.15, "#ffcc00"],
-          [0.15, "#ff944d"], [0.2, "#ff944d"], [0.2, "#ff6600"], [0.25, "#ff6600"], [0.25, "#e62e00"], [0.3, "#e62e00"],
-          [0.3, "#cc0000"], [0.35, "#cc0000"], [0.35, "#b30059"], [0.4, "#b30059"], [0.4, "#ff0080"], [0.45, "#ff0080"],
-          [0.45, "#ff00ff"], [0.5, "#ff00ff"], [0.5, "#bf00ff"], [0.55, "#bf00ff"], [0.55, "#8000ff"], [0.6, "#8000ff"],
-          [0.6, "#262673"], [0.65, "#262673"], [0.65, "#4000ff"], [0.7, "#4000ff"], [0.7, "#0080ff"], [0.75, "#0080ff"],
-          [0.75, "#00bfff"], [0.8, "#00bfff"], [0.8, "#00ffff"], [0.85, "#00ffff"], [0.85, "#00e6ac"], [0.9, "#00e6ac"],
-          [0.9, "#009900"], [0.95, "#009900"], [0.95, "#004d00"], [0.999, "#004d00"], [1, "#cccccc"]]
-cs_binary = [[0, '#ffffff'], [0.49, '#ffffff'], [0.5, '#1DACD6'], [1, '#1DACD6']]
-cs_ternary = [[0, 'rgb(255,255,255)'], [0.33, 'rgb(255,255,255)'], [0.33, "#1DACD6"], [0.66, "#1DACD6"],
-              [0.66, "#000066"], [0.99, "#000066"], [1, '#cccccc']]
-cs_ss8 = [[0, "#228B22"], [0.13, "#228B22"], [0.13, "#66b929"], [0.25, "#66b929"], [0.25, "#ccff33"], [0.37, "#ccff33"],
-          [0.37, "#D70040"], [0.50, "#D70040"], [0.50, "#ff3399"], [0.63, "#ff3399"], [0.63, "#ff66ff"], [0.75, "#ff66ff"],
-          [0.75, "#9999ff"], [0.87, "#9999ff"], [0.87, "#59deff"], [0.999, "#59deff"], [0.999, "#cccccc"], [1, "#cccccc"]]
-cs_sa = [[0, '#CC3300'], [0.2, '#CC3300'], [0.25, "#9999FF"], [0.4, "#9999FF"], [0.5, "#2e2e94"], [0.8, "#000066"], [0.99, "#000066"], [1, '#cccccc']]
+colors_binary = {'Purple': 'rgb(128,0,128)', 'Fuchsia': 'rgb(255,0,255)', 'Navy': 'rgb(0,0,128)', 'Blue': 'rgb(0,0,255)', 'Skyblue': 'rgb(29,172,214)', 
+          'Teal': 'rgb(0,128,128)', 'Aqua': 'rgb(0,255,255)', 'Green': 'rgb(0,128,0)', 'Lime': 'rgb(0,255,0)', 'Olive': 'rgb(128,128,0)', 'Yellow': 'rgb(255,255,0)',
+          'Orange': 'rgb(255,128,0)', 'Maroon': 'rgb(128,0,0)', 'Red': 'rgb(255,0,0)', 'Silver': 'rgb(192,192,192)', 'Gray': 'rgb(128,128,128)', 'Black': 'rgb(0,0,0)'}
+cs_seq = [[0, "rgb(210,255,0)"], [0.05, "rgb(210,255,0)"], [0.051, "rgb(255,255,0)"], [0.1, "rgb(255,255,0)"],
+          [0.101, "rgb(250,220,10)"], [0.15, "rgb(250,220,10)"], [0.151, "rgb(255,160,25)"], [0.2, "rgb(255,160,25)"],
+          [0.201, "rgb(240,110,0)"], [0.25, "rgb(240,110,0)"], [0.251, "rgb(225,0,0)"], [0.3, "rgb(225,0,0)"],
+          [0.301, "rgb(175,5,0)"], [0.35, "rgb(175,5,0)"], [0.351, "rgb(220,0,75)"], [0.4, "rgb(220,0,75)"],
+          [0.401, "rgb(255,35,150)"], [0.45, "rgb(255,35,150)"], [0.451, "rgb(255,0,255)"], [0.5, "rgb(255,0,255)"],
+          [0.501, "rgb(190,0,215)"], [0.55, "rgb(190,0,215)"], [0.551, "rgb(115,0,160)"], [0.6, "rgb(115,0,160)"],
+          [0.601, "rgb(15,15,130)"], [0.65, "rgb(15,15,130)"], [0.651, "rgb(30,30,220)"], [0.7, "rgb(30,30,220)"],
+          [0.701, "rgb(0,130,255)"], [0.75, "rgb(0,130,255)"], [0.751, "rgb(0,195,255)"], [0.8, "rgb(0,195,255)"],
+          [0.801, "rgb(100,255,255)"], [0.85, "rgb(100,255,255)"], [0.851, "rgb(0,240,170)"], [0.9, "rgb(0,240,170)"],
+          [0.901, "rgb(0,190,0)"], [0.95, "rgb(0,190,0)"], [0.951, "rgb(80,130,0)"], [0.999, "rgb(80,130,0)"], [1, "rgb(0,0,0)"]]
+cs_ss8 = [[0, "rgb(30,140,35)"], [0.13, "rgb(30,140,35)"], [0.131, "rgb(100,185,40)"], [0.25, "rgb(100,185,40)"],
+          [0.251, "rgb(200,255,50)"], [0.37, "rgb(200,255,50)"], [0.371, "rgb(215,0,65)"], [0.50, "rgb(215,0,65)"],
+          [0.501, "rgb(255,50,150)"], [0.63, "rgb(255,50,150)"], [0.631, "rgb(255,100,255)"], [0.75, "rgb(255,100,255)"],
+          [0.751, "rgb(160,140,255)"], [0.87, "rgb(160,140,255)"], [0.871, "rgb(90,220,255)"], [0.999, "rgb(90,220,255)"], [1, "rgb(0,0,0)"]]
+cs_sa = [[0, "rgb(215,0,0)"], [0.2, "rgb(215,0,0)"], [0.25, "rgb(155,155,255)"], [0.4, "rgb(155,155,255)"],
+         [0.5, "rgb(155,155,255)"], [0.8, "rgb(0,0,105)"], [0.99, "rgb(0,0,105)"], [1, 'rgb(0,0,0)']]
+cs_polar = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(255,85,85)'], [1, 'rgb(255,85,85)']]
+cs_npolar = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(50,165,220)'], [1, 'rgb(50,165,220)']]
+cs_pi = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(255,100,0)'], [1, 'rgb(255,100,0)']]
+cs_aromatic = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(255,205,0)'], [1, 'rgb(255,205,0)']]
+cs_hdonor = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(50,165,220)'], [1, 'rgb(50,165,220)']]
+cs_haccep = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(255,50,155)'], [1, 'rgb(255,50,155)']]
+cs_phobic = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(50,165,220)'], [1, 'rgb(50,165,220)']]
+cs_amphi = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(180,0,180)'], [1, 'rgb(180,0,180)']]
+cs_philic = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(255,85,85)'], [1, 'rgb(255,85,85)']]
+cs_charge = [[0, 'rgb(255,255,255)'], [0.33, 'rgb(255,255,255)'], [0.331, 'rgb(215,0,0)'], [0.66, 'rgb(215,0,0)'], [0.661, 'rgb(0,0,105)'], [1, 'rgb(0,0,105)']]
+cs_sulfur = [[0, 'rgb(255,255,255)'], [0.33, 'rgb(255,255,255)'], [0.331, 'rgb(0,190,0)'], [0.66, 'rgb(0,190,0)'], [0.661, 'rgb(0,240,170)'], [1, 'rgb(0,240,170)']]
+cs_rdbu = [[0, "rgb(103,0,31)"], [0.1, "rgb(178,24,43)"], [0.2, "rgb(214,36,77)"], [0.3, "rgb(244,165,130)"],
+           [0.4, "rgb(253,219,199)"], [0.5, "rgb(247,247,247)"], [0.6, "rgb(209,229,240)"],
+           [0.7, "rgb(146,197,222)"], [0.8, "rgb(67,147,195)"], [0.9, "rgb(33,102,172)"], [1, "rgb(5,48,97)"]]
+cs_gnbu = [[0, "rgb(247,252,240)"], [0.125, "rgb(224,243,219)"], [0.25, "rgb(204,235,197)"],
+           [0.375, "rgb(168,221,181)"], [0.5, "rgb(123,204,196)"], [0.625, "rgb(78,179,211)"],
+           [0.75, "rgb(43,140,190)"], [0.875, "rgb(8,104,172)"], [1, "rgb(8,64,129,1)"]]
+
 
 
 # const. data
@@ -142,21 +164,20 @@ Amino acids that can be proton acceptors: Asn, Asp, Gln, Glu, His, Ser, Thr, Tyr
 
 params = {'composition': [cs_seq, 'SEQUENCE', 0.45, [0.02, 0.07, 0.12, 0.17, 0.22, 0.27, 0.32, 0.37, 0.42, 0.47,
                                             0.52, 0.57, 0.62, 0.67, 0.72, 0.77, 0.82, 0.87, 0.92, 0.97], amino],
-          'hydropathy': ['RdBu', 'HYDROPATHY', 0.15, [0.1, 0.5, 0.9], ['-4.5 (philic)', '0.0', '4.5 (phobic)']],
-          'hydropathy_n': ['RdBu', 'HYDROPATHY-n', 0.15, [0.1, 0.5, 0.9],
-                           ['0 (philic)', '0.5', '1 (phobic)']],
-          'hydrophobic': [cs_binary, 'HYDROPHOBIC', 0.12, [0.25, 0.75], ['NO', 'YES']],
-          'amphipatic': [cs_binary, 'AMPHIPATIC', 0.12, [0.25, 0.75], ['NO', 'YES']],
-          'hydrophilic': [cs_binary, 'HYDROPHILIC', 0.12, [0.25, 0.75], ['NO', 'YES']],
-          'charged': [cs_ternary, 'CHARGE', 0.15, [0.17, 0.5, 0.83], ['NO', 'positive', 'negative']],
-          'polar': [cs_binary, 'POLAR', 0.12, [0.25, 0.75], ['NO', 'YES']],
-          'nonpolar': [cs_binary, 'NONPOLAR', 0.12, [0.25, 0.75], ['NO', 'YES']],
-          'aromatic': [cs_binary, 'AROMATIC', 0.12, [0.25, 0.75], ['NO', 'YES']],
-          'π-bond': [cs_binary, 'non-aromatic<br>π-BOND', 0.15, [0.25, 0.75], ['NO', 'YES']],
-          'sulfur': [cs_ternary, 'SULFUR', 0.15, [0.17, 0.5, 0.83], ['NO', 'CYS', 'MET']],
-          'H-Bond donor': [cs_binary, 'H-BOND DONOR', 0.12, [0.25, 0.75], ['NO', 'YES']],
-          'H-Bond acceptor': [cs_binary, 'H-BOND ACCEPTOR', 0.12, [0.25, 0.75], ['NO', 'YES']],
-          'SEQ entropy': ['GnBu', 'ENTROPY', 0.15, [], []],
+          'hydropathy': [cs_rdbu, 'HYDROPATHY', 0.15, [0.1, 0.5, 0.9], ['-4.5 (philic)', '0.0', '4.5 (phobic)']],
+          'hydropathy_n': [cs_rdbu, 'HYDROPATHY-n', 0.15, [0.1, 0.5, 0.9], ['0 (philic)', '0.5', '1 (phobic)']],
+          'hydrophobic': [cs_phobic, 'HYDROPHOBIC', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'amphipatic': [cs_amphi, 'AMPHIPATIC', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'hydrophilic': [cs_philic, 'HYDROPHILIC', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'charged': [cs_charge, 'CHARGE', 0.15, [0.17, 0.5, 0.83], ['NO', 'positive', 'negative']],
+          'polar': [cs_polar, 'POLAR', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'nonpolar': [cs_npolar, 'NONPOLAR', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'aromatic': [cs_aromatic, 'AROMATIC', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'π-bond': [cs_pi, 'non-aromatic<br>π-BOND', 0.15, [0.25, 0.75], ['NO', 'YES']],
+          'sulfur': [cs_sulfur, 'SULFUR', 0.15, [0.17, 0.5, 0.83], ['NO', 'CYS', 'MET']],
+          'H-Bond donor': [cs_hdonor, 'H-BOND DONOR', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'H-Bond acceptor': [cs_haccep, 'H-BOND ACCEPTOR', 0.12, [0.25, 0.75], ['NO', 'YES']],
+          'SEQ entropy': [cs_gnbu, 'ENTROPY', 0.15, [], []],
           'II-structure': [cs_ss8, 'II-STRUCTURE', 0.25, [0.06, 0.19, 0.31, 0.43, 0.56, 0.69, 0.81, 0.93], 
                           ["ɑ-helix", "310-helix", "π-helix", "β-strand", "β-bridge", "HB-turn", "bend", 'loop']],
           'solvent access': [cs_sa, 'RSA', 0.15, [0.1, 0.35, 0.7], ['buried', 'medium', 'exposed']]
@@ -165,31 +186,48 @@ opt_1D = ['none', 'composition', 'hydropathy', 'hydropathy_n', 'hydrophobic', 'a
           'polar', 'nonpolar', 'aromatic', 'π-bond', 'sulfur', 'H-Bond donor', 'H-Bond acceptor',
           'SEQ entropy', 'II-structure', 'solvent access']
 
+
+def get_objects_in_contact(selected):
+    
+    selected = selected.split('|')
+    obj_a = selected[0].split(':')[0]
+    obj_b = obj_a
+    if len(selected) > 1:
+        obj_b = selected[1].split(':')[0]
+    return obj_a, obj_b
+
+
+####--- PLOTLY APP BELOW ---####
+
 app = DjangoDash('ContactMap')
 app.css.append_css({'external_url': '/static/css/app.css'})
 
 app.layout = html.Div([
-    dcc.Input(id="input-pk", value='', type='hidden'),  # current object pk - initial input from django
+    dcc.Input(id="input-pk", value='', type='hidden'),  # current pk - initial input from django
     dcc.Input(id="interval_status", value=1, type='hidden'),  # fire callback until all models have 'F' status
     dcc.Input(id="model-ix", value='', type='hidden'),  # index of selected model
-    dcc.Input(id="model-data", value='', type='hidden'),  # [PDB code, matrix_path, indo]
-    dcc.Input(id="con-intra", value='', type='hidden'),  # intramolecular contacts (options1)
-    dcc.Input(id="con-inter", value='', type='hidden'),  # intermolecular contacts (options2)
-    dcc.Input(id="contacts", value='', type='hidden'),  # list of objects + matrix of contacts counts
-    dcc.Input(id="data_1d", value='', type='hidden'),  # dict of features for 1D plots
+    dcc.Store(id="pdb-code", data='', storage_type='session'), # PDB code or filename
+    dcc.Store(id="prev-id", data='', storage_type='session'), # last loaded: pdb-code and model-ix
     dcc.Input(id="selected", value='', type='hidden'),  # selected object or interaction
-    dcc.Input(id="data_Dist", value='', type='hidden'),  # submatrix for selected interactions
-    # list = [desc_d, residuesA, residuesB, objA, objB]
-    dcc.Input(id="data_Con", value='', type='hidden'),  # contacts for selected cutoff
+    dcc.Store(id="config", data='', storage_type='session'), # main settings for external software
+    dcc.Store(id="model-data", data='', storage_type='session'),  # [info, matrix_path, struct_path, hbond_path]
+    dcc.Store(id="con-intra", data='', storage_type='session'),  # intramolecular contacts (options1)
+    dcc.Store(id="con-inter", data='', storage_type='session'),  # intermolecular contacts (options2)
+    dcc.Store(id="contacts", data='', storage_type='session'),  # list of objects + matrix of contacts counts
+    dcc.Store(id="data_1d", data='', storage_type='session'),  # dict of features for 1D plots
+    dcc.Store(id="data_Dist", data='', storage_type='session'),  # list = [desc_d, residuesA, residuesB, objA, objB]
+    dcc.Store(id="data_Con", data='', storage_type='session'),  # contacts for selected cutoff
+    dcc.Store(id="colors_1d", data='', storage_type='session'), # residues colors according to selected param-1d
+    dcc.Store(id="colors_con", data='', storage_type='session'), # residues colors according to selected contact filter
     dcc.Input(id="hbonds", value='', type='hidden'),  # path to hbonds
-    dcc.Input(id="download-text", value='', type='hidden'),  # path to hbonds
-    # list = [distances, desc_c, cutoff]
+    dcc.Input(id="download-text", value='', type='hidden'),  # list = [distances, desc_c, cutoff]
     dcc.Input(id="void1", value='', type='hidden'),
     dcc.Input(id="void2", value='', type='hidden'),
     dcc.Input(id="void3", value='', type='hidden'),
     dcc.Input(id="void4", value='', type='hidden'),
     dcc.Input(id="void5", value='', type='hidden'),
     dcc.Input(id="void6", value='', type='hidden'),
+    dcc.Input(id="void7", value='', type='hidden'),
     dcc.Input(id="slider", value='', type='hidden'),
 
     dcc.Interval(id="interval", interval=5000),
@@ -306,16 +344,29 @@ app.clientside_callback(
 )
 
 
+app.clientside_callback(
+    """
+    function (value) {
+      window.sessionStorage.setItem("active-colors", value);
+    };
+    """,
+    Output('void7', 'value'), [Input('active_colors', 'value')]
+)
+
+
 @app.expanded_callback(
-    [Output('interval_status', 'value'), Output('protein-models', 'children'),
-     Output('proteins', 'style'), Output('slide', 'style'), Output('slideBack', 'style')],
-    [Input('input-pk', 'value'), Input("interval", "n_intervals"), Input('model-ix', 'value')])
-def load_models(pk, n, model_ix):
-    models = {j.model_index: j.status for j in Job.objects.filter(project_id=pk)}
+    [Output('interval_status', 'value'), Output('pdb-code', 'data'), Output('config', 'data'),
+     Output('protein-models', 'children'), Output('proteins', 'style'), Output('slide', 'style'), Output('slideBack', 'style')],
+    [Input('input-pk', 'value'), Input("interval", "n_intervals")], 
+     State('model-ix', 'value'))
+def load_models(pk, n, model_ix, **kwargs):
+
+    project_data = json.loads(views.project_data(kwargs['request'],pk).getvalue().decode())	#dict of keys: 'filename', 'config', 'jobs': 'index' & 'status'
+    project_data['pk'] = pk
+    models = {}
     status = 0
-    #for i in list(Job.objects.all()):
-    #    if i.project_id == pk:
-    #        models[i.model_index] = i.status
+    for i in project_data['jobs']:
+        models[i['index']] = i['status']
     n_models = len(models)
     if n_models > 1:
         buttons = []
@@ -333,7 +384,7 @@ def load_models(pk, n, model_ix):
                         dcc.Tab(label='M' + str(i), id={'type': 'dynamic-button', 'index': i}, value=i, disabled=True,
                                 style={**btn_basic, **btn_style}, selected_style={**btn_basic, **btn_selected_style},
                                 disabled_style={**btn_basic, **btn_disabled_style}))
-            return [status,
+            return [status, project_data['filename'], project_data['config'],
                     html.Div([dcc.Tabs(id='buttons', value=model_ix, children=buttons)], style={'width': '200vw'}),
                     tabs_style, btn_slider, btn_slider]
         else:
@@ -345,8 +396,10 @@ def load_models(pk, n, model_ix):
                 else:
                     status = 1
                     buttons.append({'label': 'MODEL ' + str(i), 'value': i, 'disabled': True})
-            return [status, dcc.Dropdown(id='buttons', options=buttons, value=model_ix, placeholder='Select Model',
-                                         style={'width': '20vw'}),
+
+            return [status, project_data['filename'], project_data['config'],
+                    dcc.Dropdown(id='buttons', options=buttons, value=model_ix, 
+                        placeholder='Select Model', style={'width': '20vw'}),
                     {'width': '20vw', 'vertical-align': 'middle', 'margin-left': '4.5vw'},
                     {'display': 'none'}, {'display': 'none'}]
     else:
@@ -355,9 +408,10 @@ def load_models(pk, n, model_ix):
             model_ix = ix
         else:
             status = 1
-        return [status, html.Div([html.Button('M' + str(model_ix), id='buttons', value=model_ix,
-                                              style={**btn_basic, **btn_selected_style, 'border': '1px solid gray'})],
-                                 style={'width': '20vw'}), tabs_style, {'display': 'none'}, {'display': 'none'}]
+        return [status, project_data['filename'], project_data['config'],
+                html.Div([html.Button('M' + str(model_ix), id='buttons', value=model_ix,
+                     style={**btn_basic, **btn_selected_style, 'border': '1px solid gray'})], style={'width': '20vw'}), 
+                tabs_style, {'display': 'none'}, {'display': 'none'}]
 
 
 @app.callback(Output("interval", "disabled"), [Input("interval_status", "value")])
@@ -368,99 +422,132 @@ def toggle_interval(status):
         raise PreventUpdate
 
 
-@app.expanded_callback([Output('model-ix', 'value'), Output('model-data', 'value')],
-                       [Input('buttons', 'value'), Input('input-pk', 'value')], [State('model-ix', 'value')])
-def select_model(btn, pk, ix):
-    if btn == '' or btn == ix:
-        raise PreventUpdate
-    else:
-        struct = hbonds = ''
-        if btn == 0:
-            model = Job.objects.get(project_id=pk)
-        elif btn >= 1:
-            model = Job.objects.get(project_id=pk, model_index=btn)
+@app.expanded_callback([Output('model-ix', 'value'), Output('model-data', 'data')], 
+                       [Input('buttons', 'value')], 
+                       [State('model-ix', 'value'), State('input-pk', 'value')])
+def select_model(btn, ix, pk, **kwargs):
+
+    if btn != '' and btn != ix:
+        model_data = json.loads(views.project_data_model(kwargs['request'],pk,btn).getvalue().decode())	#dict of keys: 'model_index', 'dir', 'status', 'info', 'logs', 'error'
+        matrix = struct = hbonds = ''
         try:
-            struct = model.structural_data.path
-        except ValueError:
-            pass
-        try:
-            hbonds = model.hydrogen_bonds.path
-        except ValueError:
-            pass
-        return [btn, {'protein': model.project.filename, 'matrix': model.matrix.path, 'info': model.info, 
-                      'config': model.project.config, 'struct': struct, 'hbonds': hbonds}]
-
-
-@app.expanded_callback([Output('con-intra', 'value'), Output('con-inter', 'value'), Output('contacts', 'value')],
-                       [Input('model-data', 'value')])
-def load_basic_data(model_data):
-    info = model_data['info']['labels']  # dict = {'protein-A':[['AA:200','AA:201', ...],[from:to]]}
-    matrix = np.load(model_data['matrix'])
-    options1 = {}
-    options2 = {}
-    objects = []
-    contacts = np.zeros(shape=(len(info), len(info)), dtype=int)
-
-    n = len(info)
-    for num1, i in enumerate(info):
-        objects.append(i)
-        r1 = info[i][1]  # range1
-        for num2, j in enumerate(info):
-            if num2 >= num1:
-                r2 = info[j][1]  # range2
-                mat = matrix[r1[0]:r1[1], r2[0]:r2[1]]
-                mat = mat[np.nonzero(mat)]
-                counts = 0
+            media_path = Path(model_data['dir']).parent.absolute()
+            if media_path.is_dir():
                 try:
-                    counts = len(mat[mat <= model_data['config']["contact_cutoff"]])
-                    if counts > 0:
-                        if num1 == num2:
-                            val = i + ":" + str(r1[0]) + ":" + str(r1[1]) + ":" + str(counts)
-                            options1[i] = val
-                        else:
-                            val = i + ":" + str(r1[0]) + ":" + str(r1[1]) + "|" + j + ":" + str(r2[0]) + ":" + \
-                                  str(r2[1]) + "|" + str(counts)
-                            options2[i + ":" + j] = val
-                except ValueError:
+                    s = str(media_path)+"/matrix"+str(btn)+".npy"
+                    if Path(s).is_file():
+                        matrix = s
+                except FileNotFoundError:
                     pass
-                contacts[num1][num2] = counts
-                contacts[num2][num1] = counts
-    return [options1, options2, [objects, contacts]]
+                try:
+                    s = str(media_path)+"/data"+str(btn)+".csv"
+                    if Path(s).is_file():
+                        struct = s
+                except FileNotFoundError:
+                    pass
+                try:
+                    s = str(media_path)+"/hbonds"+str(btn)+".csv"
+                    if Path(s).is_file():
+                        hbonds = s
+                except FileNotFoundError:
+                    pass
+        except FileNotFoundError:
+            pass
+
+        return [btn, {'info': model_data['info'], 'matrix': matrix, 'struct': struct, 'hbonds': hbonds}]
+    else:
+        raise PreventUpdate
 
 
-@app.expanded_callback(Output('data_1d', 'value'), [Input('model-data', 'value')])
-def calc_1d_data(model_data):
-    info = model_data['info']['labels']
-    struct = pd.DataFrame()
-    if model_data['struct'] != '':
-        struct = pd.read_csv(model_data['struct'], sep = ',', engine = 'python')
-    data_1d = {}
-    for i in info:
-        if i.startswith('protein'):
-            residues = list(j.split(':')[0] for j in info[i][0])
-            patterns = calc_patterns(residues)
-            for z in patterns:
-                data_1d[i + ':' + z] = patterns[z]
-            data_1d[i + ':SEQ entropy'] = calc_entropy(residues)
-            if not struct.empty:
-                struct_data = struct[struct.chain == i.split('-')[1]]
-                if not struct_data.empty:
-                    data_1d[i + ':II-structure'], data_1d[i + ':solvent access'] = calc_struct(info[i][0], struct_data)
-                else:
-                    data_1d[i + ':II-structure'] = ''
-                    data_1d[i + ':solvent access'] = ''
-    return data_1d
+@app.expanded_callback([Output('con-intra', 'data'), Output('con-inter', 'data'), Output('contacts', 'data')],
+                       [Input('model-ix', 'value')],
+                       [State('model-data', 'data'), State('config', 'data'), State('pdb-code', 'data'),
+                        State('con-intra', 'data'), State('con-inter', 'data'), State('contacts', 'data')])
+def load_basic_data(ix, model_data, config, pdb_code, intra, inter, contacts):
+
+    if model_data != '':
+        if len(contacts) == 3 and pdb_code+"-"+str(ix) == contacts[2]:
+            raise PreventUpdate
+        else:
+            info = model_data['info']['labels']  # dict = {'protein-A':[['AA:200','AA:201', ...],[from:to]]}
+            matrix = np.load(model_data['matrix'])
+            options1 = {}
+            options2 = {}
+            objects = []
+            contacts = np.zeros(shape=(len(info), len(info)), dtype=int)
+
+            n = len(info)
+            for num1, i in enumerate(info):
+                objects.append(i)
+                r1 = info[i][1]  # range1
+                for num2, j in enumerate(info):
+                    if num2 >= num1:
+                        r2 = info[j][1]  # range2
+                        mat = matrix[r1[0]:r1[1], r2[0]:r2[1]]
+                        mat = mat[np.nonzero(mat)]
+                        counts = 0
+                        try:
+                            counts = len(mat[mat <= config["contact_cutoff"]])
+                            if counts > 0:
+                                if num1 == num2:
+                                    val = i + ":" + str(r1[0]) + ":" + str(r1[1]) + ":" + str(counts)
+                                    options1[i] = val
+                                else:
+                                    val = i + ":" + str(r1[0]) + ":" + str(r1[1]) + "|" + j + ":" + str(r2[0]) + ":" + \
+                                          str(r2[1]) + "|" + str(counts)
+                                    options2[i + ":" + j] = val
+                        except ValueError:
+                            pass
+                        contacts[num1][num2] = counts
+                        contacts[num2][num1] = counts
+            return [options1, options2, [objects, contacts, pdb_code+"-"+str(ix)]]
+    else:
+        raise PreventUpdate
 
 
-@app.expanded_callback([Output('1dx', 'options'), Output('1dy', 'options')], [Input('data_1d', 'value'), Input('selected', 'value')])
-def disable_1d_options(data_1d, selected):
+@app.expanded_callback(Output('data_1d', 'data'), 
+                      [Input('model-ix', 'value')], 
+                      [State('model-data', 'data'), State('pdb-code', 'data'), State('data_1d', 'data')])
+def calc_1d_data(ix, model_data, pdb_code, data_prev):
+
+    if model_data != '':
+        try:
+            if data_prev != '' and pdb_code+"-"+str(ix) == data_prev['hash']:
+                raise PreventUpdate
+        except ValueError:
+            pass
+        else:
+            info = model_data['info']['labels']
+            struct = pd.DataFrame()
+            if model_data['struct'] != '':
+                struct = pd.read_csv(model_data['struct'], sep = ',', engine = 'python')
+            data_1d = {'hash': pdb_code+"-"+str(ix)}
+            for i in info:
+                if i.startswith('protein'):
+                    residues = list(j.split(':')[0] for j in info[i][0])
+                    patterns = calc_patterns(residues)
+                    for z in patterns:
+                        data_1d[i + ':' + z] = patterns[z]
+                    data_1d[i + ':SEQ entropy'] = calc_entropy(residues)
+                    if not struct.empty:
+                        struct_data = struct[struct.chain == i.split('-')[1]]
+                        if not struct_data.empty:
+                            data_1d[i + ':II-structure'], data_1d[i + ':solvent access'] = calc_struct(info[i][0], struct_data)
+                        else:
+                            data_1d[i + ':II-structure'] = ''
+                            data_1d[i + ':solvent access'] = ''
+            return data_1d
+    else:
+        raise PreventUpdate
+
+
+@app.expanded_callback([Output('1dx', 'options'), Output('1dy', 'options')], 
+                       [Input('selected', 'value')],
+                       [State('data_1d', 'data')])
+def disable_1d_options(selected, data_1d):
     opts_a = []
     opts_b = []
-    selected = selected.split('|')
-    obj_a = selected[0].split(':')[0]
-    obj_b = obj_a
-    if len(selected) > 1:
-        obj_b = selected[1].split(':')[0]
+    obj_a, obj_b = get_objects_in_contact(selected)
 
     if obj_a.startswith('protein'):
         if len(data_1d[obj_a + ':II-structure']):
@@ -483,8 +570,9 @@ def disable_1d_options(data_1d, selected):
 
 @app.callback([Output('settings', 'children'), Output('tabs', 'children')],
               [Input('tab-1', 'n_clicks'), Input('tab-2', 'n_clicks'), Input('tab-3', 'n_clicks'),
-               Input('con-intra', 'value'), Input('con-inter', 'value'), Input('selected', 'value'), Input('model-data', 'value')])
-def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inter, selected, model_data):
+               Input('con-intra', 'data'), Input('con-inter', 'data')], 
+              [State('selected', 'value'), State('model-data', 'data'), State('config', 'data')])
+def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inter, selected, model_data, config):
     tab = 'tab-1'
     ctx = dash.callback_context.triggered
     if len(ctx):
@@ -538,7 +626,7 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                         style={**drops, 'marginLeft': '0.5vw', 'width': '20vw'}),
                     html.Div([
                         html.Label('Cutoff [Å]', style=lab_style, title=title['cutoff']),
-                        dcc.Input(id="cutoff", type="number", placeholder=" default: 8Å", min=0, value=model_data['config']["contact_cutoff"], step=0.1,
+                        dcc.Input(id="cutoff", type="number", placeholder=" default: 8Å", min=0, value=config["contact_cutoff"], step=0.1,
                                   debounce=False,
                                   style=dict(height='29px', width='10vw', marginTop='6px', color='dimgrey', display='block',
                                              borderRadius='5px 5px 5px 5px', borderColor='rgba(0,0,0,0)'))],
@@ -548,13 +636,20 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                         html.Label('ColorScale', style=lab_style, title=title['color-scale']),
                         dcc.Dropdown(id='color_selected', placeholder="Select Color", clearable=False,
                                      style={'margin-top': '6px'}, optionHeight=30,
-                                     options=opt_cs, value=opt_cs[0]['value'])],
+                                     options=opt_cs, value=opt_cs[0]['value']),],
                         style={**drops, 'marginLeft': '0.5vw', 'width': '18vw',}, ),
                     html.Div([
                         html.Label('Reverse', id='check-reverse', style=lab_style, title=title['reverse-cs']),
                         dcc.Checklist(id='reverse', options=[{'label': '', 'value': '_r'}, ], value='', ), ],
                         style={'width': '22vw', 'marginTop': '3vh', 'marginLeft': '2vw', 'display': 'inline-block',
                                'vertical-align': 'top'}, ),
+                    html.Div([
+                        html.Label('Interactive structure coloring', style={**lab_style, 'margin-bottom': '2vh' }, 
+                                   title="Interactive structure coloring in the molecular visualizer (right panel)"),
+                        dcc.RadioItems(id="active_colors", options=[{'label': 'none	', 'value': '0'}, {'label': 'using contacts	', 'value': '1'},
+                                                {'label': 'using 1D features	', 'value': '2'}], value='0', 
+                                       labelStyle={**lab_style, 'font-size': '2vh', 'font-weight': '400', 'color': '#333'}), ],
+                        style={'width': '60vw', 'marginLeft': '0.5vw', 'marginTop': '1vh', 'marginBottom': '0.5vh', 'display': 'inline-block',}, ),
 
                     html.Hr(style={'border-top': '1px solid lightgray', 'margin': '0.7vw 0.5vw 0.7vw 0.5vw'}),
                     html.Label('Filter contacts:', style={**lab_style, 'display':'block', 'color': 'rgb(149, 165, 166)', 'margin-bottom': '1vh', 'margin-left':'0.5vw', 'font-size': '2vh'}, title=title['filters']),
@@ -605,10 +700,18 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                     ], style={'display': 'block'}),
 
                     html.Hr(style={'border-top': '1px solid lightgray', 'margin': '0.7vw 0.5vw 0.7vw 0.5vw'}),
-                    html.Label('Change the chart title:', style={**lab_style, 'display':'block', 'color': 'rgb(149, 165, 166)', 'margin-bottom': '1vh', 'margin-left':'0.5vw', 'font-size': '2vh'}, title=title['title']),
+                    html.Label('Change the chart title:', style={**lab_style, 'display':'block', 'color': 'rgb(149, 165, 166)', 
+                               'marginBottom': '1vh', 'margin-left':'0.5vw', 'font-size': '2vh'}, title=title['title']),
                     dcc.Input(id="map-title", type="text", placeholder="Provide new title", debounce=False, value='',
-                            style=dict(height='29px', width='40vw', margin='6px 0 1vh 0.5vw', color='dimgrey',
+                            style=dict(height='29px', width='40vw', margin='5px 0 1vh 0.5vw', color='dimgrey',
                                 borderRadius='5px 5px 5px 5px', borderColor='rgba(0,0,0,0)')),
+                    html.Label('Select image format:', style={**lab_style, 'display':'block', 'color': 'rgb(149, 165, 166)', 
+                               'marginBottom': '1vh', 'margin-left':'0.5vw', 'font-size': '2vh'}, 
+                               title="The generated image will be available to save in either vector (SVG) or raster (JPEG, PNG) graphics format. "),
+                    dcc.RadioItems(id="image-format", options=[{'label': 'SVG ', 'value': 'svg'}, {'label': 'WebP ', 'value': 'webp'},
+                                                               {'label': 'JPEG ', 'value': 'jpeg'}, {'label': 'PNG ', 'value': 'png'}], value='png', 
+                                   labelStyle={**lab_style, 'font-size': '2vh', 'font-weight': '400', 'color': '#333', 'marginBottom': '1vh'}),
+
                 ]),
             ], id='settings_map'),
 
@@ -618,12 +721,13 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
                             children=[html.Div(dcc.Graph(id='graph_map',
                                                          style={'height': '94vh', 'width': '95vw', 'margin-top': '0',
                                                                 'margin-left': '4vw'},
-                                                         config={'responsive': True,
+                                                         config={'responsive': True, 'showTips': True,
                                                                  'modeBarButtonsToAdd':['drawline', 'drawopenpath',
                                                                      'drawclosedpath', 'drawcircle', 'drawrect',
                                                                      'eraseshape', 'resetViews', 'toggleHover', 'toggleSpikelines'],
-                                                             'toImageButtonOptions': {'format': 'svg', 'width': 1400,
-                                                                     'filename': 'mapiya.svg', 'height': 1000, 'scale': 1.5}}))]),
+                                                                 'toImageButtonOptions': {'format': 'svg', 'width': 1100,
+                                                                     'filename': 'mapiya.svg', 'height': 1000, 'scale': 2}
+                                                                }), id="graph")]),
                 ], className='graph-parent'),
                 dcc.Input(id='click-map', type='hidden'),
             # return info of clicked point on the map;
@@ -640,7 +744,9 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
         raise PreventUpdate
 
 
-@app.expanded_callback([Output('feature_selected', 'options'), Output('hbonds', 'value')], Input('model-data', 'value'), State('feature_selected', 'options'))
+@app.expanded_callback([Output('feature_selected', 'options'), Output('hbonds', 'value')], 
+                        Input('model-data', 'data'), 
+                        State('feature_selected', 'options'))
 def update_filter_options(model_data, options):
     path_hb = model_data['hbonds']
     options[-1]['disabled'] = True
@@ -651,55 +757,51 @@ def update_filter_options(model_data, options):
     return [options, path_hb]
 
 
-@app.expanded_callback([Output('color_selected', 'options'), Output('color_selected', 'value'), Output('check-reverse', 'children')], Input('display_mode', 'value'))
+@app.expanded_callback([Output('color_selected', 'options'), Output('color_selected', 'value'), Output('check-reverse', 'children')], 
+                        Input('display_mode', 'value'))
 def update_cs(mode):
     if mode == 'C':
         S = html.Label('Smoth CS', style=lab_style, title=title['smoth-cs'])
-        return [[{'label': i, 'value': colors_binary[i]} for i in colors_binary], colors_binary['Silver'], S]
+        return [[{'label': i, 'value': colors_binary[i]} for i in colors_binary], colors_binary['Olive'], S]
     else:
         R = html.Label('Reverse', style=lab_style, title=title['reverse-cs'])
         return [[{'label': i, 'value': i} for i in colors], colors[0], R]
 
 
-@app.expanded_callback([Output('dashbio-circos', 'children'), Output('chains-colors', 'value')], Input('contacts', 'value'))
+@app.expanded_callback([Output('dashbio-circos', 'children'), Output('chains-colors', 'value')],
+                        Input('contacts', 'data'))
 def display_circos(data):
     if not len(data):
         raise PreventUpdate
-    labels = data[0]
-    contacts = data[1]
-    matrix = normalize_contact_counts(contacts)
-    radii_sribb = [0.3] * len(labels)
-    ideo_colors = ['rgba(186,225,255,0.9)', 'rgba(186,255,201,0.9)', 'rgba(255,255,186,0.9)',
-                   'rgba(255,223,186,0.9)', 'rgba(224,194,143,0.9)', 'rgba(255,154,130,0.9)',
-                   'rgba(255,179,186,0.9)', 'rgba(209, 135, 135,0.9)', 'rgba(184,161,177,0.9)',
-                   'rgba(211,195,181,0.9)', ]  # pink, orange, yellow, green, blue, purple, brown, gray
+    else:
+        ideo_colors = ['rgba(174,195,249,0.9)', 'rgba(200,253,144,0.9)']
+        contacts = data[1]
+        matrix = normalize_contact_counts(contacts)
+        labels = data[0]
+        n = len(labels)
+        radii_sribb = [0.3] * n
 
-    k = len(labels) / len(ideo_colors)
-    if k > 1:
-        new_colors = []
-        for i in range(int(k) + 1):
-            new_colors.extend(ideo_colors)
-        ideo_colors = new_colors
+        if n > 2:
+            ideo_colors = [ 'rgba'+str(tuple(255*np.array(hls_to_rgb(0.95 * i/(n-1), 0.8, 1)))+(0.9,)) for i in range(n) ]
 
-    chains_colors = {i:ideo_colors[n] for n, i in enumerate(labels)}
+        chains_colors = {i:ideo_colors[n] for n, i in enumerate(labels)}
+        shapes = []
+        ideograms = []
+        ribbon_info = []
 
-    shapes = []
-    ideograms = []
-    ribbon_info = []
-
-    layout = go.Layout(title='', plot_bgcolor='#FFFFFF',
+        layout = go.Layout(title='', plot_bgcolor='#FFFFFF',
                        showlegend=False, margin=dict(t=20, b=0, l=0, r=0),
                        xaxis=dict(range=[-1.4, 1.4], gridcolor='rgba(0,0,0,0)', zeroline=False, tickmode='array',
                                   tickvals=[0], ticktext=[''], scaleanchor = "y", scaleratio = 1,),
                        yaxis=dict(range=[-1.15, 1.15], gridcolor='rgba(0,0,0,0)', zeroline=False, tickmode='array',
                                   tickvals=[0], ticktext=[''], ),
                        )
-    shapes, ideograms, ribbon_info = make_shapes_and_info(matrix, contacts, labels, ideo_colors, radii_sribb)
-    layout['shapes'] = shapes
-    ideograms.extend(ribbon_info)
-    fig = go.Figure(data=ideograms, layout=layout)
+        shapes, ideograms, ribbon_info = make_shapes_and_info(matrix, contacts, labels, ideo_colors, radii_sribb)
+        layout['shapes'] = shapes
+        ideograms.extend(ribbon_info)
+        fig = go.Figure(data=ideograms, layout=layout)
 
-    return [dcc.Graph(id='graph-circos', figure=fig, config={'responsive':True}, style={'height':'78vw', 'margin-top': '0',}), json.dumps(chains_colors, indent=2)]
+        return [dcc.Graph(id='graph-circos', figure=fig, config={'responsive':True}, style={'height':'78vw', 'margin-top': '0',}), json.dumps(chains_colors, indent=2)]
 
 
 @app.expanded_callback(Output('click-data', 'value'), Input('graph-circos', 'clickData'))
@@ -718,10 +820,10 @@ def display_click_data(data):
 
 
 @app.expanded_callback([Output('tab-2', 'n_clicks'), Output('selected', 'value')],
-                       [Input('buttons', 'value'), Input('object_selected', 'value'), 
-                        Input('interaction_selected', 'value'), Input('click-data', 'value'), 
-                        Input('con-intra', 'value'), Input('con-inter', 'value')], [State('tab-2', 'n_clicks')])
-def switch_to_map_tab(btn, obj, interaction, click, intra, inter, n):
+                       [Input('buttons', 'value'), Input('click-data', 'value'),
+                        Input('object_selected', 'value'), Input('interaction_selected', 'value')],
+                       [State('con-intra', 'data'), State('con-inter', 'data'), State('tab-2', 'n_clicks')])
+def switch_to_map_tab(btn, click, obj, interaction, intra, inter, n):
     if n is None:
         n = 0
     ctx = dash.callback_context.triggered
@@ -746,7 +848,8 @@ def switch_to_map_tab(btn, obj, interaction, click, intra, inter, n):
         raise PreventUpdate
 
 
-@app.expanded_callback([Output('tab-2', 'style'), Output('intra_contact', 'style'), Output('filter_cutoff', 'disabled')], [Input('selected', 'value')], [State('tab-2', 'style')])
+@app.expanded_callback([Output('tab-2', 'style'), Output('intra_contact', 'style'), Output('filter_cutoff', 'disabled')], 
+                       [Input('selected', 'value')], [State('tab-2', 'style')])
 def disable_map_button(selected, style):
     if selected == '':
         return [{**style, 'color': '#95A5A6'}, {**lab_style, 'color': '#95A5A6'}, True]
@@ -756,7 +859,9 @@ def disable_map_button(selected, style):
         return [{**style, 'color': '#63533c'}, lab_style, False]
 
 
-@app.expanded_callback([Output('opts', 'style'), Output('opts', 'disabled'), Output('settings-dir', 'style')], [Input('tab-1', 'n_clicks'), Input('tab-2', 'n_clicks'), Input('tab-3', 'n_clicks')], [State('opts', 'style'), State('settings-dir', 'style')])
+@app.expanded_callback([Output('opts', 'style'), Output('opts', 'disabled'), Output('settings-dir', 'style')], 
+                       [Input('tab-1', 'n_clicks'), Input('tab-2', 'n_clicks'), Input('tab-3', 'n_clicks')], 
+                       [State('opts', 'style'), State('settings-dir', 'style')])
 def disable_opts_button(tab1, tab2, tab3, opts, style):
     ctx = dash.callback_context.triggered
     if len(ctx):
@@ -767,8 +872,54 @@ def disable_opts_button(tab1, tab2, tab3, opts, style):
         return [{**opts, 'color': '#63533c'}, False, {**style, 'display': 'block'}]
 
 
+@app.expanded_callback(Output('colors_1d', 'data'),
+                      [Input('1dy', 'value'), Input('1dx', 'value')],
+                      [State('selected', 'value'), State('data_1d', 'data'), State('colors_1d', 'data')])
+def prepare_colors_for_1d_params(param_y, param_x, selected, data_1d, prev_colors):
+    
+    obj_a, obj_b = get_objects_in_contact(selected)
+    param_x = param_x.replace('_n', '')
+    param_y = param_y.replace('_n', '')
+    hash_x = obj_b+":"+param_x
+    hash_y = obj_a+":"+param_y
+    mol_colors = {'x': '', 'y': ''}
+    if param_y != "none" and obj_a.startswith('protein'):
+        prev = ''
+        try:
+            prev = prev_colors['y'][0]
+        except:
+            pass
+        if prev != hash_y:
+            cs = params[param_y][0]
+            cs_a = np.array([i[0] for i in cs])
+            mol_colors['y'] = [hash_y, [cs[np.abs(cs_a - float(val)).argmin()][1] for val in data_1d[hash_y]]]
+        else:
+            try:
+                mol_colors['y'] = prev_colors['y']
+            except:
+                pass
 
-@app.expanded_callback(Output('data_Dist', 'value'), [Input('selected', 'value'), Input('model-data', 'value')])
+    if param_x != "none" and obj_b.startswith('protein'):
+        prev = ''
+        try:
+            prev = prev_colors['x'][0]
+        except:
+            pass
+        if prev != hash_x:
+            cs = params[param_x][0]
+            cs_a = np.array([i[0] for i in cs])
+            mol_colors['x'] = [hash_x, [cs[np.abs(cs_a - float(val)).argmin()][1] for val in data_1d[hash_x]]]
+        else:
+            try:
+                mol_colors['x'] = prev_colors['x']
+            except:
+                pass
+    return mol_colors
+
+
+@app.expanded_callback(Output('data_Dist', 'data'),
+                      Input('selected', 'value'),
+                      State('model-data', 'data'))
 def prepare_distance_data(selected, model_data):
     if selected == '':
         raise PreventUpdate
@@ -791,7 +942,8 @@ def prepare_distance_data(selected, model_data):
         return data_dist
 
 
-@app.expanded_callback(Output('data_Con', 'value'), [Input('cutoff', 'value'), Input('data_Dist', 'value'), Input('hbonds', 'value'),
+@app.expanded_callback(Output('data_Con', 'data'), 
+                      [Input('cutoff', 'value'), Input('data_Dist', 'data'), Input('hbonds', 'value'),
                        Input('display_mode', 'value'), Input('feature_selected', 'value'), Input('filter_cutoff', 'value')])
 def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
     distances = np.array(data_dist[0])
@@ -887,14 +1039,67 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
     return data_con
 
 
+@app.expanded_callback(Output('colors_con', 'data'),
+                      [Input('data_Con', 'data'), Input('color_selected', 'value')],
+                      [State('data_Dist', 'data'), State('display_mode', 'value'), State('cutoff', 'value')])
+def prepare_colors_for_contacts(data_con, cs_con, data_dist, mode, cutoff):
+    
+    obj_a = data_dist[3][0]
+    obj_b = data_dist[4][0]
+    residues_a = data_dist[1]
+    residues_b = data_dist[2]
+    contacts = np.array(data_con[0])
+    if mode != 'C':
+        cs_con = 'rgb(128,128,0)'
+    filtrated = cs = cs_a = ''
+    try:
+        filtrated = np.array(data_con[3])
+        cs = data_con[4][0]
+        cs_a = np.array([i[0] for i in cs])
+    except:
+        pass
+
+    is_intra = False
+    if obj_a == obj_b:
+        is_intra = True
+
+    values = {'objects' : obj_a+":"+obj_b}
+    colors = {}
+    for ni, i in enumerate(residues_a):
+        is_valid = True
+        for nj, j in enumerate(residues_b):
+            if is_intra == True and nj > ni:
+                is_valid = False
+            if contacts[ni][nj] < cutoff and is_valid == True:
+                colors[i+"-"+j] = cs_con
+                if cs != '':
+                    val = '-'
+                    try:
+                        val = float(filtrated[ni][nj])
+                    except:
+                        pass
+                    if val != '-':
+                        colors[i+"-"+j] = cs[np.abs(cs_a - val).argmin()][1]
+    values['contacts'] = colors
+    return values
+
+
+@app.expanded_callback(Output('graph', 'children'),
+                       Input('image-format', 'value'),
+                      [State('graph_map', 'figure'), State('graph_map', 'config'), State('pdb-code', 'data')])
+def change_image_format(img_format, fig, config, pdb_name, ):
+    config = {**config, 'toImageButtonOptions': {'format': img_format, 'width': 1100, 'filename': 'mapiya_'+pdb_name, 'height': 1000, 'scale': 2}}
+    return dcc.Graph(id="graph_map", figure=fig if fig else {}, config=config)
+
 
 @app.expanded_callback(Output('graph_map', 'figure'),
                        [Input('feature_selected', 'value'), Input('color_selected', 'value'), Input('reverse', 'value'),
-                        Input('1dy', 'value'), Input('1dx', 'value'), Input('data_1d', 'value'),
-                        Input('data_Dist', 'value'), Input('data_Con', 'value'), Input('model-data', 'value'),
-                        Input('feature_selected', 'value'), Input('filter', 'value'), Input('map-title', 'value')])
-def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_con, model_data, filtr, only, desc_title):
-    pdb_name = model_data['protein']
+                        Input('1dy', 'value'), Input('1dx', 'value'), Input('data_1d', 'data'),
+                        Input('data_Dist', 'data'), Input('data_Con', 'data'),
+                        Input('feature_selected', 'value'), Input('filter', 'value'), 
+                        Input('map-title', 'value')],
+                        State('pdb-code', 'data'))
+def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_con, filtr, only, desc_title, pdb_name):
     if len(pdb_name) > 10:
         pdb_name = pdb_name[:11]
 
@@ -911,18 +1116,20 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
     sc_len = 0.5
 
     if len(rv) > 0 and rv[0] == '_r':
-        if cs.startswith('#'):
+        if cs.startswith('rgb'):
             cs = [[0, cs], [0.999, '#F8F8F8'], [1, 'rgba(255,255,255, 0.0)']]
             cf = cutoff - 0.5
             sc_len = 0.12
         else:
             cs = cs + rv[0]
-    elif cs.startswith('#'):
+    elif cs.startswith('rgb'):
         cs = [[0, cs], [0.999, cs], [1, 'rgba(255,255,255, 0.0)']]
         cf = cutoff/2
         sc_len = 0.12
 
     dataset = []
+    at = 0.485
+    ay = 0.98
     ax = 0.96
     if x_val != 'none':
         ax = 0.88
@@ -932,6 +1139,8 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
     sc_x = 0.98
     sc_y = 0.98
     if y_val != 'none':
+        ay = 0.9
+        at = 0.46
         sc_x = sc_y - params[y_val][2]
     if y_val == 'composition' or x_val == 'composition':
         shift = 0.02
@@ -1037,16 +1246,16 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
         'data': dataset,
         'layout': go.Layout(
             title={'text': desc_title,
-                   'y': 0.99, 'x': 0.43,
+                   'y': 0.99, 'x': at,
                    'xanchor': 'center', 'yanchor': 'top'},
-            title_font=dict(size=16, color="gray"),
-            paper_bgcolor='rgba(0,0,0,0)',
+            title_font=dict(size=18, color="gray"),
+            paper_bgcolor='rgba(255,255,255,1)',
             autosize=True,
             hovermode='closest',
-            xaxis1=dict(tickfont=dict(size=17), title=dict(text=obj_b[0], font=dict(color="black", size=24)),
-                        automargin=True, domain=[0, 0.87], range=[-1, int(obj_b[2]) - int(obj_b[1]) + 1], tickangle=45,
+            xaxis1=dict(tickfont=dict(size=16), title=dict(text=obj_b[0], font=dict(color="black", size=24)),
+                        automargin=True, domain=[0, ay], range=[-1, int(obj_b[2]) - int(obj_b[1]) + 1], tickangle=45,
                         showline=True),
-            xaxis2=dict(tickfont=dict(size=18, color="gray"), automargin=True, domain=[0.87, 0.955], tickmode='array',
+            xaxis2=dict(tickfont=dict(size=16, color="gray"), automargin=True, domain=[0.9, 0.985], tickmode='array',
                         tickvals=[0.5], ticktext=[y_val + '-' + obj_a[0].split('-')[1]], tickangle=45),
             yaxis1=dict(tickfont=dict(size=16), title=dict(text=obj_a[0], font=dict(color="black", size=24)),
                         domain=[0, ax], range=[-0.9, int(obj_a[2]) - int(obj_a[1]) + 1], tickangle=0, showline=True,
@@ -1054,15 +1263,19 @@ def display_contact_map(feature, cs, rv, y_val, x_val, data_1d, data_dist, data_
             yaxis2=dict(tickfont=dict(size=16, color="gray"), tickmode='array', tickvals=[0.5],
                         ticktext=[x_val + '-' + obj_b[0].split('-')[1]], domain=[0.88, 0.965], showline=False,
                         automargin=True),
-            margin=dict(t=0),
+            margin=dict(t=0, l=110),
+            modebar={'bgcolor': 'rgba(52,58,64,0.9)'},
         )
     }
 
 
-@app.expanded_callback(Output('click-map', 'value'), [Input('graph_map', 'clickData'), Input('selected', 'value')])
+
+@app.expanded_callback(Output('click-map', 'value'), 
+                       Input('graph_map', 'clickData'), 
+                       State('selected', 'value'))
 def display_click_map(data, selected):
     ctx = dash.callback_context.triggered
-    if len(ctx):
+    if len(ctx) and data is not None:
         ctx = ctx[0]['prop_id'].split('.')[0]
         if ctx == 'graph_map':
             selected = selected.split('|')
@@ -1078,11 +1291,13 @@ def display_click_map(data, selected):
 
 
 
-@app.expanded_callback([Output('text-output', 'children')], [Input('model-data', 'value'), Input('selected', 'value'), Input('data_Con', 'value')])
-def load_download_section(model_data, selected, data_con):
+@app.expanded_callback([Output('text-output', 'children')], 
+                       [Input('selected', 'value')],
+                       [State('model-data', 'data'), State('data_Con', 'data'), State('config', 'data')])
+def load_download_section(selected, model_data, data_con, config):
 
-    keys = list(model_data['config'].keys())
-    cutoff = str(model_data['config'][keys[0]])
+    keys = list(config.keys())
+    cutoff = str(config[keys[0]])
     if len(data_con) == 6:
         cutoff = str(data_con[2])
     path = model_data['matrix'].split('matrix')
@@ -1109,29 +1324,29 @@ def load_download_section(model_data, selected, data_con):
             html.Table([
                 html.Tr([
                     html.Td(keys[0]+': '+cutoff, style={'width': '25vh'}),
-                    html.Td(keys[2]+': '+str(model_data['config'][keys[2]]), style={'width': '25vh'}),
-                    html.Td(keys[6]+': '+str(model_data['config'][keys[6]]), style={'width': '25vh'}),
+                    html.Td(keys[2]+': '+str(config[keys[2]]), style={'width': '25vh'}),
+                    html.Td(keys[6]+': '+str(config[keys[6]]), style={'width': '25vh'}),
                 ]),
                 html.Tr([
-                    html.Td(keys[1]+': '+str(model_data['config'][keys[1]]), style={'width': '25vh'}),
-                    html.Td(keys[3]+': '+str(model_data['config'][keys[3]]), style={'width': '25vh'}),
-                    html.Td(keys[4]+': '+str(model_data['config'][keys[4]]), style={'width': '25vh'}),
-                    html.Td(keys[5]+': '+str(model_data['config'][keys[5]]), style={'width': '25vh'}),
+                    html.Td(keys[1]+': '+str(config[keys[1]]), style={'width': '25vh'}),
+                    html.Td(keys[3]+': '+str(config[keys[3]]), style={'width': '25vh'}),
+                    html.Td(keys[4]+': '+str(config[keys[4]]), style={'width': '25vh'}),
+                    html.Td(keys[5]+': '+str(config[keys[5]]), style={'width': '25vh'}),
                 ]),
                 html.Tr([
-                    html.Td(keys[8]+': '+str(model_data['config'][keys[8]]), style={'width': '25vh'}),
-                    html.Td(keys[9]+': '+str(model_data['config'][keys[9]]), style={'width': '25vh'}),
-                    html.Td(keys[10]+': '+str(model_data['config'][keys[10]]), style={'width': '25vh'}),
-                    html.Td(keys[11]+': '+str(model_data['config'][keys[11]]), style={'width': '25vh'}),
+                    html.Td(keys[8]+': '+str(config[keys[8]]), style={'width': '25vh'}),
+                    html.Td(keys[9]+': '+str(config[keys[9]]), style={'width': '25vh'}),
+                    html.Td(keys[10]+': '+str(config[keys[10]]), style={'width': '25vh'}),
+                    html.Td(keys[11]+': '+str(config[keys[11]]), style={'width': '25vh'}),
                 ]),
                 html.Tr([
-                    html.Td(keys[12]+': '+str(model_data['config'][keys[12]]), style={'width': '25vh'}),
-                    html.Td(keys[13]+': '+str(model_data['config'][keys[13]]), style={'width': '25vh'}),
-                    html.Td(keys[14]+': '+str(model_data['config'][keys[14]]), style={'width': '25vh'}),
-                    html.Td(keys[15]+': '+str(model_data['config'][keys[15]]), style={'width': '25vh'}),
+                    html.Td(keys[12]+': '+str(config[keys[12]]), style={'width': '25vh'}),
+                    html.Td(keys[13]+': '+str(config[keys[13]]), style={'width': '25vh'}),
+                    html.Td(keys[14]+': '+str(config[keys[14]]), style={'width': '25vh'}),
+                    html.Td(keys[15]+': '+str(config[keys[15]]), style={'width': '25vh'}),
                 ]),
                 html.Tr([
-                    html.Td(keys[7]+': '+str(model_data['config'][keys[7]]), style={'width': '25vh'}),
+                    html.Td(keys[7]+': '+str(config[keys[7]]), style={'width': '25vh'}),
                 ]),
             ], style={'font-size': '2vh', 'margin-bottom': '2vh', 'color': 'gray'}),
 
@@ -1177,9 +1392,10 @@ def load_download_section(model_data, selected, data_con):
     ]
 
 
-@app.callback([Output('textarea', 'children'), Output('download-text', 'value')], [Input('display_data', 'value'),
-               Input('selected', 'value'), Input('model-data', 'value'), Input('contacts', 'value'), 
-               Input('data_Con', 'value'), Input('data_1d', 'value')])
+@app.callback([Output('textarea', 'children'), Output('download-text', 'value')], 
+              [Input('display_data', 'value')], 
+              [State('selected', 'value'), State('model-data', 'data'), 
+               State('contacts', 'data'), State('data_Con', 'data'), State('data_1d', 'data')])
 def display_the_datasets(display, selected, model_data, counts, dist, data_1d):
 
     if display == 'counts':
@@ -1274,9 +1490,11 @@ def display_the_datasets(display, selected, model_data, counts, dist, data_1d):
             return ['', ['', '']]
 
 
-@app.callback(Output("download-file", "data"), [Input("btn_fixed", "n_clicks"), Input("btn_envir", "n_clicks"),
-              Input("btn_struct", "n_clicks"), Input("btn_hbonds", "n_clicks"), Input("btn_pqr", "n_clicks"),
-              Input("btn_elec", "n_clicks"), Input('model-data', 'value')], prevent_initial_call=True)
+@app.callback(Output("download-file", "data"), 
+             [Input("btn_fixed", "n_clicks"), Input("btn_envir", "n_clicks"),
+              Input("btn_struct", "n_clicks"), Input("btn_hbonds", "n_clicks"), 
+              Input("btn_pqr", "n_clicks"), Input("btn_elec", "n_clicks")], 
+              State('model-data', 'data'), prevent_initial_call=True)
 def download_the_results(fixed, envir, struct, hbonds, pqr, elec, model_data):
 
     path = model_data['matrix']
@@ -1296,7 +1514,9 @@ def download_the_results(fixed, envir, struct, hbonds, pqr, elec, model_data):
         return dcc.send_file(path.replace('matrix', 'model').replace('npy', 'dx'))
 
 
-@app.callback(Output("download-txt", "data"), [Input("btn_display", "n_clicks"), Input("download-text", "value")], prevent_initial_call=True)
+@app.callback(Output("download-txt", "data"), 
+              Input("btn_display", "n_clicks"), 
+              State("download-text", "value"), prevent_initial_call=True)
 def download_display(display, text):
     ctx = dash.callback_context
     button = ctx.triggered[0]['prop_id'].split('.')[0]

@@ -136,9 +136,59 @@ def molstar(request, pk):
     try:
         project = models.Project.objects.get(identity=identity, pk=pk)
     except models.Project.DoesNotExist:
-        return Http404
+        raise Http404
 
     return HttpResponse(project.fixed_pdb)
+
+
+def molstar_model(request, pk, model_index):
+    identity = get_identity(request)
+    # TODO: fix the 404 error
+    try:
+        project = models.Project.objects.get(identity=identity, pk=pk)
+        job = project.job_set.filter(model_index=model_index).first()
+        if not job:
+            raise models.Project.DoesNotExist
+    except models.Project.DoesNotExist:
+        raise Http404
+
+    return HttpResponse(job.pdb)
+
+
+def get_pqr(request, pk, model_index):
+    identity = get_identity(request)
+    try:
+        project = models.Project.objects.get(identity=identity, pk=pk)
+        job = project.job_set.filter(model_index=model_index).first()
+        if not job:
+            raise models.Project.DoesNotExist
+    except models.Project.DoesNotExist:
+        raise Http404
+
+    return HttpResponse(job.pqr)
+
+
+def project_data(request, pk):
+    identity = get_identity(request)
+    try:
+        project = models.Project.objects.get(identity=identity, pk=pk)
+    except models.Project.DoesNotExist:
+        raise Http404
+
+    return JsonResponse(project.data)
+
+
+def project_data_model(request, pk, model_index):
+    identity = get_identity(request)
+    try:
+        project = models.Project.objects.get(identity=identity, pk=pk)
+        job = project.job_set.filter(model_index=model_index).first()
+        if not job:
+            raise models.Project.DoesNotExist
+    except models.Project.DoesNotExist:
+        raise Http404
+
+    return JsonResponse(job.data)
 
 
 class HelpView(generic.TemplateView):

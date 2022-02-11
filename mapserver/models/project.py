@@ -86,5 +86,16 @@ class Project(models.Model):
             pdb.append('ENDMDL\n')
         return ''.join(pdb)
 
+    @property
+    def data(self):
+        return {
+            'filename': self.filename,
+            'config': self.config,
+            'jobs': [{
+                'index': job.model_index,
+                'status': job.status
+            } for job in self.job_set.all()]
+        }
+
     def __str__(self):
         return self.filename
