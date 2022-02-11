@@ -71,7 +71,7 @@ class Job(models.Model):
     def data(self):
         return {
             'model_index': self.model_index,
-            'dir': self.project.media_dir,
+            'dir': self.project.pdb.path,
             'status': self.status,
             'info': self.info,
             'logs': self.logs,

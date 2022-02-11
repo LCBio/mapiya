@@ -89,7 +89,7 @@ class Project(models.Model):
     @property
     def data(self):
         return {
-            'info': self.info,
+            'filename': self.filename,
             'config': self.config,
             'jobs': [{
                 'index': job.model_index,
