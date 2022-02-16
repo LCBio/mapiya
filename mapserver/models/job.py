@@ -17,8 +17,6 @@ from simtk import unit
 from mollib.atom import Atoms
 from mollib.utils import DistanceMatrix
 
-from . import Project
-
 
 def compute_path(instance, filename):
     return f'{instance.project.media_dir}/{filename}'
@@ -49,7 +47,7 @@ class Job(models.Model):
         ERROR = 'E'
         FINISHED = 'F'
 
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey('Project', on_delete=models.CASCADE)
     model_index = models.SmallIntegerField()
     matrix = models.FileField(upload_to=compute_path, null=True, blank=True)
     pdb = models.FileField(upload_to=compute_path, null=True, blank=True)

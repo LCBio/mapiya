@@ -1,13 +1,14 @@
-import json
-import io
-
 from django.utils.functional import cached_property
 from django.utils.crypto import get_random_string
+from django.utils.html import format_html
 from django.db import models
 from django.urls import reverse
+import django_rq
 
 from mollib.atom import Atoms
 from users.models import Identity
+
+from .job import Job
 
 
 def pdb_path(instance, filename):
@@ -26,6 +27,13 @@ def get_map_id():
 
 class Project(models.Model):
 
+    class StatusChoices(models.TextChoices):
+
+        CREATED = 'C'
+        PROCESSING = 'P'
+        ERROR = 'E'
+        FINISHED = 'F'
+
     ID_LENGTH = 12
 
     # TODO: Add pdb file validation
@@ -36,6 +44,9 @@ class Project(models.Model):
     pdb = models.FileField(upload_to=pdb_path)
     info = models.JSONField(null=True, blank=True)
     config = models.JSONField(null=True, blank=True)
+    status = models.CharField(max_length=1, choices=StatusChoices.choices, default=StatusChoices.CREATED)
+    date_init = models.DateTimeField(auto_now_add=True)
+    error_msg = models.CharField(max_length=255, blank=True, null=True)
 
     @property
     def media_dir(self):
@@ -56,16 +67,6 @@ class Project(models.Model):
                     else:
                         head.append(line)
         return ''.join(head), ''.join(tail)
-
-    @property
-    def progress(self):
-        total = self.job_set.count()
-        incomplete = self.job_set.exclude(status='F').count()
-        return total - incomplete, total
-
-    @property
-    def error(self):
-        return self.job_set.filter(status='E').count() > 0
 
     def get_absolute_url(self):
         return reverse('project-detail', args=[self.id])
@@ -95,6 +96,84 @@ class Project(models.Model):
                 'index': job.model_index,
                 'status': job.status
             } for job in self.job_set.all()]
+        }
+
+    def create_jobs(self):
+        for model_index in self.atoms.models:
+            job = Job.objects.create(
+                project=self,
+                model_index=model_index if model_index else 0,
+                status='Q'
+            )
+            django_rq.enqueue(job.run)
+        self.status = 'P'
+        self.save(update_fields=['status'])
+
+    @property
+    def progress(self):
+        active_link = f'<a href={self.get_absolute_url()}>{self.filename}</a>'
+        disabled_link = f'<span class="text-danger temp-label">{self.filename}</span>'
+        total_models = self.info.get('models', 0)
+        verbose = 'models' if total_models > 1 else 'model'
+
+        error_msg = '<small class="text-danger">{}</small>'
+        success_msg = f'<small class="text-success">{total_models} {verbose} ready!</small>'
+
+        init_msg = f'''
+            <small class="text-primary progress-label" data-pk="{self.pk}">
+                <span>Creating {total_models} {verbose} </span>
+                <span class="spinner-grow spinner-grow-sm"></span>
+            </small>
+        '''
+        progress_msg = '''
+            <small class="text-info progress-label" data-pk="{}">
+                <span>Processing models {}/{} </span>
+                <span class="spinner-grow spinner-grow-sm"></span>
+            </small>
+        '''
+
+        completed = True
+
+        if self.status == 'F':
+            link = active_link
+            msg = success_msg
+
+        elif self.status == 'E':
+            link = disabled_link
+            msg = error_msg.format(self.error_msg)
+
+        elif self.status == 'C':
+            link = disabled_link
+            msg = init_msg
+            completed = False
+
+        else:
+            error_jobs = self.job_set.filter(status='E')
+            errors = error_jobs.count()
+            if errors:
+                self.error_msg = ' '.join(error_jobs.values('error'))
+                self.status = 'E'
+                self.save(update_fields=['status', 'error_msg'])
+                return self.progress
+            else:
+                complete = self.job_set.filter(status='F').count()
+
+                if complete and complete == total_models:
+                    self.status = 'F'
+                    self.save(update_fields=['status'])
+                    return self.progress
+
+                link = active_link if complete else disabled_link
+                msg = progress_msg.format(
+                    self.pk,
+                    complete,
+                    total_models
+                )
+                completed = False
+        return {
+            'link': format_html(link),
+            'msg': format_html(msg),
+            'completed': completed
         }
 
     def __str__(self):

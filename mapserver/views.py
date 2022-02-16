@@ -1,5 +1,3 @@
-import json
-
 from django.shortcuts import redirect
 from django.http import JsonResponse, HttpResponse, Http404
 from django.urls import reverse_lazy
@@ -71,12 +69,9 @@ def project_status(request, pk):
     identity = get_identity(request)
     try:
         project = identity.project_set.get(pk=pk)
-        if project.error:
-            raise models.Project.DoesNotExist
-        content = {'progress': json.dumps(project.progress)}
+        return JsonResponse(project.progress)
     except models.Project.DoesNotExist:
-        content = {'error': 'Error'}
-    return JsonResponse(content)
+        return JsonResponse({'error': 'Project does not exist'})
 
 
 class RCSB(generic.FormView):
