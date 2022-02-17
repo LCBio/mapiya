@@ -53,24 +53,11 @@ class ProjectTable(RowNumberTable):
 
     @staticmethod
     def render_filename(record):
-        complete, total = record.progress
-        html = f'<a href={record.get_absolute_url()}>{record.filename}</a>' if complete else \
-            f'<span class="text-danger temp-label">{record.filename}</span>'
-        return format_html(html)
+        return record.progress.get('link', 'ERROR')
 
     @staticmethod
     def render_progress(record):
-        complete, total = record.progress
-        verbose = 'models' if total > 1 else 'model'
-        html = f'<small class="text-success">{total} {verbose} ready!</small>' \
-            if complete == total else \
-            f'''
-                <small class="text-danger progress-label" data-pk="{record.pk}">
-                    Processing models <span class="complete-entry">{complete}</span>/{total}
-                    <span class="spinner-grow spinner-grow-sm text-danger"></span>
-                </small>
-            '''
-        return format_html(html)
+        return record.progress.get('msg', 'ERROR')
 
     @staticmethod
     def render_buttons(value):

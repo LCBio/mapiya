@@ -52,43 +52,19 @@ let initOptionsForm = function () {
 };
 
 // Files table
-let updateLabel = function ($label, complete, total) {
-    if (complete < total) {
-        $label.find('span.complete-entry').html(`${complete}`);
-    } else {
-        let verbose = total > 1 ? 'models' : 'model';
-        $label.replaceWith(`<small class="text-success">${total} ${verbose} ready!</small>`);
-    }
-};
-
-let updateLink = function ($row, pk) {
-    let $tempLabel = $row.find('.temp-label');
-    if ($tempLabel.length > 0) {
-        let link_txt = $tempLabel.html();
-        let link_html = `<a href="/project/${pk}/">${link_txt}</a>`;
-        $tempLabel.replaceWith(link_html);
-    }
-};
-
 let updateRow = function ($label) {
     let pk = $label.data('pk');
-    let $row = $label.parents('tr');
+    let $link = $label.parents('tr').find('.temp-label');
     $.ajax({
         url: `/project/${pk}/status/`,
         success: function (data) {
             if (data.error) {
-                $label.replaceWith('<small class="text-danger font-weight-bold">ERROR!</small>');
+                $label.replaceWith(`<small class="text-danger font-weight-bold">$(data.error)</small>`);
             } else {
-                let progress = JSON.parse(data.progress);
-                if (progress[0] > 0) {
-                    updateLink($row, pk);
-                    updateLabel($label, progress[0], progress[1]);
-                    if (progress[0] < progress[1]) {
-                        setTimeout(updateRow, 1000, $label);
-                    }
-                } else {
-                    setTimeout(updateRow, 1000, $label);
-                }
+                let newLabel = $(data.msg);
+                $label.replaceWith(newLabel);
+                $link.replaceWith(data.link);
+                if (! data.completed) setTimeout(updateRow, 1000, newLabel);
             }
         }
     });
