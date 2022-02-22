@@ -65,6 +65,16 @@ class Delete(generic.DeleteView):
     success_url = reverse_lazy('home')
 
 
+def resubmit(request, pk):
+    identity = get_identity(request)
+    try:
+        project = identity.project_set.get(pk=pk)
+        project.resubmit_jobs()
+        return JsonResponse({'error': 'Project resubmitted'})
+    except models.Project.DoesNotExist:
+        return JsonResponse({'error': 'Project does not exist'})
+
+
 def project_status(request, pk):
     identity = get_identity(request)
     try:
