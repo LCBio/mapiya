@@ -69,18 +69,18 @@ function initMolStarViewer(viewport_id, project_id)
     return viewerInstance;
 };
 
-function UpdateChainColourPairs(viewerInstance)
+function UpdateChainColourPairs(viewerInstance, applyColours = true)
 {
-    var colors_plotly = sessionStorage.getItem("chains-colors");
+    var colours_plotly = sessionStorage.getItem("chains-colors");
     if(sessionStorage.getItem("chains-colors") === null )
     {
-        colors_plotly = sessionStorage.getItem("chains-colors-previous");
+        colours_plotly = sessionStorage.getItem("chains-colours-previous");
     }
     else
     {
-        sessionStorage.setItem("chains-colors-previous", sessionStorage.getItem("chains-colors"));
+        sessionStorage.setItem("chains-colours-previous", sessionStorage.getItem("chains-colors"));
     };
-    var chains_colors = JSON.parse(colors_plotly);
+    var chains_colors = JSON.parse(colours_plotly);
     var selections = [];
     for (var k in chains_colors)
     {
@@ -103,11 +103,14 @@ function UpdateChainColourPairs(viewerInstance)
             }
         );
     };
-    viewerInstance.plugin.managers.camera.reset();
-    viewerInstance.visual.select(
+    if(applyColours)
     {
-        data: selections
-    });
+        viewerInstance.plugin.managers.camera.reset();
+        viewerInstance.visual.select(
+        {
+            data: selections
+        });
+    };
     sessionStorage.removeItem("chains-colors");
     return selections;
 };
@@ -123,7 +126,7 @@ function HighlightClickMapData(viewerInstance)
         {
             struct_asym_id: res1[0],
             start_residue_number: res1[2],
-            end_residue_number: ++(res1[2]),
+            end_residue_number: parseInt(res1[2])+1,
             color:
             {
                 r: 0,
@@ -136,7 +139,7 @@ function HighlightClickMapData(viewerInstance)
         {
             struct_asym_id: res2[0],
             start_residue_number: res2[2],
-            end_residue_number: ++(res2[2]),
+            end_residue_number: parseInt(res2[2])+1,
             color:
             {
                 r: 255,
@@ -150,7 +153,13 @@ function HighlightClickMapData(viewerInstance)
     viewerInstance.plugin.managers.camera.reset();
     viewerInstance.visual.select(
     {
-        data: selectSections
+        data: selectSections,
+        nonSelectedColor:
+            {
+                r:255,
+                g:255,
+                b:255
+            }
     });
     sessionStorage.removeItem("click-map");
     return selectSections;
@@ -272,16 +281,20 @@ async function add_representations(viewerInstance, type, alpha)
     UpdateChainColourPairs(viewerInstance);
 };
 
-function UpdateColours1D(viewerInstance)
+function UpdateColours1D(viewerInstance, applyColours = true)
 {
-    if(!(sessionStorage.getItem("active-colors") == 2)) return[];
-    if(sessionStorage.getItem("colors_1d") === null ) return [];
+    if(sessionStorage.getItem("colors_1d") === null )
+    {
+        UpdateChainColourPairs(viewerInstance);
+        return [];
+    }
     var colours_1d = JSON.parse(sessionStorage.getItem("colors_1d"));
     var x = colours_1d.x;
     var y = colours_1d.y;
+    var selections_x = [];
+    var selections_y = [];
     if(!(x == ""))
     {
-        var selections_x = [];
         var chain_x = x[0].split("-")[1].split(':')[0];
         var entity_id_x = viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data.models[0].properties.structAsymMap.get(chain_x).entity_id;
         var residue_numbers = Array.from(viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data._props.models[0].sequence.sequences[entity_id_x-1].sequence.indexMap.keys());
@@ -294,7 +307,7 @@ function UpdateColours1D(viewerInstance)
                 {
                     struct_asym_id: chain_x,
                     start_residue_number: current_resnum,
-                    end_residue_number: current_resnum+1,
+                    end_residue_number: parseInt(current_resnum)+1,
                     color:
                     {
                         r: rgb[0],
@@ -306,16 +319,9 @@ function UpdateColours1D(viewerInstance)
                 }
             );
         };
-        viewerInstance.plugin.managers.camera.reset();
-        viewerInstance.visual.select(
-        {
-            data: selections_x
-        }
-        );
     };
     if(!(y == ""))
     {
-        var selections_y = [];
         var chain_y = y[0].split("-")[1].split(':')[0];
         var entity_id_y = viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data.models[0].properties.structAsymMap.get(chain_y).entity_id;
         var residue_numbers = Array.from(viewerInstance.plugin.managers.structure.hierarchy.current.models[0].structures[0].cell.obj.data._props.models[0].sequence.sequences[entity_id_y-1].sequence.indexMap.keys());
@@ -328,7 +334,7 @@ function UpdateColours1D(viewerInstance)
                 {
                     struct_asym_id: chain_y,
                     start_residue_number: current_resnum,
-                    end_residue_number: current_resnum+1,
+                    end_residue_number: parseInt(current_resnum)+1,
                     color:
                     {
                         r: rgb[0],
@@ -340,17 +346,28 @@ function UpdateColours1D(viewerInstance)
                 }
             );
         };
+        
+    };
+    var selections = selections_x.concat(selections_y);
+    if( (!(selections === null)) && applyColours)
+    {
         viewerInstance.plugin.managers.camera.reset();
         viewerInstance.visual.select(
         {
-            data: selections_y
+            data: selections,
+            nonSelectedColor:
+            {
+                r:255,
+                g:255,
+                b:255
+            }
         }
         );
     };
-    sessionStorage.removeItem("colors_1d");
+    return selections;
 };
 
-function UpdateColoursContact(viewerInstance)
+function UpdateColoursContact(viewerInstance, applyColours = true)
 {
     if(!(sessionStorage.getItem("active-colors") == 1)) return[];
     if(sessionStorage.getItem("colors_con") === null ) return [];
@@ -369,7 +386,7 @@ function UpdateColoursContact(viewerInstance)
         {
             struct_asym_id: chain1,
             start_residue_number: res_data[0].split(':')[1],
-            end_residue_number: (res_data[0].split(':')[1])+1,
+            end_residue_number: parseInt(res_data[0].split(':')[1])+1,
             color:
             {
                 r: rgb[0],
@@ -382,7 +399,7 @@ function UpdateColoursContact(viewerInstance)
         {
             struct_asym_id: chain2,
             start_residue_number: res_data[1].split(':')[1],
-            end_residue_number: (res_data[1].split(':')[1])+1,
+            end_residue_number: parseInt(res_data[1].split(':')[1])+1,
             color:
             {
                 r: rgb[0],
@@ -394,18 +411,21 @@ function UpdateColoursContact(viewerInstance)
         }
         );
     };
-    viewerInstance.plugin.managers.camera.reset();
-    viewerInstance.visual.select(
+    if(applyColours)
     {
-        data: selections,
-        nonSelectedColor:
+        viewerInstance.plugin.managers.camera.reset();
+        viewerInstance.visual.select(
         {
-            r:255,
-            g:255,
-            b:255
-        }
-    });
-    sessionStorage.removeItem("colors_con");
+            data: selections,
+            nonSelectedColor:
+            {
+                r:255,
+                g:255,
+                b:255
+            }
+        });
+    };
+    return selections;
 };
 
 function process_events(viewerInstance,project_id)
@@ -418,22 +438,50 @@ function process_events(viewerInstance,project_id)
     );
     window.addEventListener('storage', e =>
     {
-        if(e.key === 'colors_1d' || e.key === 'active-colors')
+        var active_colours = parseInt(sessionStorage.getItem("active-colors"));
+        switch (e.key)
         {
-            UpdateColours1D(viewerInstance);
-        }
-        if(e.key === 'model-ix')
-        {
-            LoadCurrentModel(project_id,viewerInstance);
-        }
-        if(e.key === 'click-map')
-        {
-            HighlightClickMapData(viewerInstance);
-        }
-        if(e.key === 'colors_con' || e.key === 'active-colors')
-        {
-            UpdateColoursContact(viewerInstance);
-        }
+            case 'model-ix' :
+                LoadCurrentModel(project_id,viewerInstance);
+                break;
+            case 'click-map' :
+                HighlightClickMapData(viewerInstance);
+                break;
+            case 'active-colors':
+                switch(active_colours)
+                {
+                    case 0:
+                        UpdateChainColourPairs(viewerInstance);
+                        break;
+                    case 1:
+                        UpdateColoursContact(viewerInstance);
+                        break;
+                    case 2:
+                        UpdateColours1D(viewerInstance);
+                        break;
+                    default:
+                        UpdateColoursContact(viewerInstance);
+                        break;
+                };
+                break;
+            case 'colors_con':
+                switch(active_colours)
+                {
+                    case 1:
+                        UpdateColoursContact(viewerInstance);
+                        break;
+                };
+                break;
+            case 'colors_1d':
+                switch(active_colours)
+                {
+                    case 2:
+                        UpdateColours1D(viewerInstance);
+                        break;
+                };
+                break;
+            
+        };
     }
     );
 };
@@ -452,4 +500,4 @@ function resetColours(viewerInstance)
         }
     }
     );
-}
+};
