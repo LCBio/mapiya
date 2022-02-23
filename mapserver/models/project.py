@@ -99,8 +99,8 @@ class Project(models.Model):
         }
 
     def cleanup(self):
-        self.info = {}
-        self.config = {}
+        self.job_set.all().delete()
+        self.config = self.identity.config
         self.error_msg = None
         self.status = self.StatusChoices.PROCESSING
         self.save()
@@ -118,7 +118,7 @@ class Project(models.Model):
 
     def resubmit_jobs(self):
         self.cleanup()
-        self.create_jobs()
+        django_rq.enqueue(self.create_jobs)
 
     @property
     def progress(self):

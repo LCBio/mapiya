@@ -70,7 +70,7 @@ def resubmit(request, pk):
     try:
         project = identity.project_set.get(pk=pk)
         project.resubmit_jobs()
-        return JsonResponse({'error': 'Project resubmitted'})
+        return redirect('home')
     except models.Project.DoesNotExist:
         return JsonResponse({'error': 'Project does not exist'})
 
