@@ -107,16 +107,6 @@ class Job(models.Model):
             stream.seek(0)
             fixer = PDBFixer(pdbfile=stream)
 
-        # Remove heterogens
-        if config['keep_heterogens'] == 'water':
-            fixer.removeHeterogens(keepWater=True)
-            logger.info('Removed heterogens except water')
-        elif config['keep_heterogens'] == 'none':
-            fixer.removeHeterogens(keepWater=False)
-            logger.info('Removed all heterogens including water')
-        else:
-            logger.info('Kept all heterogens including water')
-
         # Apply mutations
         if config['apply_mutations']:
             mutations = collections.defaultdict(list)
@@ -141,6 +131,16 @@ class Job(models.Model):
             logger.info(f'Replaced non-standard residues: {fixer.nonstandardResidues}')
         else:
             logging.info(f'Non-standard residues were NOT replaced: {fixer.nonstandardResidues}')
+
+        # Remove heterogens
+        if config['keep_heterogens'] == 'water':
+            fixer.removeHeterogens(keepWater=True)
+            logger.info('Removed heterogens except water')
+        elif config['keep_heterogens'] == 'none':
+            fixer.removeHeterogens(keepWater=False)
+            logger.info('Removed all heterogens including water')
+        else:
+            logger.info('Kept all heterogens including water')
 
         # Rebuild missing residues, the residues actually get added when you call addMissingAtoms()
         fixer.findMissingResidues()
