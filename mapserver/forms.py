@@ -83,8 +83,9 @@ class OptionsForm(forms.Form):
         'box_dimensions': '5, 5, 5',
         'lipid_type': 'POPC',
         'membrane_position': '0, 1',
-        'hydrogen_bonds': False,
-        'secondary_structure': False
+        'hydrogen_bonds': True,
+        'secondary_structure': True,
+        'electrostatics': True,
     }
 
     contact_cutoff = forms.FloatField(

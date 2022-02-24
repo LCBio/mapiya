@@ -79,7 +79,7 @@ cs_phobic = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(50
 cs_amphi = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(180,0,180)'], [1, 'rgb(180,0,180)']]
 cs_philic = [[0, 'rgb(255,255,255)'], [0.5, 'rgb(255,255,255)'], [0.501, 'rgb(255,85,85)'], [1, 'rgb(255,85,85)']]
 cs_charge = [[0, 'rgb(255,255,255)'], [0.33, 'rgb(255,255,255)'], [0.331, 'rgb(215,0,0)'], [0.66, 'rgb(215,0,0)'], [0.661, 'rgb(0,0,105)'], [1, 'rgb(0,0,105)']]
-cs_sulfur = [[0, 'rgb(255,255,255)'], [0.33, 'rgb(255,255,255)'], [0.331, 'rgb(0,190,0)'], [0.66, 'rgb(0,190,0)'], [0.661, 'rgb(0,240,170)'], [1, 'rgb(0,240,170)']]
+cs_sulfur = [[0, 'rgb(255,255,255)'], [0.33, 'rgb(255,255,255)'], [0.331, 'rgb(0,240,170)'], [0.66, 'rgb(0,240,170)'], [0.661, 'rgb(0,190,0)'], [1, 'rgb(0,190,0)']]
 cs_rdbu = [[0, "rgb(103,0,31)"], [0.1, "rgb(178,24,43)"], [0.2, "rgb(214,36,77)"], [0.3, "rgb(244,165,130)"],
            [0.4, "rgb(253,219,199)"], [0.5, "rgb(247,247,247)"], [0.6, "rgb(209,229,240)"],
            [0.7, "rgb(146,197,222)"], [0.8, "rgb(67,147,195)"], [0.9, "rgb(33,102,172)"], [1, "rgb(5,48,97)"]]
@@ -174,7 +174,7 @@ params = {'composition': [cs_seq, 'SEQUENCE', 0.45, [0.02, 0.07, 0.12, 0.17, 0.2
           'nonpolar': [cs_npolar, 'NONPOLAR', 0.12, [0.25, 0.75], ['NO', 'YES']],
           'aromatic': [cs_aromatic, 'AROMATIC', 0.12, [0.25, 0.75], ['NO', 'YES']],
           'π-bond': [cs_pi, 'non-aromatic<br>π-BOND', 0.15, [0.25, 0.75], ['NO', 'YES']],
-          'sulfur': [cs_sulfur, 'SULFUR', 0.15, [0.17, 0.5, 0.83], ['NO', 'CYS', 'MET']],
+          'sulfur': [cs_sulfur, 'SULFUR', 0.15, [0.17, 0.5, 0.83], ['NO', 'MET', 'CYS']],
           'H-Bond donor': [cs_hdonor, 'H-BOND DONOR', 0.12, [0.25, 0.75], ['NO', 'YES']],
           'H-Bond acceptor': [cs_haccep, 'H-BOND ACCEPTOR', 0.12, [0.25, 0.75], ['NO', 'YES']],
           'SEQ entropy': [cs_gnbu, 'ENTROPY', 0.15, [], []],
@@ -531,11 +531,10 @@ def calc_1d_data(ix, model_data, pdb_code, data_prev):
                     data_1d[i + ':SEQ entropy'] = calc_entropy(residues)
                     if not struct.empty:
                         struct_data = struct[struct.chain == i.split('-')[1]]
-                        if not struct_data.empty:
-                            data_1d[i + ':II-structure'], data_1d[i + ':solvent access'] = calc_struct(info[i][0], struct_data)
-                        else:
-                            data_1d[i + ':II-structure'] = ''
-                            data_1d[i + ':solvent access'] = ''
+                        data_1d[i + ':II-structure'], data_1d[i + ':solvent access'] = calc_struct(info[i][0], struct_data)
+                    else:
+                        data_1d[i + ':II-structure'] = ''
+                        data_1d[i + ':solvent access'] = ''
             return data_1d
     else:
         raise PreventUpdate
@@ -744,6 +743,7 @@ def identify_objects_in_contact_and_render_content(tab1, tab2, tab3, intra, inte
         raise PreventUpdate
 
 
+
 @app.expanded_callback([Output('feature_selected', 'options'), Output('hbonds', 'value')], 
                         Input('model-data', 'data'), 
                         State('feature_selected', 'options'))
@@ -883,6 +883,7 @@ def prepare_colors_for_1d_params(param_y, param_x, selected, data_1d, prev_color
     hash_x = obj_b+":"+param_x
     hash_y = obj_a+":"+param_y
     mol_colors = {'x': '', 'y': ''}
+    max_v = 1
     if param_y != "none" and obj_a.startswith('protein'):
         prev = ''
         try:
@@ -892,7 +893,9 @@ def prepare_colors_for_1d_params(param_y, param_x, selected, data_1d, prev_color
         if prev != hash_y:
             cs = params[param_y][0]
             cs_a = np.array([i[0] for i in cs])
-            mol_colors['y'] = [hash_y, [cs[np.abs(cs_a - float(val)).argmin()][1] for val in data_1d[hash_y]]]
+            if param_y == 'SEQ entropy':
+                max_v = max(list(map(float, data_1d[hash_y])))
+            mol_colors['y'] = [hash_y, [cs[np.abs(cs_a - (float(val)/max_v)).argmin()][1] for val in data_1d[hash_y]]]
         else:
             try:
                 mol_colors['y'] = prev_colors['y']
@@ -908,6 +911,8 @@ def prepare_colors_for_1d_params(param_y, param_x, selected, data_1d, prev_color
         if prev != hash_x:
             cs = params[param_x][0]
             cs_a = np.array([i[0] for i in cs])
+            if param_x == 'SEQ entropy':
+                max_v = max(list(map(float, data_1d[hash_x])))
             mol_colors['x'] = [hash_x, [cs[np.abs(cs_a - float(val)).argmin()][1] for val in data_1d[hash_x]]]
         else:
             try:
@@ -969,7 +974,6 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
 
     if feature == 'hydrogen bonds':
         hbonds = pd.read_csv(hbonds, sep = ',', engine = 'python')
-#        if data_dist[3][0].startswith('protein') and data_dist[4][0].startswith('protein'):
         if obj_a_type == 'protein' and obj_b_type == 'protein':
             donor = data_dist[3][0].split('-')[1]
             accep = data_dist[4][0].split('-')[1]
@@ -1041,16 +1045,16 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
 
 @app.expanded_callback(Output('colors_con', 'data'),
                       [Input('data_Con', 'data'), Input('color_selected', 'value')],
-                      [State('data_Dist', 'data'), State('display_mode', 'value'), State('cutoff', 'value')])
-def prepare_colors_for_contacts(data_con, cs_con, data_dist, mode, cutoff):
+                      [State('data_Dist', 'data'), State('display_mode', 'value'), State('cutoff', 'value'), State('colors_con', 'data')])
+def prepare_colors_for_contacts(data_con, cs_con, data_dist, mode, cutoff, con_colors):
     
+    if mode != 'C':
+        cs_con = 'rgb(128,128,0)'
     obj_a = data_dist[3][0]
     obj_b = data_dist[4][0]
     residues_a = data_dist[1]
     residues_b = data_dist[2]
     contacts = np.array(data_con[0])
-    if mode != 'C':
-        cs_con = 'rgb(128,128,0)'
     filtrated = cs = cs_a = ''
     try:
         filtrated = np.array(data_con[3])
@@ -1068,10 +1072,9 @@ def prepare_colors_for_contacts(data_con, cs_con, data_dist, mode, cutoff):
     for ni, i in enumerate(residues_a):
         is_valid = True
         for nj, j in enumerate(residues_b):
-            if is_intra == True and nj > ni:
+            if is_intra == True and nj < ni:
                 is_valid = False
             if contacts[ni][nj] < cutoff and is_valid == True:
-                colors[i+"-"+j] = cs_con
                 if cs != '':
                     val = '-'
                     try:
@@ -1080,6 +1083,8 @@ def prepare_colors_for_contacts(data_con, cs_con, data_dist, mode, cutoff):
                         pass
                     if val != '-':
                         colors[i+"-"+j] = cs[np.abs(cs_a - val).argmin()][1]
+                else:
+                    colors[i+"-"+j] = cs_con
     values['contacts'] = colors
     return values
 

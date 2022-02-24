@@ -402,8 +402,16 @@ class Job(models.Model):
         self.run_pdbfixer()
         self.save()
         self.compute_matrix()
-        #self.run_edhb()
-        #self.run_apbs()
-        #self.run_stride()
+
+        if self.project.config['hydrogen_bonds']:
+            print('hb')
+            self.run_edhb()
+        if self.project.config['electrostatics']:
+            print('apbs')
+            self.run_apbs()
+        if self.project.config['secondary_structure']:
+            print('ss')
+            self.run_stride()
+
         self.status = 'F'
         self.save()
