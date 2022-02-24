@@ -5,7 +5,7 @@ from django.views import generic
 from django.core.files import File
 from django_tables2 import SingleTableView
 
-from . import models, forms, tables
+from . import models, forms, tables, utils
 from users.views import get_identity
 from mollib import atom
 
@@ -31,15 +31,22 @@ class Home(SingleTableView):
     def post(self, request, *args, **kwargs):
         identity = get_identity(self.request)
         for file_id in request.FILES:
-            models.Project.objects.create(
-                identity=identity,
-                pdb=File(
-                    file=request.FILES[file_id].file,
-                    name=request.FILES[file_id].name
-                ),
-                config=identity.config,
-                filename=request.FILES[file_id].name
-            )
+            if utils.validate(request, file_id):
+                models.Project.objects.create(
+                    identity=identity,
+                    pdb=File(
+                        file=request.FILES[file_id].file,
+                        name=request.FILES[file_id].name
+                    ),
+                    config=identity.config,
+                    filename=request.FILES[file_id].name
+                )
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'table': table.as_html(request)
+                })
+
         table = self.get_table()
         return JsonResponse({
             'success': True,
