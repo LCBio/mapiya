@@ -199,7 +199,7 @@ def get_objects_in_contact(selected):
 
 ####--- PLOTLY APP BELOW ---####
 
-app = DjangoDash('ContactMap')
+app = DjangoDash('ContactMap', suppress_callback_exceptions=True)
 app.css.append_css({'external_url': '/static/css/app.css'})
 
 app.layout = html.Div([
@@ -1045,8 +1045,8 @@ def prepare_contact_data(cutoff, data_dist, hbonds, mode, feature, intra_n):
 
 @app.expanded_callback(Output('colors_con', 'data'),
                       [Input('data_Con', 'data'), Input('color_selected', 'value')],
-                      [State('data_Dist', 'data'), State('display_mode', 'value'), State('cutoff', 'value'), State('colors_con', 'data')])
-def prepare_colors_for_contacts(data_con, cs_con, data_dist, mode, cutoff, con_colors):
+                      [State('data_Dist', 'data'), State('display_mode', 'value'), State('cutoff', 'value')])
+def prepare_colors_for_contacts(data_con, cs_con, data_dist, mode, cutoff):
     
     if mode != 'C':
         cs_con = 'rgb(128,128,0)'
@@ -1070,11 +1070,8 @@ def prepare_colors_for_contacts(data_con, cs_con, data_dist, mode, cutoff, con_c
     values = {'objects' : obj_a+":"+obj_b}
     colors = {}
     for ni, i in enumerate(residues_a):
-        is_valid = True
         for nj, j in enumerate(residues_b):
-            if is_intra == True and nj < ni:
-                is_valid = False
-            if contacts[ni][nj] < cutoff and is_valid == True:
+            if contacts[ni][nj] < cutoff:
                 if cs != '':
                     val = '-'
                     try:

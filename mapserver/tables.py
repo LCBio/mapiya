@@ -46,7 +46,7 @@ class ProjectTable(RowNumberTable):
         orderable=False,
         accessor='pk',
         attrs={
-            'td': {'class': 'text-center'},
+            'td': {'class': 'text-center buttons'},
             'th': {'class': 'text-center'}
         }
     )
@@ -60,10 +60,5 @@ class ProjectTable(RowNumberTable):
         return record.progress.get('msg', 'ERROR')
 
     @staticmethod
-    def render_buttons(value):
-        return format_html(f'''
-            <a href="{reverse('project-delete', args=[value])}" data-toggle="modal" data-target="#modal"
-               class="text-danger" title="Delete file">
-                <i class="fa fa-sm fa-trash-alt"></i>
-            </a>
-        ''')
+    def render_buttons(record):
+        return record.progress.get('buttons', 'ERROR')

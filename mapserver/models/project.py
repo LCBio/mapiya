@@ -2,7 +2,7 @@ from django.utils.functional import cached_property
 from django.utils.crypto import get_random_string
 from django.utils.html import format_html
 from django.db import models
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 import django_rq
 
 from mollib.atom import Atoms
@@ -98,6 +98,13 @@ class Project(models.Model):
             } for job in self.job_set.all()]
         }
 
+    def cleanup(self):
+        self.job_set.all().delete()
+        self.config = self.identity.config
+        self.error_msg = None
+        self.status = self.StatusChoices.PROCESSING
+        self.save()
+
     def create_jobs(self):
         for model_index in self.atoms.models:
             job = Job.objects.create(
@@ -108,6 +115,10 @@ class Project(models.Model):
             django_rq.enqueue(job.run)
         self.status = 'P'
         self.save(update_fields=['status'])
+
+    def resubmit_jobs(self):
+        self.cleanup()
+        django_rq.enqueue(self.create_jobs)
 
     @property
     def progress(self):
@@ -131,12 +142,23 @@ class Project(models.Model):
                 <span class="spinner-grow spinner-grow-sm"></span>
             </small>
         '''
+        buttons_msg = f'''
+            <a href="{reverse_lazy('project-delete', args=[self.pk])}" data-toggle="modal" data-target="#modal"
+               class="text-danger" title="Delete file">
+                <i class="fa fa-sm fa-trash-alt"></i>
+            </a>'''
+        resubmit_msg = f'''
+            <a href="{reverse_lazy('project-resubmit', args=[self.pk])}"
+                class="resubmit-button text-primary" title="Resubmit job">
+                 <i class="fa fa-sm fa-redo"></i>
+            </a>'''
 
         completed = True
 
         if self.status == 'F':
             link = active_link
             msg = success_msg
+            buttons_msg = resubmit_msg + buttons_msg
 
         elif self.status == 'E':
             link = disabled_link
@@ -173,7 +195,8 @@ class Project(models.Model):
         return {
             'link': format_html(link),
             'msg': format_html(msg),
-            'completed': completed
+            'completed': completed,
+            'buttons': format_html(buttons_msg)
         }
 
     def __str__(self):

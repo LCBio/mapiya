@@ -55,3 +55,7 @@ form.dropzone {
         padding: 0;
     }
 }
+
+.resubmit-button, .resubmit-button:visited {
+    color: inherit;
+}

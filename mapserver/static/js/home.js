@@ -55,6 +55,7 @@ let initOptionsForm = function () {
 let updateRow = function ($label) {
     let pk = $label.data('pk');
     let $link = $label.parents('tr').find('.temp-label');
+    let $buttons = $label.parents('tr').find('.buttons');
     $.ajax({
         url: `/project/${pk}/status/`,
         success: function (data) {
@@ -64,6 +65,7 @@ let updateRow = function ($label) {
                 let newLabel = $(data.msg);
                 $label.replaceWith(newLabel);
                 $link.replaceWith(data.link);
+                $buttons.html(data.buttons)
                 if (! data.completed) setTimeout(updateRow, 1000, newLabel);
             }
         }
@@ -90,3 +92,4 @@ Dropzone.options.dropzone = {
         initMapTable();
     }
 };
+
