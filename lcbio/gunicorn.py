@@ -1,6 +1,6 @@
 wsgi_app = "lcbio.wsgi:application"
 loglevel = "debug"
-workers = 2
+workers = 8
 bind = "0.0.0.0:8000"
 reload = True
 accesslog = "/home/mapserver/logs/gunicorn_access.log"
