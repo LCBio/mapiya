@@ -31,7 +31,7 @@ class Home(SingleTableView):
     def post(self, request, *args, **kwargs):
         identity = get_identity(self.request)
         for file_id in request.FILES:
-            if utils.validate(request, file_id):
+            if utils.validate(request.FILES[file_id].file):
                 models.Project.objects.create(
                     identity=identity,
                     pdb=File(
