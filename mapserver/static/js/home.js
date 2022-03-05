@@ -81,7 +81,7 @@ let initMapTable = function () {
 // Dropzone
 Dropzone.options.dropzone = {
     uploadMultiple: true,
-    dictDefaultMessage: "3. Drop files here",
+    dictDefaultMessage: "4. Drop files here to download",
     success: function (file, data) {
         let $table = $('table');
         if (! $table.exists()) {
