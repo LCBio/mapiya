@@ -23,7 +23,7 @@
             <form method="post" action="{% url 'home' %}" id="dropzone" class="dropzone">
                 {% csrf_token %}
             </form>
-            <div class="text-center">or</div>
+            <div class="text-center font-weight-bold h3">or</div>
             <a href="{% url 'rcsb' %}" class="btn btn-primary btn-block" data-toggle="modal" data-target="#modal">
                 Download structure from the <strong>rcsb.org</strong>
             </a>

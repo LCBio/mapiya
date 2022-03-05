@@ -86,6 +86,7 @@ class OptionsForm(forms.Form):
         'hydrogen_bonds': True,
         'secondary_structure': True,
         'electrostatics': True,
+        'bio_assembly': False
     }
 
     contact_cutoff = forms.FloatField(
@@ -263,6 +264,11 @@ class OptionsForm(forms.Form):
         label='Calculate electrostatics'
     )
 
+    bio_assembly = forms.BooleanField(
+        required=False,
+        label='Create separate projects for each biological assembly'
+    )
+
     def clean_replace_non_standard(self):
         return self.cleaned_data['replace_non_standard'] in ['True', 'true', True]
 
@@ -326,11 +332,12 @@ class OptionsForm(forms.Form):
         submit_button = layouts.ButtonLink(
             href=reverse('reset-options'),
             text='Reset to defaults',
-            css_class='btn btn-danger btn-block'
+            css_class='btn btn-danger btn-sm'
         )
 
         tab1header = '1. Select options'
         tab2Header = '2. Fix structure'
+        tab3Header = '3. Biological assembly'
 
         nav_layout = layout.HTML(f'''
         <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -339,6 +346,9 @@ class OptionsForm(forms.Form):
           </li>
           <li class="nav-item" role="presentation">
             <a class="nav-link" id="profile-tab" data-toggle="tab" href="#pane2" role="tab">{tab2Header}</a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#pane3" role="tab">{tab3Header}</a>
           </li>
         </ul>
         ''')
@@ -362,6 +372,16 @@ class OptionsForm(forms.Form):
                 ),
                 css_class='tab-pane fade',
                 css_id='pane2',
+                role='tabpanel'
+            ),
+            layout.Div(
+                layout.Div(
+                    layouts.BoolField('bio_assembly'),
+                    layout.HTML('{% lorem %}'),
+                    css_class='form-row-wrapper'
+                ),
+                css_class='tab-pane fade',
+                css_id='pane3',
                 role='tabpanel'
             ),
             css_class='tab-content',
