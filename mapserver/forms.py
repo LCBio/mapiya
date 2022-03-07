@@ -390,20 +390,20 @@ class OptionsForm(forms.Form):
             css_class='btn btn-danger btn-sm'
         )
 
-        tab1header = '1. Select options'
-        tab2Header = '2. Fix structure'
-        tab3Header = '3. Biological assembly'
+        tab1_header = '1. Select options'
+        tab2_header = '2. Fix structure'
+        tab3_header = '3. Biological assembly'
 
         nav_layout = layout.HTML(f'''
         <ul class="nav nav-tabs" id="myTab" role="tablist">
           <li class="nav-item" role="presentation">
-            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#pane1" role="tab">{tab1header}</a>
+            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#pane1" role="tab">{tab1_header}</a>
           </li>
           <li class="nav-item" role="presentation">
-            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#pane2" role="tab">{tab2Header}</a>
+            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#pane2" role="tab">{tab2_header}</a>
           </li>
           <li class="nav-item" role="presentation">
-            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#pane3" role="tab">{tab3Header}</a>
+            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#pane3" role="tab">{tab3_header}</a>
           </li>
         </ul>
         ''')
@@ -432,7 +432,11 @@ class OptionsForm(forms.Form):
             layout.Div(
                 layout.Div(
                     layouts.BoolField('bio_assembly'),
-                    layout.HTML('{% lorem %}'),
+                    layout.HTML('''<small>
+                        Clicking the option above will invoke the reconstruction of the biological assembl(y/ies) using
+                        the information in the input file PDB ('REMARK 300 and 'REMARK 350').
+                        More information is provided in the About section.
+                    </small>'''),
                     css_class='form-row-wrapper'
                 ),
                 css_class='tab-pane fade',
