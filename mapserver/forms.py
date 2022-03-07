@@ -99,7 +99,7 @@ class OptionsForm(forms.Form):
         },
         'max_loop_length': {
             'title': 'Max loop length',
-            'body': 'This option enables users to specify the maximal length of inserted loops',
+            'body': 'This option enables users to specify the maximal length of inserted loops.',
             'icon': 'question-circle',
             'placement': 'left'
         },
@@ -110,9 +110,34 @@ class OptionsForm(forms.Form):
             'icon': 'question-circle',
             'placement': 'left'
         },
-        'max_loop_length': {
-            'title': 'Max loop length',
-            'body': 'This option enables users to specify the maximal length of inserted loops',
+        'replace_non_standard': {
+            'title': 'Replace non-standard amino acids',
+            'body': 'This option enables users to replace all non-standard amino acids in the structure for their stand'
+                    'ard equivalents.',
+            'icon': 'question-circle',
+            'placement': 'left'
+        },
+        'apply_mutations': {
+            'title': 'Apply mutations',
+            'body': 'This option enables users to apply mutations in the structure. The input is in form: three-letter '
+                    'amino acid code for an original residue - index of a residue that is being replaced - three-letter'
+                    ' amino acid code for a mutated residue, protein chain id. For example VAL-7-ILE, A will mutate val'
+                    'one 7 into isoleucine in chain A.',
+            'icon': 'question-circle',
+            'placement': 'left'
+        },
+        'add_environment': {
+            'title': 'Add environment',
+            'body': 'This option enables users to add an environment to a modeled project. The available options are: n'
+                    'one, solvent, membrane.',
+            'icon': 'question-circle',
+            'placement': 'left'
+        },
+        'membrane_position': {
+            'title': 'Membrane position',
+            'body': 'This option enables users to specify the membrane position. The first number is the position along'
+                    ' the Z axis of the center of the membrane and the second number is the the minimal padding distanc'
+                    'e to use.',
             'icon': 'question-circle',
             'placement': 'left'
         },
