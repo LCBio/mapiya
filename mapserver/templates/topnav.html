@@ -10,7 +10,7 @@
 
     <nav class="topnav-right">
         <a href="{% url 'about' %}">About</a>
-        <a data-toggle="modal" data-target="#modal" data-size="xl" href="{% url 'help' %}">Help</a>
+{#        <a data-toggle="modal" data-target="#modal" data-size="xl" href="{% url 'help' %}">Help</a>#}
         <div class="usermenu">
             {% if user.is_authenticated %}
                 {% include 'user-menu.html' %}
