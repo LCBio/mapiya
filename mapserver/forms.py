@@ -52,18 +52,73 @@ class OptionsForm(forms.Form):
     TOOLTIPS = {
         'contact_cutoff': {
             'title': 'Contact cutoff',
-            'body': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labor'
-                    'e et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi '
-                    'ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse'
-                    ' cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in c'
-                    'ulpa qui officia deserunt mollit anim id est laborum.',
+            'body': 'User sets the value for contact cutoff (in angstrom [Å]). The distance between the two closest '
+                    'heavy atoms in two different residues is considered contact if it is below the contact cutoff '
+                    'value. In the project view for a particular file, the user can later change this value and display'
+                    ' contact maps for the changed contact cutoff.',
+            'placement': 'left'
+        },
+        'protonation_ph': {
+            'title': 'Protonation pH',
+            'body': 'The user sets the value for pH of the modeled environment. The value can range between 0 and 14.',
             'icon': 'question-circle',
             'placement': 'left'
-        }
+        },
+        'hydrogen_bonds': {
+            'title': 'Hydrogen bonds',
+            'body': 'If this option is checked, Mapiya calculates hydrogen bonds using EDHB.',
+            'icon': 'question-circle',
+            'placement': 'left'
+        },
+        'secondary_structure': {
+            'title': 'Secondary structure',
+            'body': 'If his option is checked, Mapiya calculates secondary structure using STRIDE.',
+            'icon': 'question-circle',
+            'placement': 'left'
+        },
+        'electrostatics': {
+            'title': 'Electrostatics',
+            'body': 'If this option is checked, Mapiya calculates electrostatics using Adaptive Poisson-Boltzmann Solve'
+                    'r (APBS) software.',
+            'icon': 'question-circle',
+            'placement': 'left'
+        },
+        'add_atoms': {
+            'title': 'Add atoms',
+            'body': 'This option enables users to add missing atoms to the structure. The available options are: all, h'
+                    'eavy, standard, terminal, hydrogen and none.',
+            'icon': 'question-circle',
+            'placement': 'left'
+        },
+        'add_residues': {
+            'title': 'Add residues',
+            'body': 'This option enables users to add missing residues to the structure. The available options are: all'
+                    ', internal, terminal, none.',
+            'icon': 'question-circle',
+            'placement': 'left'
+        },
+        'max_loop_length': {
+            'title': 'Max loop length',
+            'body': 'This option enables users to specify the maximal length of inserted loops',
+            'icon': 'question-circle',
+            'placement': 'left'
+        },
+        'keep_heterogens': {
+            'title': 'Keep heterogens',
+            'body': 'This option enables users to keep heterogeneous atoms from being removed. The available options fo'
+                    'r heterogens to be kept are: all, water, none.',
+            'icon': 'question-circle',
+            'placement': 'left'
+        },
+        'max_loop_length': {
+            'title': 'Max loop length',
+            'body': 'This option enables users to specify the maximal length of inserted loops',
+            'icon': 'question-circle',
+            'placement': 'left'
+        },
     }
 
     HELP_TEXT = {
-        'protonation_ph': 'Example help text'
     }
 
     DEFAULTS = {
