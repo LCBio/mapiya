@@ -1,26 +1,19 @@
-#import sys ###
 from colorsys import hls_to_rgb
 import dash
 import pandas as pd
 import dash_core_components as dcc
 import dash_html_components as html
 import json
-import os
 from pathlib import Path
 import plotly.graph_objects as go
-from dash.dash import no_update
 from dash.dependencies import Input, State, Output
 from dash.exceptions import PreventUpdate
-from datetime import datetime  # to be removed
 from django_plotly_dash import DjangoDash
 
 from mollib.chord import *
-from mollib.patterns import * #calc_patterns, calc_entropy
-#from .models import Job
-from . import views
+from mollib.patterns import *
+from .models import Project, Job
 
-#np.set_printoptions(threshold=sys.maxsize)				### testing mode
-#    print('Start... ', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))	### testing mode
 
 # CSS style
 drops = {'margin': '0 0 0.4vh 2vw', 'width': '13vw', 'display': 'inline-block', 'font-size': '2vh',
@@ -360,9 +353,12 @@ app.clientside_callback(
     [Input('input-pk', 'value'), Input("interval", "n_intervals")], 
      State('model-ix', 'value'))
 def load_models(pk, n, model_ix, **kwargs):
-
-    project_data = json.loads(views.project_data(kwargs['request'],pk).getvalue().decode())	#dict of keys: 'filename', 'config', 'jobs': 'index' & 'status'
-    project_data['pk'] = pk
+    print(f'pk={pk}')
+    project = Project.objects.get(pk=pk)
+    project_data = {
+        'pk': pk,
+        **project.data
+    }
     models = {}
     status = 0
     for i in project_data['jobs']:
@@ -426,9 +422,8 @@ def toggle_interval(status):
                        [Input('buttons', 'value')], 
                        [State('model-ix', 'value'), State('input-pk', 'value')])
 def select_model(btn, ix, pk, **kwargs):
-
     if btn != '' and btn != ix:
-        model_data = json.loads(views.project_data_model(kwargs['request'],pk,btn).getvalue().decode())	#dict of keys: 'model_index', 'dir', 'status', 'info', 'logs', 'error'
+        model_data = Job.objects.get(project_id=pk, model_index=btn).data
         matrix = struct = hbonds = ''
         try:
             media_path = Path(model_data['dir']).parent.absolute()
