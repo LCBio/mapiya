@@ -58,6 +58,17 @@ class Detail(generic.DetailView):
         return data
 
 
+class PlotlyProject(generic.DetailView):
+
+    model = models.Project
+    template_name = 'plotly.html'
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        data['plotly_args'] = {'project-pk': {'value': self.object.pk}}
+        return data
+
+
 class Delete(generic.DeleteView):
 
     model = models.Project
