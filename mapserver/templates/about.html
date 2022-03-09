@@ -10,13 +10,13 @@
 
 
 <div class="general">
-    <section id="ABOUT">
+    <section class=section-main id="ABOUT">
         <h1><b>ABOUT</b></h1>
         <h3>Table of contents</h3>
         <h4>
-            <ul class="list-unstyled">
+            <ul class=list-content-main>
                 <li><a href="#Input">1. Input and options</a>
-                    <ul>
+                    <ul class=list-content>
                         <li><a href="#Select">1.1. Select options</a></li>
                         <li><a href="#Fix">1.2. Fix structure</a></li>
                         <li><a href="#Assembly">1.3. Biological Assembly</a></li>
@@ -27,7 +27,7 @@
                 <li><a href="#Diagram">2. Diagram View</a>
                 </li>
                 <li><a href="#Map">3. Map View</a>
-                    <ul>
+                    <ul class=list-content>
                         <li><a href="#Basic">3.1. Basic options</a></li>
                         <li><a href="#Filters">3.2. Contact filters</a></li>
                         <li><a href="#1D_data">3.3. Displaying 1D data</a></li>
@@ -37,7 +37,7 @@
                     </ul>
                 </li>
                 <li><a href="#Case">4. Case studies</a>
-                    <ul>
+                    <ul class=list-content>
                         <li><a href="#Polymerase">4.1. Human DNA polymerase</a></li>
                         <li><a href="#TRAP-RNA">4.2. TRAP-RNA complex</a></li>
                         <li><a href="#RNA-dep">4.3. RNA-dependent polymerase (RdRp)</a></li>
@@ -45,56 +45,60 @@
                 </li>
             </ul>
         </h4>
-        <h4><b>Proteins can interact multivalently with a myriad of various biomolecules,
+        <h5><b>Proteins can interact multivalently with a myriad of various biomolecules,
             including other proteins and nucleic acids. The strength and physicochemical character of intermolecular
             contacts between these complex systems is a driving force of signaling or regulatory processes, while the
             identification of these contacts in the available 3D structures is essential for biomedical and biotechnological
             applications. Mapiya web service offers a highly customized analysis of the molecular interactions in biological
             systems using contact maps, molecular visualization, and various structure- and sequence-based analyses.
-        </b></h4>
-        <h4>Paper and methodology</h4>
-        <h5>The paper describing the Mapiya web service is:
-            <br>Badaczewska-Dawid AE et al. MAPIYA contact map server for identification and visualization of molecular interactions
-            in proteins and biological complexes, submitted, 2022
-        </h5>
+        </b></h5>
     </section>
-    <h2>Mapiya analysis of biomolecular interactions</h2>
-    <section id="Input">
-        <h3>1. Input and options</h3>
+    <section class=section-paper>
+        <div class="text-paper">
+        <h2><b>Paper and methodology</b></h2>
+        <br><h4>The paper describing the Mapiya web service is:
+            <h5>Badaczewska-Dawid AE et al. MAPIYA contact map server for identification and visualization of molecular interactions
+                in proteins and biological complexes, submitted, 2022</h5>
+        </h4>
+        </div>
+    </section>
+    <section class=section-main id="Input">
+        <h2><b>Mapiya analysis of biomolecular interactions</b></h2>
+        <h3><b>1. Input and options</b></h3>
         <h5>The main Mapiya page allows providing input structure along with several options.</h5>
         <ul class="list-unstyled">
-            <li><section id="Select">
-                <h4>1.1. Select options</h4>
+            <li><section class=section-sub id="Select">
+                <h4><b>1.1. Select options</b></h4>
                 <h5>The first panel “Select options” contains the following basic options:
                     <ul>
-                        <li>Contact cutoff – User sets the value for contact cutoff (in angstrom [Å]). The distance between the
+                        <li><i class="sc">Contact cutoff</i> – User sets the value for contact cutoff (in angstrom [Å]). The distance between the
                         two closest heavy atoms in two different residues is considered contact if it is below the contact cutoff
                         value. In the project view for a particular file, the user can later change this value and display contact
                         maps for the changed contact cutoff.</li>
-                        <li>Protonation pH – The user sets the value for pH of the modeled environment. The value can range between 0 and 14.</li>
+                        <li><i class="sc">Protonation pH</i> – The user sets the value for pH of the modeled environment. The value can range between 0 and 14.</li>
                     </ul>
                     The Advanced options include:
                     <ul>
-                        <li>Calculate hydrogen bonds – If this option is checked, Mapiya calculates hydrogen bonds using EDHB
-                        (https://github.com/ekraka/EDHB).</li>
-                        <li>Calculate secondary structure – If his option is checked, Mapiya calculates secondary structure using
-                        STRIDE (http://webclu.bio.wzw.tum.de/stride).</li>
-                        <li>Calculate electrostatics – If this option is checked, Mapiya calculates electrostatics using
-                            Adaptive Poisson-Boltzmann Solver (APBS) software (https://github.com/Electrostatics/VR).</li>
+                        <li><i class="sc">Calculate hydrogen bonds</i> – If this option is checked, Mapiya calculates hydrogen bonds using EDHB
+                        (<a href="https://github.com/ekraka/EDHB">https://github.com/ekraka/EDHB</a>).</li>
+                        <li><i class="sc">Calculate secondary structure</i> – If his option is checked, Mapiya calculates secondary structure using
+                        STRIDE (<a href="http://webclu.bio.wzw.tum.de/stride/">http://webclu.bio.wzw.tum.de/stride</a>).</li>
+                        <li><i class="sc">Calculate electrostatics</i> – If this option is checked, Mapiya calculates electrostatics using
+                            Adaptive Poisson-Boltzmann Solver (APBS) software (<a href="https://github.com/Electrostatics/VR">https://github.com/Electrostatics/VR</a>).</li>
                     </ul>
-                    <div><img style="width:50%; height:auto" src="{% static 'img/about-select.png' %}"/></div>
+                    <div><img class="img-fluid" src="{% static 'img/about-select.png' %}"/></div>
                 </h5>
             </section></li>
-            <li><section id="Fix">
-                <h4>1.2. Fix structure</h4>
-                <h5>The second "Fix structure" panel contains input options for PDBFixer (https://github.com/openmm/pdbfixer), part of OpenMM software. The options available in this section are:
+            <li><section class=section-sub id="Fix">
+                <h4><b>1.2. Fix structure</b></h4>
+                <h5>The second "Fix structure" panel contains input options for PDBFixer (<a href="https://github.com/openmm/pdbfixer">https://github.com/openmm/pdbfixer</a>), part of OpenMM software. The options available in this section are:
                     <ul>
-                        <li>Add atoms &ndash; This option enables users to add missing atoms to the structure. The available options are: all, heavy, standard, terminal, hydrogen and none. The default option is none.</li>
-                        <li>Add residues &ndash; This option enables users to add missing residues to the structure. If the residues are to be added, the user has to specify the maximal length of inserted loops. The available options are: all, internal, terminal, none. The default option is none.</li>
-                        <li>Keep heterogens &ndash; This option enables users to keep heterogeneous atoms from being removed. The available options for heterogens to be kept are: all, water, none. The default option is none.</li>
-                        <li>Replace non-standard aa &ndash; This option enables users to replace all non-standard amino acids in the structure for their standard equivalents. The default option is no.</li>
-                        <li>Apply mutations &ndash; This option enables users to apply mutations in the structure. The input is in form: three-letter amino acid code for an original residue - index of a residue that is being replaced - three-letter amino acid code for a mutated residue, protein chain id. For example VAL-7-ILE, A will mutate valine 7 into isoleucine in chain A.</li>
-                        <li>Add environment &ndash; This option enables users to add an environment to a modeled project. The available options are: none, solvent, membrane.
+                        <li><i class="sc">Add atoms</i> &ndash; This option enables users to add missing atoms to the structure. The available options are: all, heavy, standard, terminal, hydrogen and none. The default option is none.</li>
+                        <li><i class="sc">Add residues</i> &ndash; This option enables users to add missing residues to the structure. If the residues are to be added, the user has to specify the maximal length of inserted loops. The available options are: all, internal, terminal, none. The default option is none.</li>
+                        <li><i class="sc">Keep heterogens</i> &ndash; This option enables users to keep heterogeneous atoms from being removed. The available options for heterogens to be kept are: all, water, none. The default option is none.</li>
+                        <li><i class="sc">Replace non-standard aa</i> &ndash; This option enables users to replace all non-standard amino acids in the structure for their standard equivalents. The default option is no.</li>
+                        <li><i class="sc">Apply mutations</i> &ndash; This option enables users to apply mutations in the structure. The input is in form: three-letter amino acid code for an original residue - index of a residue that is being replaced - three-letter amino acid code for a mutated residue, protein chain id. For example VAL-7-ILE, A will mutate valine 7 into isoleucine in chain A.</li>
+                        <li><i class="sc">Add environment</i> &ndash; This option enables users to add an environment to a modeled project. The available options are: none, solvent, membrane.
                         <br>To add solvent user has to specify:
                             <ul>
                             <li>type of positive ion,</li>
@@ -113,20 +117,20 @@
                         The default option is none.
                         </li>
                     </ul>
-                    <br><div><img style="width:50%; height:auto" src="{% static 'img/about-fix.png' %}"/></div>
+                    <br><div><img class="img-fluid" src="{% static 'img/about-fix.png' %}"/></div>
                 </h5>
             </section></li>
-            <li><section id="Assembly">
-                <h4>1.3. Biological assembly</h4>
+            <li><section class=section-sub id="Assembly">
+                <h4><b>1.3. Biological assembly</b></h4>
                 <h5>For structures solved by X-ray diffraction, the PDB formatted files contain only the asymmetric unit and
                     this may or may not be the same as the biologically relevant structure. An asymmetric unit may contain:
                     a) one biological assembly, b) a fraction of the biological assembly or c) more than one biological assembly.
                     Mapiya allows users to generate biological assemblies. On the main page, under the third tab, users can select
-                    the option ‘Create separate projects for each biological assembly’.
-                   <div><img style="width:50%; height:auto" src="{% static 'img/about-assembly.png' %}"/></div>
+                    the option <i class="sc">Create separate projects for each biological assembly</i>.
+                   <div><img class="img-fluid" src="{% static 'img/about-assembly.png' %}"/></div>
                     The ‘REMARK 300’ in the PDB file is read to determine the number of biological assemblies that need to
-                    be generated for the PDB file submitted by the user. An example of REMARK 300 from the PDB ID 3HL2 is provided below:
-                    <p style="font-family: Consolas; font-size: 14px; font-style: normal; font-variant: normal; font-weight: 400; line-height: 20px">
+                    be generated for the PDB file submitted by the user. An example of REMARK 300 from the PDB ID <a href="https://www.rcsb.org/structure/3HL2">3HL2</a> is provided below:
+                    <p class=pdb>
                         REMARK 300 BIOMOLECULE: 1, 2
                         <br>REMARK 300 SEE REMARK 350 FOR THE AUTHOR PROVIDED AND/OR PROGRAM
                         <br>REMARK 300 GENERATED ASSEMBLY INFORMATION FOR THE STRUCTURE IN
@@ -142,8 +146,8 @@
                     The ‘REMARK 350’  from the PDB file is read to determine the chains from each biological assembly and
                     to identify the corresponding ‘BIOMT’ matrices. The BIOMT matrices are transformation matrices, both
                     rotation and translation, when applied we can generate the full assembly. An example of REMARK 350 from
-                    the PDB ID 3HL2 is shown below:
-                    <p style="font-family: Consolas; font-size: 14px; font-style: normal; font-variant: normal; font-weight: 400; line-height: 20px">
+                    the PDB ID <a href="https://www.rcsb.org/structure/3HL2">3HL2</a> is shown below:
+                    <p class=pdb>
                         REMARK 350
                         <br>REMARK 350 COORDINATES FOR A COMPLETE MULTIMER REPRESENTING THE KNOWN
                         <br>REMARK 350 BIOLOGICALLY SIGNIFICANT OLIGOMERIZATION STATE OF THE
@@ -175,55 +179,55 @@
                     </p>
                     Using these remarks the biological assemblies for the molecule are generated. In the example above there
                     are two biological assemblies generated. For each of the assemblies, a new project is created by Mapiya.
-                    Here in this example human SepSecS in complex with non acylated tRNASec (PDB ID: 3HL2), the asymmetric
+                    Here in this example human SepSecS in complex with non acylated tRNASec (PDB ID: <a href="https://www.rcsb.org/structure/3HL2">3HL2</a>), the asymmetric
                     unit consists of four protein chains (chains A, B, C, D) and one RNA chain (chain E) as seen in the figure
                     below. The asymmetric unit contains crystallographic contacts which do not have biological significance.
-                    <div><img style="width:50%; height:auto" src="{% static 'img/Assymetric_Unit.png' %}"/></div>
+                    <div><img class="img-fluid" src="{% static 'img/Assymetric_Unit.png' %}"/></div>
                     Using the REMARKS 300 and 350, we can generate two biological assemblies. The first assembly consists of
                     chains A, B, E from the asymmetric unit without modifications and chains C and D which are generated by
                     applying the BIOMT transformation matrix to original chains A and B  (see figure below).
-                    <div><img style="width:50%; height:auto" src="{% static 'img/Biological_Assembly1.png' %}"/></div>
+                    <div><img class="img-fluid" src="{% static 'img/Biological_Assembly1.png' %}"/></div>
                     Similarly, the second assembly consists of chains C, D, and E from the asymmetric unit without applying
                     modifications,  and chains A and B which are generated by applying the BIOMT transformation matrix to
                     chains C and D from the asymmetric unit (see figure below).
-                    <div><img style="width:50%; height:auto" src="{% static 'img/Biological_Assembly2.png' %}"/></div>
+                    <div><img class="img-fluid" src="{% static 'img/Biological_Assembly2.png' %}"/></div>
                 </h5>
             </section></li>
-            <li><section id="Download">
-                <h4>1.4. Download structure files</h4>
+            <li><section class=section-sub id="Download">
+                <h4><b>1.4. Download structure files</b></h4>
                 <h5>
                     In order to submit a project for calculation, the user either has to either submit a PDB file from
-                    disk or enter PDB code to download the file from the RCSB database. The PDB file cannot exceed 50 models.
+                    disk or enter PDB code to download the file from the <a href="https://www.rcsb.org/">RCSB database</a>. The PDB file cannot exceed 50 models.
                     There are two options to submit project:
                     <ul>
-                        <li>Drop files here to download – In order to submit a file the user has to drag and drop a file
+                        <li><i class="sc">Drop files here to download</i> – In order to submit a file the user has to drag and drop a file
                             located locally on a disk.</li>
-                        <li>Download structures from the RCSB – In order to submit a file the user has to enter PDB code.
+                        <li><i class="sc">Download structures from the RCSB</i> – In order to submit a file the user has to enter PDB code.
                             Mapiya downloads the structure from the RCSB database and submits the project for a calculation.</li>
                     </ul>
-                    <div><img style="width:50%; height:auto" src="{% static 'img/about-download.png' %}"/></div>
+                    <div><img class="img-fluid" src="{% static 'img/about-download.png' %}"/></div>
                 </h5>
             </section></li>
-            <li><section id="Project">
-                <h4>1.5. Project list</h4>
+            <li><section class=section-sub id="Project">
+                <h4><b>1.5. Project list</b></h4>
                 <h5>
                     The list consists of every project submitted or calculated. Every entry consists of this information:
                     <ul>
-                        <li>Filename – This column displays either the name of the submitted file or PDB id. After the
+                        <li><i class="sc">Filename</i> – This column displays either the name of the submitted file or PDB id. After the
                             project has finished calculating, clicking on the filename takes the user to the project view for that particular file.</li>
-                        <li>Progress – This column displays the state of a particular project. After the caption turns green,
+                        <li><i class="sc">Progress</i> – This column displays the state of a particular project. After the caption turns green,
                             it means the project has finished calculating.</li>
-                        <li>Resubmit – This button appears after the project has finished calculating. It enables users
+                        <li><i class="sc">Resubmit</i> – This button appears after the project has finished calculating. It enables users
                             to recalculate projects i.e. after changing options.</li>
-                        <li>Delete – This button enables the user to delete the project from the database and Project list.</li>
+                        <li><i class="sc">Delete</i> – This button enables the user to delete the project from the database and Project list.</li>
                     </ul>
-                    <div><img style="width:50%; height:auto" src="{% static 'img/about-files.png' %}"/></div>
+                    <div><img class="img-fluid" src="{% static 'img/about-files.png' %}"/></div>
                 </h5>
             </section></li>
         </ul>
     </section>
-    <section id="Diagram">
-        <h3>2. Diagram view</h3>
+    <section class=section-main id="Diagram">
+        <h3><b>2. Diagram view</b></h3>
         <h5>When preliminary calculations (distance matrix and structural analysis) for a given project are ready, Mapiya
             loads the interaction diagram (see Figure below). In this view, Mapiya draws connections between molecules in
             a complex (objects located on the perimeter of a circle) with a ribbon thickness proportional to the number
@@ -235,24 +239,25 @@
             molecules. When the submitted PDB has multiple models, the user can display the results for the particular
             model by clicking on the corresponding button at the top of the screen.
             <br>The Figure below shows an example interaction diagram view for the complex between trp RNA-binding attenuation
-            protein (TRAP) and 55-mer single-stranded RNA (PDB ID: IC9S). The diagram shows that each of the eleven protein
+            protein (TRAP) and 55-mer single-stranded RNA (PDB ID: <a href="https://www.rcsb.org/structure/1c9s">1C9S</a>). The diagram shows that each of the eleven protein
             chains in the assembly interacts with two adjacent protein chains and the RNA.
-            <div><img style="width:50%; height:auto" src="{% static 'img/Diagram_view1.png' %}"/></div>
+            <div><img class="img-fluid" src="{% static 'img/Diagram_view1.png' %}"/></div>
             Another example below presents RNA recognition motif (RRM) domains of the cleavage factor IA and Hrp1 proteins,
-            and a 14-mer RNA (PDB ID: 2KM8). In this example, there are ten conformers available in the PDB file and we can
+            and a 14-mer RNA (PDB ID: <a href="https://www.rcsb.org/structure/2KM8">2KM8</a>). In this example, there are ten conformers available in the PDB file and we can
             navigate between them in Mapiya by clicking on the panel with model numbers (see Figure below, highlighted with a red box).
-            <div><img style="width:50%; height:auto" src="{% static 'img/Diagram_view2.png' %}"/></div>
+            <div><img class="img-fluid" src="{% static 'img/Diagram_view2.png' %}"/></div>
             Each chain from the selected model is colored with unique and distinct colors in the interaction diagram. The
             contact between the residues in different chains are shown as connections in the interaction diagram (on the left).
             On the right side, the selected model is rendered in three-dimensions in the Molstar viewer and the chains are colored
             in the same way as in the diagram. By default, Mapiya shows two representations of the molecule in 3D,
             using the cartoon and the Gaussian surface representation. The user can add additional representations supported by
             Molstar viewer. A detailed tutorial on the use of Molstar viewer and the different options available to the users
-            can be found at: Common actions - Molstar Viewer Documentation and RCSB Molstar - getting started.
+            can be found at: <a href="https://molstar.org/viewer-docs/common-actions/">Common actions - Molstar Viewer Documentation</a>
+            and <a href="https://www.rcsb.org/docs/3d-viewers/mol*/getting-started">RCSB Molstar - getting started</a>.
         </h5>
     </section>
-    <section id="Map">
-        <h3>3. Map</h3>
+    <section class=section-main id="Map">
+        <h3><b>3. Map</b></h3>
         <h5>To display the MapView, the user has to choose either Object (Intramolecular Map) or Interaction (Intermolecular
             Map) from the list. The two types of maps are:
         <ul>
@@ -263,41 +268,41 @@
         </ul>
         </h5>
         <ul class="list-unstyled">
-           <li><section id="Basic">
-               <h4>3.1. Basic options</h4>
+           <li><section class=section-sub id="Basic">
+               <h4><b>3.1. Basic options</b></h4>
                <h5>The MapView of the Mapiya web server consists of an interactive heatmap chart. The graph has three available display modes:
                    <ul>
-                       <li>DM, Distance Map, where the points are colored with a continuous color scale according to the
+                       <li><i class="sc">DM</i>, <i class="sc">Distance Map</i>, where the points are colored with a continuous color scale according to the
                            distance between corresponding residue pairs,</li>
-                       <li>CM, Contact Map, where the points are colored with a discrete (or smooth) color scale according
+                       <li><i class="sc">CM</i>, <i class="sc">Contact Map</i>, where the points are colored with a discrete (or smooth) color scale according
                            to the identified spatial contacts,</li>
-                       <li>CM | DM, where the chart is split into two triangles (this mode is available only for INTRAmolecular maps).</li>
+                       <li><i class="sc">CM | DM</i>, where the chart is split into two triangles (this mode is available only for Intramolecular maps).</li>
                    </ul>
-                   <div><img style="width:50%; height:auto" src="{% static 'img/about-figure2_a.png' %}"/></div>
-                   Multiple Color scales are available for user convenience. Discrete (binary) color scales for CM mode
+                   <div><img class="img-fluid" src="{% static 'img/about-figure2_a.png' %}"/></div>
+                   Multiple <i class="sc">Color scales</i> are available for user convenience. Discrete (binary) color scales for <i class="sc">CM</i> mode
                    can be easily smoothed to continuous scales, making it easy to distinguish the strength of contacts by
-                   distance of interacting residues. In DM and CM | DM mode, the color scale can also be reversed.
-                   <br>There is also an option to change the distance Cutoff for contacts. After the contact cutoff value
+                   distance of interacting residues. In <i class="sc">DM</i> and <i class="sc">CM | DM</i> mode, the color scale can also be reversed.
+                   <br>There is also an option to change the distance <i class="sc">Cutoff</i> for contacts. After the contact cutoff value
                    has been changed, the map dynamically changes accordingly.
-                   <br>The last option enables users to choose Interactive structure coloring. The structure can be colored
+                   <br>The last option enables users to choose <i class="sc">Interactive structure coloring</i>. The structure can be colored
                    by default (the option none), by contacts, or by 1D features (the 1D features must be selected in
-                   ‘Displaying 1D data section’ below). The default option is none.
-                   <div><img style="width:50%; height:auto" src="{% static 'img/about-figure2_bc.png' %}"/></div>
+                   <i class="sc">Displaying 1D data</i> section below). The default option is none.
+                   <div><img class="img-fluid" src="{% static 'img/about-figure2_bc.png' %}"/></div>
                </h5>
            </section></li>
-            <li><section id="Filters">
-                <h4>3.2 Contact filters</h4>
-                <h5>Using Filter contacts options, you can cross-select contacts by properties or screen-out them by sequential
+            <li><section class=section-sub id="Filters">
+                <h4><b>3.2 Contact filters</b></h4>
+                <h5>Using <i class="sc">Filter contacts</i> options, you can cross-select contacts by properties or screen-out them by sequential
                     neighborhood. The user can highlight the protein-protein contacts stabilized by the selected interaction type.
                     This facilitates your discovery of the nature of the interaction.
-                    <br>Specifically, the Interaction Filter selects contacts by various physicochemical properties of interacting
+                    <br>Specifically, the <i class="sc">Interaction filter</i> selects contacts by various physicochemical properties of interacting
                     residues. Note: Some contacts can be multivalent (e.g., have both charge and π-electrons) and can be
-                    displayed for several force types (e.g., electrostatics and π-stacking). Each option in the Interaction
-                    Filter has its own tooltip.
-                    <div><img style="width:50%; height:auto" src="{% static 'img/about-interaction.png' %}"/></div>
+                    displayed for several force types (e.g., electrostatics and π-stacking). Each option in the <i class="sc">Interaction
+                        filter</i> has its own tooltip.
+                    <div><img class="img-fluid" src="{% static 'img/about-interaction.png' %}"/></div>
                     The available options include:
                     <ul>
-                        <br><li>hydropathy: hydrophobic, hydrophilic, amphipathic<br>
+                        <br><li><i class="sc">hydropathy: hydrophobic, hydrophilic, amphipathic</i><br>
                             <br>The hydropathy shows the hydrophobic (lacking affinity for water), amphipathic
                             (having both polar-water-soluble and nonpolar-not-water-soluble regions), and
                             hydrophilic (attracted to water) tendencies of the protein sequence.
@@ -305,7 +310,7 @@
                             <br>The amphipathic (ɤ) amino acids are: Trp, Tyr, Met, Lys.
                             <br>The hydrophilic (ζ) amino acids are: Arg, Asn, Asp, Gln, Glu, His, Ser, Thr, Cys.
                         </li>
-                        <br><li>electrostatics: ion-ion, ion-dipole, dipole-dipole<br>
+                        <br><li><i class="sc">electrostatics: ion-ion, ion-dipole, dipole-dipole</i><br>
                             <br>Electrostatics describes the interactions between charges. There is an attractive (A)
                             force between a positive ⊕ and a negative ⊖ charge, while two charges of the same sign repel
                             (R) each other. Point charges (monopoles) such as ions ⦿ , can also interact electrostatically
@@ -314,7 +319,7 @@
                             <br>Negatively charged amino acids, ⊖ are: Glu, Asp.
                             <br>Polar amino acids, δ are: Ser, Thr, Tyr, Gln, Asn, Cys, Met.
                         </li>
-                        <br><li>π-electron stacking: π-π, cation-π, anion-π, dipole-π<br>
+                        <br><li><i class="sc">π-electron stacking: π-π, cation-π, anion-π, dipole-π</i><br>
                             <br>π–π stacking is an attractive, noncovalent interaction between aromatic rings, ⌬ , and/or
                             other π–electron-containing systems. Ion–π interaction is a noncovalent attractive interaction
                             between the electron-rich π-system (e.g. aromatic ring ⌬ or other π-bond) and an adjacent ion,
@@ -324,7 +329,7 @@
                             <br>The aromatic amino acids, ⌬ are: Phe, Tyr, trp, His.
                             <br>The other systems with π–bond are: Arg, Asn, Asp, Gln, Glu, Gly*.
                         </li>
-                        <br><li>hydrogen bonds (calculated using EDHB)<br>
+                        <br><li><i class="sc">hydrogen bonds (calculated using EDHB)</i><br>
                             <br>A hydrogen bond is a special type of dipole-dipole attraction, involving a hydrogen atom
                             located between a pair of highly electronegative atoms (having a high affinity for electrons).
                             Hydrogen bonds are calculated using EDHB. If the option is disabled, the process was unsuccessful.
@@ -332,16 +337,16 @@
                             <br>Amino acids that can be proton acceptors: Asn, Asp, Gln, Glu, His, Ser, Thr, Tyr.
                         </li>
                     </ul>
-                    <br>Additionally, the intra-Contact Filter removes local contacts between residues neighboring along the sequence.
+                    <br>Additionally, the <i class="sc">Intra-contact filter</i> removes local contacts between residues neighboring along the sequence.
                     As a result, the points along the diagonal of the intramolecular (internal) contact map are dropped.
                     The filter takes an integer n, which defines the number of amino acids (i, i+1, ..., i+n) along the sequence,
                     for which contacts are excluded.
-                    <br>There is an option to display filtered contacts Only. This removes the other contacts from the background of the plot.
+                    <br>There is an option to display filtered contacts <i class="sc">Only</i>. This removes the other contacts from the background of the plot.
                 </h5>
            </section></li>
-            <li><section id="1D_data">
-                <h4>3.3. Displaying 1D data</h4>
-                <h5>Using Display 1D data options, you can add various one-dimensional features along the objects' sequence.
+            <li><section class=section-sub id="1D_data">
+                <h4><b>3.3. Displaying 1D data</b></h4>
+                <h5>Using <i class="sc">Display 1D data</i> options, you can add various one-dimensional features along the objects' sequence.
                     The residue-resolution bar-chart will be displayed on the right side parallel to the Y-, or on the top side
                     parallel to the X-axis. Note, that some contacts can be multivalent (e.g., have both charge and π-electrons)
                     thus such additional sequence- and structure-dependent data facilitate the comprehensive analysis of interactions contributions.
@@ -356,76 +361,75 @@
                         <li>and more...</li>
                     </ul>
                     <br>Examples are presented in the Figure below.
-                    <div><img style="width:50%; height:auto" src="{% static 'img/about-figure3.png' %}"/></div>
+                    <div><img class="img-fluid" src="{% static 'img/about-figure3.png' %}"/></div>
                 </h5>
            </section></li>
-            <li><section id="Generating">
-                <h4>3.4. Generating map images</h4>
+            <li><section class=section-sub id="Generating">
+                <h4><b>3.4. Generating map images</b></h4>
                 <h5>The last section enables users to change some minor options of generating map images.
-                    In the first option - Change the chart title, the user can enter a customized title that will display
-                    above the chart. The second option - Select image format, provides the generated map image in either
+                    In the first option - <i class="sc">Change the chart title</i>, the user can enter a customized title that will display
+                    above the chart. The second option - <i class="sc">Select image format</i>, provides the generated map image in either
                     vector (SVG) or raster (JPEG, PNG) graphics format.
                 </h5>
            </section></li>
-            <li><section id="Molstar">
-                <h4>3.5. Interaction of Maps with Molstar molecular visualization</h4>
+            <li><section class=section-sub id="Molstar">
+                <h4><b>3.5. Interaction of Maps with Molstar molecular visualization</b></h4>
                 <h5>In the map view, the user can select a particular contact between two residues by
                     clicking any points on the map loaded on the left half. When a point is clicked on the map, the
                     corresponding two residues are zoomed in and highlighted in the Molstar viewer. Here we illustrate this
                     with an example of ARG-198 in the Hrp1 protein (Chain C) and ARG-65 (Chain B) in the cleavage factor IA.
-                    The two residues are at a distance of 4.654 Å and the distance cut-off is 8 Å. By design, the users are
-                    also allowed to click on points, which are not within the distance cut-off, and the corresponding residues
+                    The two residues are at a distance of 4.654 Å and the distance cutoff is 8 Å. By design, the users are
+                    also allowed to click on points, which are not within the distance cutoff, and the corresponding residues
                     will be highlighted on the Molstar viewer.
-                    <div><img style="width:30%; height:auto" src="{% static 'img/Interaction_of_Map_with_molstar1.png' %}"/></div>
-                    <div><img style="width:50%; height:auto" src="{% static 'img/Interaction_of_Map_with_molstar2.png' %}"/></div>
-                    In the basic menu available in the map view, Mapiya  provides three options under the ‘Interactive
-                    structure coloring’  option to provide interactivity with the Molstar viewer: default, using contacts
-                    and using 1D features.  When the map view is loaded, by default, Mapiya uses ‘default’ as the color choice,
+                    <div><img id="img-molstar1" class="img-fluid" src="{% static 'img/Interaction_of_Map_with_molstar1.png' %}"/></div>
+                    <div><img class="img-fluid" src="{% static 'img/Interaction_of_Map_with_molstar2.png' %}"/></div>
+                    In the basic menu available in the map view, Mapiya  provides three options under the <i class="sc">Interactive structure coloring</i>  option to provide interactivity with the Molstar viewer: default, using contacts
+                    and using 1D features.  When the map view is loaded, by default, Mapiya uses default as the color choice,
                     which retains the colors displayed in the interaction view. Below, we show an example of the default behavior of Mapiya.
-                    Here we show two RRM domains in complex with an RNA (PDB ID: 2KM8) in the map view with default coloring.
+                    Here we show two RRM domains in complex with an RNA (PDB ID: <a href="https://www.rcsb.org/structure/2KM8">2KM8</a>) in the map view with default coloring.
                     The three chains are coloured same as in the diagram view.
-                    <div><img style="width:50%; height:auto" src="{% static 'img/Interaction_of_Map_with_molstar3.jpg' %}"/></div>
-                    The ‘using contacts’ option will only color the residues which are selected based on the cut-off value.
+                    <div><img class="img-fluid" src="{% static 'img/Interaction_of_Map_with_molstar3.jpg' %}"/></div>
+                    The <i class="sc">Using contacts</i> option will only color the residues which are selected based on the cutoff value.
                     All the other residues are grayed out when this option is selected. Below we show the contacts between the
-                    two RRM domains at a cut-off distance of 8 Å.
-                    <div><img style="width:50%; height:auto" src="{% static 'img/Interaction_of_Map_with_molstar4.png' %}"/></div>
-                    When the ‘Interaction Filter’ option is used to filter the contacts based on structural and physicochemical
+                    two RRM domains at a cutoff distance of 8 Å.
+                    <div><img class="img-fluid" src="{% static 'img/Interaction_of_Map_with_molstar4.png' %}"/></div>
+                    When the <i class="sc">Interaction filter</i> option is used to filter the contacts based on structural and physicochemical
                     parameters, this option colors only those residues which are selected by the option.  For example, here we
-                    show the contacts between the two RRM domains filtered by setting the ‘Interaction Filter’ to 'hydropathy’
-                    and setting the ‘Interactive structure coloring’  to ‘using contacts’ option.
-                    <div><img style="width:50%; height:auto" src="{% static 'img/Interaction_of_Map_with_molstar5.png' %}"/></div>
-                    The ‘using 1D features’ under the ‘‘Interactive structure coloring’ option allows us to color the residues
-                    in the molstar viewer based on the option selected in the ‘Display 1D data along the sequence’ drop-down menus.
-                    Here, we illustrate the coloring by using the ‘composition’ option selected on both X-axis and Y-axis features options.
+                    show the contacts between the two RRM domains filtered by setting the <i class="sc">Interaction filter</i> to <i class="sc">Hydropathy</i>
+                    and setting the <i class="sc">Interactive structure coloring</i> to <i class="sc">Using contacts</i> option.
+                    <div><img class="img-fluid" src="{% static 'img/Interaction_of_Map_with_molstar5.png' %}"/></div>
+                    The <i class="sc">Using 1D features</i> under the <i class="sc">Interactive structure coloring</i> option allows us to color the residues
+                    in the molstar viewer based on the option selected in the <i class="sc">Display 1D data along the sequence</i> drop-down menus.
+                    Here, we illustrate the coloring by using the <i class="sc">Composition</i> option selected on both X-axis and Y-axis features options.
                     When the map view is showing  intramolecular  only one parameter can be used to color the chain.
-                    <div><img style="width:50%; height:auto" src="{% static 'img/Interaction_of_Map_with_molstar6.png' %}"/></div>
+                    <div><img class="img-fluid" src="{% static 'img/Interaction_of_Map_with_molstar6.png' %}"/></div>
                 </h5>
            </section></li>
-            <li><section id="Text">
-                <h4>3.6. Downloading data in text format</h4>
+            <li><section class=section-sub id="Text">
+                <h4><b>3.6. Downloading data in text format</b></h4>
                 <h5>All the data generated can be downloaded in text format. The location of the download section is shown in the Figure below.
-                    <div><img style="width:50%; height:auto" src="{% static 'img/about-text.png' %}"/></div>
+                    <div><img id=img-text class="img-fluid" src="{% static 'img/about-text.png' %}"/></div>
                 </h5>
            </section></li>
         </ul>
     </section>
-    <section id="Case">
-        <h3>4. Case studies</h3>
+    <section class=section-main id="Case">
+        <h3><b>4. Case studies</b></h3>
         <ul class="list-unstyled">
-            <li><section id="Polymerase">
-                <h4>4.1. Human DNA polymerase</h4>
-                <h5>The selected example shows the Mapiya results for a Human DNA polymerase beta complexed with gapped DNA (PDB: 1BPY).
-                    <br>The MapView presents the intermolecular contact map (CM mode) between protein chain A (protein-A, on the X-axis)
+            <li><section class=section-sub id="Polymerase">
+                <h4><b>4.1. Human DNA polymerase</b></h4>
+                <h5>The selected example shows the Mapiya results for a Human DNA polymerase beta complexed with gapped DNA (PDB: <a href="https://www.rcsb.org/structure/1bpy">1BPY</a>).
+                    <br>The MapView presents the intermolecular contact map (<i class="sc">CM</i> mode) between protein chain A (protein-A, on the X-axis)
                     and DNA strand T (nucleic-T, on the Y-axis). Gray points on the map (left panel) are contacts identified below the distance
                     cutoff of 8.0 A. From these, contacts stabilized by attractive electrostatic interactions (A, marked in red-purple palette)
-                    were selected using an Interaction Filter. More specifically, we want to see which contacts are bound by the salt bridge.
-                    Therefore, we selected 'charged' from the options available for protein-A (feature for the X-axis) in the Display 1D data
+                    were selected using an <i class="sc">Interaction filter</i>. More specifically, we want to see which contacts are bound by the salt bridge.
+                    Therefore, we selected <i class="sc">Charged</i> from the options available for protein-A (feature for the X-axis) in the <i class="sc">Display 1D data</i>
                     section of settings. The bar-chart displayed on the top of the Contact Map shows the pattern of positively (light blue) and
                     negatively (dark blue) charged amino acids along the sequence of protein-A. Since nucleic acid is strongly negatively charged,
                     salt bridges can be formed with positively charged amino acids such as Arg, Lys, and His.
                     <br>For a better view, we zoomed the interactive graph to the 225-305 fragment along the protein-A sequence.
                     We found an isolated contact between ARG:258 and DG:9 (marked with a black dot).
-                    <div><img style="width:50%; height:auto" src="{% static 'img/about-map1.png' %}"/></div>
+                    <div><img class="img-fluid" src="{% static 'img/about-map1.png' %}"/></div>
                     Clicking on a selected point invokes two actions:
                     <ul>
                         <li>displays an interactive label with details describing the contact (residues identifiers, distance, possible interaction forces),</li>
@@ -433,23 +437,24 @@
                     </ul>
                 </h5>
            </section></li>
-            <li><section id="TRAP-RNA">
-                <h4>4.2. TRAP-RNA complex</h4>
-                <h5>This case study illustrates some of the interaction features of the complex between trp RNA-binding attenuation
-                    protein (TRAP) and RNA (PDB ID: 1C9S).  TRAP is a central regulator in the expression of tryptophan biosynthetic genes
-                    (Ref: Gollnick, P. (1994)) and binds to single-stranded RNA (Ref: Babitzke, P., et al. (1994)). The TRAP protein disk
-                    consists of eleven identical protein chains bound to a single 55-mer RNA molecule (Ref: Antson, A. A., et al.(1999)).
+            <li><section class=section-sub id="TRAP-RNA">
+                <h4><b>4.2. TRAP-RNA complex</b></h4>
+                <h5>This case study illustrates some interaction features of the complex between trp RNA-binding attenuation
+                    protein (TRAP) and RNA (PDB ID: <a href="https://www.rcsb.org/structure/1c9s">1C9S</a>).  TRAP is a central regulator in the expression of tryptophan biosynthetic genes
+                    (Ref: <a href="https://doi.org/10.1111/j.1365-2958.1994.tb00377.x">Gollnick, P. (1994)</a>) and binds to single-stranded RNA
+                    (Ref: <a href="https://doi.org/10.1016/S0021-9258(19)89431-0">Babitzke, P., et al. (1994)</a>). The TRAP protein disk
+                    consists of eleven identical protein chains bound to a single 55-mer RNA molecule (Ref: <a href="https://doi.org/10.1038/374693a0">Antson, A. A., et al.(1999)</a>).
                     The asymmetric unit of the crystal structure consists of two copies of the TRAP disk with only one bound to RNA.
                     The interaction diagram view generated by Mapiya shows that each protein chain in the assembly interacts with the RNA
                     molecule and two adjacent protein chains (see Figure below).
-                    <div><img style="width:50%; height:auto" src="{% static 'img/TRAP1.png' %}"/></div>
+                    <div><img class="img-fluid" src="{% static 'img/TRAP1.png' %}"/></div>
                     Each protein chain in the TRAP disk makes contacts with two adjacent protein chains, one on either side and the RNA
                     chain. Here, we highlight the contacts made by chains L and M in the assembly (see figure below). The various options
                     selected to generate the map-view are highlighted with red boxes on the basic settings menu available on the interaction
                     map view.
-                    <div><img style="width:50%; height:auto" src="{% static 'img/TRAP2.png' %}"/></div>
-                    The Interaction map shows contacts between two adjacent protein chains in the TRAP disk, within a distance cut-off 5 Å,
-                    filtered with the ‘hydropathy’ filter in Mapiya. The interacting residues are colored on the three-dimensional structure
+                    <div><img class="img-fluid" src="{% static 'img/TRAP2.png' %}"/></div>
+                    The Interaction map shows contacts between two adjacent protein chains in the TRAP disk, within a distance cutoff 5 Å,
+                    filtered with the <i class="sc">Hydropathy</i> filter in Mapiya. The interacting residues are colored on the three-dimensional structure
                     rendered using Molstar viewer, with the respective colors from the map view. The color scale used by Mapiya to represent
                     the hydropathy index: hydrophobic (Φ) amino acids (Gly, Ala, Leu, Ile, Val, Pro, Phe), the amphipathic (ɤ) amino acids
                     (Trp, Tyr, Met, Lys), the hydrophilic (ζ) amino acids (Arg, Asn, Asp, Gln, Glu, His, Ser, Thr, Cys), the hydrophobic (Φ)
@@ -458,36 +463,36 @@
                     <br>The RNA molecule consists of 5-mer repeats of GAUGA. It has an extended structure in the complex without any
                     base-pairing, with similar three-dimensional structures interacting with the different protein chains. The binding of
                     RNA to TRAP protein is through specific protein-nucleobase interactions with GAG triplets accommodated in a pocket
-                    formed by beta-strands. This pocket can be visualized using Mapiya by selecting the ‘2º structure’ option available in
-                    ‘Display 1D data along the sequence’ and setting the ‘Interactive structure coloring’ to ‘using 1D features’
+                    formed by beta-strands. This pocket can be visualized using Mapiya by selecting the <i class="sc">2º structure</i> option available in
+                    <i class="sc">Display 1D data along the sequence</i> and setting the <i class="sc">Interactive structure coloring</i> to <i class="sc">Using 1D features</i>
                     (see panels A, B in figure above). The residues that make the contact between the protein and RNA can be highlighted
-                    by setting the ‘Interactive structure coloring’ to ‘using contacts’ (see panel C in figure below).
-                    <div><img style="width:50%; height:auto" src="{% static 'img/TRAP3.png' %}"/></div>
+                        by setting the <i class="sc">Interactive structure coloring</i> to <i class="sc">Using contacts</i> (see panel C in figure below).
+                    <div><img class="img-fluid" src="{% static 'img/TRAP3.png' %}"/></div>
                 </h5>
            </section></li>
-            <li><section id="RNA-dep">
-                <h4></h4>
+            <li><section class=section-sub id="RNA-dep">
+                <h4><b>4.3. RNA-dependent polymerase (RdRp)</b></h4>
                 <h5>The use of Mapiya in understanding the structural mechanisms of the biological process can be further
-                    illustrated with the example of RNA-dependent RNA polymerase (RdRp) (PDB ID: 6YYT). The active form of
+                    illustrated with the example of RNA-dependent RNA polymerase (RdRp) (PDB ID: <a href="https://www.rcsb.org/structure/6yyt">6YYT</a>). The active form of
                     RNA-dependent RNA polymerase (RdRp) from SARS-CoV-2 mimics the replication enzyme. In this example, the
                     macromolecular assembly consists of the viral non-structural protein 12 (nsp12), nsp8, and nsp7, along with more
-                    than two turns of RNA template-product duplex (Ref: Hillen, H. S., et al. (2020)) (see figure below).
-                    <div><img style="width:50%; height:auto" src="{% static 'img/RDRP1.png' %}"/></div>
+                    than two turns of RNA template-product duplex (Ref: <a href="https://doi.org/10.1038/s41586-020-2368-8">Hillen, H. S., et al. (2020)</a>) (see figure below).
+                    <div><img class="img-fluid" src="{% static 'img/RDRP1.png' %}"/></div>
                     The nsp12 acts as the catalytic unit in the replication of RNA molecules and the catalytic core is
-                    composed of conserved hydrophobic regions (Refs: Ahn, D. G., et al. (2012), Kirchdoerfer, R. N., and Andrew B. W (2019))
-                    (see panel A in figure below). The map diagram view was generated by selecting the ‘hydrophobic’ option available in
-                    ‘Display 1D data along the sequence’ and setting the ‘Interactive structure coloring’ to ‘using 1D features’.
-                    The hydrophobic contacts between the nsp12 and RNA are visualized using Mapiya by selecting the ‘hydrophobic’
-                    option available under ‘Interaction Filter’  and setting the ‘Interactive structure coloring’ to ‘using contacts’.
+                    composed of conserved hydrophobic regions (Refs: <a href="https://dx.doi.org/10.1007%2Fs00705-012-1404-x">Ahn, D. G., et al. (2012)</a>, <a href="https://doi.org/10.1038/s41467-019-10280-3">Kirchdoerfer, R. N., and Andrew B. W (2019)</a>)
+                    (see panel A in figure below). The map diagram view was generated by selecting the <i class="sc">Hydrophobic</i> option available in
+                    <i class="sc">Display 1D data along the sequence</i> and setting the <i class="sc">Interactive structure coloring</i> to <i class="sc">Using 1D features</i>.
+                    The hydrophobic contacts between the nsp12 and RNA are visualized using Mapiya by selecting the <i class="sc">Hydrophobic</i>
+                    option available under <i class="sc">Interaction filter</i>  and setting the <i class="sc">Interactive structure coloring</i> to <i class="sc">Using contacts</i>.
                     Two copies of nsp8 bind to opposite sides of the cleft and help in the positioning of the RNA. The long protruding
                     helical extensions in nsp8 contain patches of positively charged regions that act as sliding poles for the exit of RNA
-                    (see panel B in figure below), which is essential for the RdRp to process the long genome of SARS-CoV-2 (Ref: Wilamowski, M., et al. (2021)).
+                    (see panel B in figure below), which is essential for the RdRp to process the long genome of SARS-CoV-2 (Ref: <a href="https://doi.org/10.1016/j.bpj.2021.06.006">Wilamowski, M., et al. (2021)</a>).
                     The non-structural protein 8 (nsp8) helps in the processing of RNA by positioning it in RdRp. The long helical protruding regions
                     in the nsp8 contain patches of positively charged regions that act as sliding poles for the exit of RNA. The sliding poles on the
-                    nsp8 are visualized in the interaction map view by selecting the ‘charged’ option available in ‘Display 1D data along the sequence’
-                    and setting the ‘Interactive structure coloring’ to ‘using 1D features’. The electrostatic interactions are visualized by setting
-                    the ‘electrostatic’ option available under ‘Interaction Filter’ and setting the ‘Interactive structure coloring’ to ‘using contacts’.
-                    <div><img style="width:50%; height:auto" src="{% static 'img/RDRP2.png' %}"/></div>
+                    nsp8 are visualized in the interaction map view by selecting the <i class="sc">Charged</i> option available in <i class="sc">Display 1D data along the sequence</i>
+                    and setting the <i class="sc">Interactive structure coloring</i> to <i class="sc">Using 1D features</i>. The electrostatic interactions are visualized by setting
+                    the <i class="sc">Electrostatic</i> option available under <i class="sc">Interaction filter</i> and setting the <i class="sc">Interactive structure coloring</i> to <i class="sc">Using contacts</i>.
+                    <div><img id="img-rdrp2" class="img-fluid" src="{% static 'img/RDRP2.png' %}"/></div>
                 </h5>
            </section></li>
         </ul>

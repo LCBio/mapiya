@@ -1,18 +1,92 @@
 .about-container {
 /*    height: calc(100vh - 5rem);*/
-    height: flex;
     margin: 0 10vw;
     background-color: white;
 }
 
 .general {
+    background-color: #fff;
+    font-family: "IBM Plex Sans";
+}
+
+.section-main {
+    background-color: #fff;
     padding: 1rem 3rem 0 3rem;
+    width: min(90%, 1500px);
+    margin-inline: auto;
+}
+
+.section-sub {
+    margin-inline: auto;
+}
+
+.section-paper {
+    background-color: #fcf8ec;
+    padding: 1rem 3rem 0 3rem;
+}
+
+img {
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
+    max-width: 100%;
+    height: auto;
+    width: min(90%, 1400px);
+}
+
+#img-molstar1{
+    max-height: 600px;
+    width: auto;
+}
+
+#img-text {
+    max-height: 900px;
+    width: auto;
+
+}
+
+#img-rdrp2 {
+    max-height: 900px;
+    width: auto;
+    margin-left:auto;
+    margin-right: auto;
+    display:block
 }
 
 h1 {
     padding: 0.7rem 0;
     margin: 0;
     font-weight: 900;
+}
+
+h5 {
+    line-height: 2rem;
+}
+.text-paper {
+    padding: 2rem 3rem 2rem 3rem;
+    width: min(90%, 1500px);
+    margin-inline: auto;
+}
+ul{
+    list-style-type: disc;
+}
+
+.list-content {
+    list-style-type: none;
+}
+.list-content-main {
+    line-height: 2rem;
+    padding-left: 0;
+    list-style-type: none;
+}
+
+.pdb {
+    font-family:"Courier New";
+    font-size: 14px;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: 400;
+    line-height: 20px;
+    padding-top: 1rem;
 }
 
 .sc {
