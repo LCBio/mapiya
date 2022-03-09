@@ -7,3 +7,4 @@ class MapserverConfig(AppConfig):
     def ready(self):
         from .models import signals
         from . import plotly
+        from . import plotly2
