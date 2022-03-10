@@ -2,8 +2,8 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '0sdys*-h6wn3fk2)!cjnmu(c%^p-%*c4m13)s2xk2ou5u_g0_x'
-DEBUG = False
-ALLOWED_HOSTS = ['10.10.13.214']
+DEBUG = True
+ALLOWED_HOSTS = []
 ROOT_URLCONF = 'lcbio.urls'
 WSGI_APPLICATION = 'lcbio.wsgi.application'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
@@ -21,7 +21,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 DATA_UPLOAD_MAX_MEMORY_SIZE = 100000000
-CSRF_TRUSTED_ORIGINS = ['http://mapiya.lcbio.pl', 'http://10.10.13.214']
+# CSRF_TRUSTED_ORIGINS = ['http://mapiya.lcbio.pl', 'http://10.10.13.214']
 
 INSTALLED_APPS = [
     'django.contrib.admin',

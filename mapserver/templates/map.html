@@ -11,8 +11,6 @@
 
 {% block content %}
 
-    <a href="{% url 'plotly-project' object.pk %}">Plotly2</a>
-
     <div class="content-wrapper">
         <div class="plotly-app">
             {% plotly_app name="ContactMap" initial_arguments=plotly %}
