@@ -6,4 +6,5 @@ ps ax | grep rqworker | grep -v grep | awk '{print $1}' | xargs kill
 source /home/mapserver/miniconda3/bin/activate venv
 export TMPDIR=/home/mapserver/tmp
 gunicorn --worker-class gevent -c lcbio/gunicorn.py
+#./manage.py runserver >runserver_out 2>runserver_log &
 /home/mapserver/mapserver/run_workers.sh 10
