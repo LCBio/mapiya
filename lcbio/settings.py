@@ -3,7 +3,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '0sdys*-h6wn3fk2)!cjnmu(c%^p-%*c4m13)s2xk2ou5u_g0_x'
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['10.10.13.214']
 ROOT_URLCONF = 'lcbio.urls'
 WSGI_APPLICATION = 'lcbio.wsgi.application'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
@@ -86,3 +86,8 @@ RQ_QUEUES = {
         'DEFAULT_TIMEOUT': 1000,
     },
 }
+
+PLOTLY_DASH = {
+    "cache_arguments": False,
+}
+

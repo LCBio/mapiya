@@ -12,3 +12,10 @@
 
 
 {% endblock content %}
+
+{% block js %}
+{{ block.super }}
+
+	<script>sessionStorage.clear()</script>
+
+{% endblock js%}
