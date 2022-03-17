@@ -21,7 +21,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 DATA_UPLOAD_MAX_MEMORY_SIZE = 100000000
-# CSRF_TRUSTED_ORIGINS = ['http://mapiya.lcbio.pl', 'http://10.10.13.214']
 
 INSTALLED_APPS = [
     'django.contrib.admin',

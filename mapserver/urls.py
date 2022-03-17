@@ -7,7 +7,6 @@ urlpatterns = [
     path('help/', views.HelpView.as_view(), name='help'),
     path('rcsb/', views.RCSB.as_view(), name='rcsb'),
     path('project/<str:pk>/', views.Detail.as_view(), name='project-detail'),
-    path('p/<str:pk>/', views.PlotlyProject.as_view(), name='plotly-project'),
     path('project/<str:pk>/delete/', views.Delete.as_view(), name='project-delete'),
     path('project/<str:pk>/resubmit/', views.resubmit, name='project-resubmit'),
     path('project/<str:pk>/status/', views.project_status, name='project-status'),
