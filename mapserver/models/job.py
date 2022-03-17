@@ -1,14 +1,17 @@
 import collections
 import io
+import re
 import logging
 import pathlib
 import subprocess
 import tempfile
+import gzip
 
 import numpy as np
 import openmm
 import pandas as pd
 from django.core.files.base import File, ContentFile
+from django.http import HttpResponse
 from django.db import models
 from openmm.app import PDBFile
 from pdbfixer import PDBFixer
@@ -286,15 +289,16 @@ class Job(models.Model):
             self.status = self.StatusChoices.FINISHED
             self.save()
 
-    def run_apbs(self):
+    def run_pqr(self):
         input_path = pathlib.Path(self.pdb.path)
+        ph = self.project.config.get('protonation_ph', 7.0)
 
         with tempfile.TemporaryDirectory(dir='playground') as workdir:
             dir_path = pathlib.Path(workdir)
             apbs_in = dir_path / 'apbs.in'
             pqr_file = dir_path / f'{input_path.stem}.pqr'
 
-            args = ['pdb2pqr', '--ff=PARSE', '--titration-state-method=propka', '--with-ph=7.0',
+            args = ['pdb2pqr', '--ff=PARSE', '--titration-state-method=propka', f'--with-ph={ph}',
                     '--apbs-input', apbs_in, input_path, pqr_file]
             proc = subprocess.run(args=args, capture_output=True)
             if not proc.returncode and pqr_file.exists():
@@ -406,9 +410,41 @@ class Job(models.Model):
         if self.project.config['hydrogen_bonds']:
             self.run_edhb()
         if self.project.config['electrostatics']:
-            self.run_apbs()
+            self.run_pqr()
         if self.project.config['secondary_structure']:
             self.run_stride()
 
         self.status = 'F'
         self.save()
+
+    @property
+    def dx(self):
+        with tempfile.TemporaryDirectory(dir='playground') as workdir:
+            dir_path = pathlib.Path(workdir)
+            apbs_in = dir_path / 'apbs.in'
+            apbs_out = dir_path / 'output'
+            apbs_log = dir_path / 'apbs.log'
+
+            apbs_in.write_text(
+                re.sub(
+                    pattern=r'write pot dx [\w./]*',
+                    repl=f'write pot dx {apbs_out}',
+                    string=re.sub(
+                        pattern=r'mol pqr [\w./]*',
+                        repl=f'mol pqr {self.pqr.path}',
+                        string=self.info.get('apbs')
+                    )
+                )
+            )
+            args = ['apbs', f'--output-file={apbs_log}', '--output-format=flat', apbs_in]
+            proc = subprocess.run(args=args, capture_output=True)
+            if proc.returncode:
+                return HttpResponse('Error')
+
+            self.logs['dx'] = apbs_log.read_text()
+            self.save(update_fields=['logs'])
+
+            return HttpResponse(
+                gzip.compress(apbs_out.with_suffix('.dx').read_bytes()),
+                content_type='application/gzip',
+            )
