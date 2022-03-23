@@ -31,7 +31,7 @@ class Home(SingleTableView):
     def post(self, request, *args, **kwargs):
         identity = get_identity(self.request)
         for file_id in request.FILES:
-            if utils.validate(request.FILES[file_id].file):
+            if utils.validate(request.FILES[file_id]):
                 models.Project.objects.create(
                     identity=identity,
                     pdb=File(
@@ -42,6 +42,7 @@ class Home(SingleTableView):
                     filename=request.FILES[file_id].name
                 )
             else:
+                table = self.get_table()
                 return JsonResponse({
                     'success': False,
                     'table': table.as_html(request)
