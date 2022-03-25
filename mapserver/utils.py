@@ -28,6 +28,6 @@ def validate(file_to_validate):
     text_file_to_validate.detach()
 
     if counter > 10:
-        return True
+        return None
     else:
-        return False
+        return 'Wrong file type'

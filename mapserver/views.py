@@ -30,8 +30,10 @@ class Home(SingleTableView):
 
     def post(self, request, *args, **kwargs):
         identity = get_identity(self.request)
+        status = []
         for file_id in request.FILES:
-            if utils.validate(request.FILES[file_id]):
+            error = utils.validate(request.FILES[file_id])
+            if not error:
                 models.Project.objects.create(
                     identity=identity,
                     pdb=File(
@@ -41,18 +43,19 @@ class Home(SingleTableView):
                     config=identity.config,
                     filename=request.FILES[file_id].name
                 )
-            else:
-                table = self.get_table()
-                return JsonResponse({
-                    'success': False,
-                    'table': table.as_html(request)
-                })
+            status.append((request.FILES[file_id].name, error))
 
-        table = self.get_table()
-        return JsonResponse({
-            'success': True,
-            'table': table.as_html(request)
-        })
+        if any(map(lambda x: x[1] is None, status)):
+            table = self.get_table()
+            response_data = {
+                'status': status,
+                'table': table.as_html(request)
+            }
+        else:
+            response_data = {
+                'status': status,
+            }
+        return JsonResponse(response_data)
 
 
 class Detail(generic.DetailView):

@@ -82,14 +82,28 @@ let initMapTable = function () {
 Dropzone.options.dropzone = {
     uploadMultiple: true,
     dictDefaultMessage: "3. Drop files here to download",
-    success: function (file, data) {
-        let $table = $('table');
-        if (! $table.exists()) {
-            let $alert = $('.table-responsive .alert');
-            $alert.replaceWith(data.table);
+
+    successmultiple: function (files, data) {
+        if (data.table) {
+            let $table = $('table');
+            if (!$table.exists()) {
+                let $alert = $('.table-responsive .alert');
+                $alert.replaceWith(data.table);
+            }
+            $table.html(data.table);
+            initMapTable();
         }
-        $table.html(data.table);
-        initMapTable();
-    }
+
+        let file_map = {};
+        for (const file of files) {
+            file_map[file.name] = file
+        }
+        for (const status of data.status) {
+            if (status[1]) {
+                this.options.error(file_map[status[0]], status[1])
+            }
+        }
+    },
+
 };
 
