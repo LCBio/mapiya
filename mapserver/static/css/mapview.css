@@ -22,3 +22,10 @@
 .msp-plugin-content {
     border: none!important;
 }
+
+#logs_btn {
+    position: absolute;
+    bottom: 4.5%;
+    left: 0.5%;
+    z-index: 100
+}
