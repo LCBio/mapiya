@@ -9,6 +9,7 @@ urlpatterns = [
     path('project/<str:pk>/', views.Detail.as_view(), name='project-detail'),
     path('project/<str:pk>/delete/', views.Delete.as_view(), name='project-delete'),
     path('project/<str:pk>/resubmit/', views.resubmit, name='project-resubmit'),
+    path('project/<str:pk>/rename/', views.rename, name='project-rename'),
     path('project/<str:pk>/status/', views.project_status, name='project-status'),
     path('project/<str:pk>/molstar/', views.molstar, name='project-molstar'),
     path('project/<str:pk>/molstar/<int:model_index>/', views.molstar_model, name='project-molstar-model'),

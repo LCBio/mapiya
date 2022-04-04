@@ -25,6 +25,11 @@ class Home(SingleTableView):
         data['options_form'] = forms.OptionsForm(data=identity.config)
         return data
 
+    def get_table_kwargs(self):
+        kwargs = super().get_table_kwargs()
+        kwargs['TZ'] = self.request.META['TZ']
+        return kwargs
+
     def get_queryset(self):
         return models.Project.objects.filter(identity=get_identity(self.request))
 
@@ -73,6 +78,19 @@ def resubmit(request, pk):
         return redirect('home')
     except models.Project.DoesNotExist:
         return JsonResponse({'error': 'Project does not exist'})
+
+
+def rename(request, pk):
+    identity = get_identity(request)
+    try:
+        project = identity.project_set.get(pk=pk)
+        project.filename = request.POST['name']
+        project.save(update_fields=['filename'])
+        data = {'success': True}
+    except models.Project.DoesNotExist:
+        data = {'success': False}
+
+    return JsonResponse(data)
 
 
 def project_status(request, pk):

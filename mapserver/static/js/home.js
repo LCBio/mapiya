@@ -2,6 +2,22 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 // Options form
 // TODO: this code should be optimized to check every dependency just once
 let shouldShow = function ($input) {
@@ -67,8 +83,51 @@ let updateRow = function ($label) {
                 $link.replaceWith(data.link);
                 $buttons.html(data.buttons)
                 if (! data.completed) setTimeout(updateRow, 1000, newLabel);
+                else handleRename($buttons.find('.rename-button'));
             }
         }
+    });
+};
+
+const handleRename = function (renameButton) {
+    renameButton.on('click', function (event) {
+        event.preventDefault();
+        const $td = renameButton.parents('tr').children(':nth-child(2)');
+        const $link = $td.children('a');
+        const oldName = $link.html();
+        const $input = $(`<input class="rename-input" value="${oldName}"/>`);
+        $td.html($input);
+        $input.focus();
+
+        $input.on('change', function (event) {
+            $.ajax({
+                url: renameButton.prop('href'),
+                method: 'POST',
+                headers: {'X-CSRFToken': getCookie('csrftoken')},
+                data: {
+                    name: $input.val()
+                },
+                success: function (data) {
+                    if (data.success) $link.html($input.val());
+                }
+            });
+        });
+
+        $input.on('focusout', function (event) {
+            $td.html($link);
+        });
+
+        $input.on('keydown', event => {
+            if (event.key === 'Escape') $input.focusout();
+            else if(event.key === 'Enter') {
+                if ($input.val() === oldName) $input.focusout();
+                else {
+                    $input.change();
+                    $input.focusout();
+                }
+            }
+        });
+
     });
 };
 
@@ -76,12 +135,15 @@ let initMapTable = function () {
     $('.progress-label').each(function () {
         updateRow($(this));
     });
+    $('.rename-button').each(function () {
+        handleRename($(this));
+    });
 };
 
 // Dropzone
 Dropzone.options.dropzone = {
     uploadMultiple: true,
-    dictDefaultMessage: "4. Drop files here to download",
+    dictDefaultMessage: "4. Drop files here",
     success: function (file, data) {
         let $table = $('table');
         if (! $table.exists()) {
@@ -92,4 +154,3 @@ Dropzone.options.dropzone = {
         initMapTable();
     }
 };
-

@@ -1,3 +1,5 @@
+import datetime
+
 from django.utils.functional import cached_property
 from django.utils.crypto import get_random_string
 from django.utils.html import format_html
@@ -26,6 +28,9 @@ def get_map_id():
 
 
 class Project(models.Model):
+
+    class Meta:
+        ordering = ['-date_init']
 
     class StatusChoices(models.TextChoices):
 
@@ -149,8 +154,13 @@ class Project(models.Model):
             </a>'''
         resubmit_msg = f'''
             <a href="{reverse_lazy('project-resubmit', args=[self.pk])}"
-                class="resubmit-button text-primary" title="Resubmit job">
+                class="resubmit-button text-primary" title="Resubmit project">
                  <i class="fa fa-sm fa-redo"></i>
+            </a>'''
+        rename_msg = f'''
+            <a href="{reverse_lazy('project-rename', args=[self.pk])}"
+                class="rename-button text-secondary" title="Rename project">
+                 <i class="fa fa-sm fa-edit"></i>
             </a>'''
 
         completed = True
@@ -158,7 +168,7 @@ class Project(models.Model):
         if self.status == 'F':
             link = active_link
             msg = success_msg
-            buttons_msg = resubmit_msg + buttons_msg
+            buttons_msg = rename_msg + resubmit_msg + buttons_msg
 
         elif self.status == 'E':
             link = disabled_link
