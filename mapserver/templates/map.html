@@ -10,7 +10,7 @@
 {% endblock css %}
 
 {% block content %}
-
+    {% include "logs-modal.html" %}
     <div class="content-wrapper">
         <div class="plotly-app">
             {% plotly_app name="ContactMap" initial_arguments=plotly %}
@@ -18,7 +18,7 @@
 
         <div id="molStarViewport"></div>
     </div>
-
+<button class="btn btn-danger" id="logs_btn" data-toggle="modal" data-target="#modal-logs">Show logs</button>
 {% endblock content %}
 
 {% block js %}
