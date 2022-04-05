@@ -2,7 +2,6 @@ from django.shortcuts import redirect
 from django.http import JsonResponse, HttpResponse, Http404
 from django.urls import reverse_lazy
 from django.views import generic
-from django.core.files import File
 from django_tables2 import SingleTableView
 
 from . import models, forms, tables
@@ -36,15 +35,12 @@ class Home(SingleTableView):
     def post(self, request, *args, **kwargs):
         identity = get_identity(self.request)
         for file_id in request.FILES:
-            models.Project.objects.create(
+            models.create_project(
                 identity=identity,
-                pdb=File(
-                    file=request.FILES[file_id].file,
-                    name=request.FILES[file_id].name
-                ),
-                config=identity.config,
-                filename=request.FILES[file_id].name
+                file=request.FILES[file_id].file,
+                name=request.FILES[file_id].name
             )
+
         table = self.get_table()
         return JsonResponse({
             'success': True,
@@ -115,14 +111,10 @@ class RCSB(generic.FormView):
             pdb_code = form.cleaned_data['code']
             pdb_file = atom.PdbFile(pdb_code)
             identity = get_identity(self.request)
-            models.Project.objects.create(
+            models.create_project(
                 identity=identity,
-                pdb=File(
-                    name=pdb_code,
-                    file=pdb_file.opened_file
-                ),
-                config=identity.config,
-                filename=pdb_code
+                file=pdb_file.opened_file,
+                name=pdb_code
             )
 
             return JsonResponse({
