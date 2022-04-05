@@ -1,9 +1,14 @@
 from django.utils.functional import cached_property
 from django.utils.crypto import get_random_string
 from django.utils.html import format_html
+from django.core.files import File
 from django.db import models
 from django.urls import reverse, reverse_lazy
 import django_rq
+import tempfile
+import pathlib
+import subprocess
+import io
 
 from mollib.atom import Atoms
 from users.models import Identity
@@ -26,6 +31,9 @@ def get_map_id():
 
 
 class Project(models.Model):
+
+    class Meta:
+        ordering = ['-date_init']
 
     class StatusChoices(models.TextChoices):
 
@@ -149,8 +157,13 @@ class Project(models.Model):
             </a>'''
         resubmit_msg = f'''
             <a href="{reverse_lazy('project-resubmit', args=[self.pk])}"
-                class="resubmit-button text-primary" title="Resubmit job">
+                class="resubmit-button text-primary" title="Resubmit project">
                  <i class="fa fa-sm fa-redo"></i>
+            </a>'''
+        rename_msg = f'''
+            <a href="{reverse_lazy('project-rename', args=[self.pk])}"
+                class="rename-button text-secondary" title="Rename project">
+                 <i class="fa fa-sm fa-edit"></i>
             </a>'''
 
         completed = True
@@ -158,7 +171,7 @@ class Project(models.Model):
         if self.status == 'F':
             link = active_link
             msg = success_msg
-            buttons_msg = resubmit_msg + buttons_msg
+            buttons_msg = rename_msg + resubmit_msg + buttons_msg
 
         elif self.status == 'E':
             link = disabled_link
@@ -201,3 +214,42 @@ class Project(models.Model):
 
     def __str__(self):
         return self.filename
+
+
+def create_bioassemblies(file):
+
+    input = io.TextIOWrapper(file) if isinstance(file, io.BytesIO) else file
+
+    with tempfile.TemporaryDirectory(dir='playground') as workdir:
+        dir_path = pathlib.Path(workdir)
+        args = ['bioassembly', '/dev/stdin', 'bioassembly']
+        proc = subprocess.run(
+            args=args, capture_output=True, cwd=dir_path, input=input.read(), text=True)
+        return [f.open(mode='rt') for f in dir_path.glob('*.pdb')], proc.stdout, proc.stderr
+
+
+def create_project(identity, file, name):
+
+    if identity.config['bio_assembly']:
+        files, out, log = create_bioassemblies(file)
+        for index, biofile in reversed(list(enumerate(files, 1))):
+            Project.objects.create(
+                identity=identity,
+                config=identity.config,
+                pdb=File(
+                    file=biofile,
+                    name=f'{name}_{index}.pdb'
+                ),
+                filename=f'{name}_{index}.pdb'
+            )
+
+    else:
+        Project.objects.create(
+            identity=identity,
+            pdb=File(
+                file=file,
+                name=name
+            ),
+            config=identity.config,
+            filename=name
+        )

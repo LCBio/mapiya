@@ -2,7 +2,6 @@ from django.shortcuts import redirect
 from django.http import JsonResponse, HttpResponse, Http404
 from django.urls import reverse_lazy
 from django.views import generic
-from django.core.files import File
 from django_tables2 import SingleTableView
 
 from . import models, forms, tables
@@ -25,21 +24,23 @@ class Home(SingleTableView):
         data['options_form'] = forms.OptionsForm(data=identity.config)
         return data
 
+    def get_table_kwargs(self):
+        kwargs = super().get_table_kwargs()
+        kwargs['TZ'] = self.request.META['TZ']
+        return kwargs
+
     def get_queryset(self):
         return models.Project.objects.filter(identity=get_identity(self.request))
 
     def post(self, request, *args, **kwargs):
         identity = get_identity(self.request)
         for file_id in request.FILES:
-            models.Project.objects.create(
+            models.create_project(
                 identity=identity,
-                pdb=File(
-                    file=request.FILES[file_id].file,
-                    name=request.FILES[file_id].name
-                ),
-                config=identity.config,
-                filename=request.FILES[file_id].name
+                file=request.FILES[file_id].file,
+                name=request.FILES[file_id].name
             )
+
         table = self.get_table()
         return JsonResponse({
             'success': True,
@@ -58,17 +59,6 @@ class Detail(generic.DetailView):
         return data
 
 
-class PlotlyProject(generic.DetailView):
-
-    model = models.Project
-    template_name = 'plotly.html'
-
-    def get_context_data(self, **kwargs):
-        data = super().get_context_data(**kwargs)
-        data['plotly_args'] = {'project-pk': {'value': self.object.pk}}
-        return data
-
-
 class Delete(generic.DeleteView):
 
     model = models.Project
@@ -84,6 +74,19 @@ def resubmit(request, pk):
         return redirect('home')
     except models.Project.DoesNotExist:
         return JsonResponse({'error': 'Project does not exist'})
+
+
+def rename(request, pk):
+    identity = get_identity(request)
+    try:
+        project = identity.project_set.get(pk=pk)
+        project.filename = request.POST['name']
+        project.save(update_fields=['filename'])
+        data = {'success': True}
+    except models.Project.DoesNotExist:
+        data = {'success': False}
+
+    return JsonResponse(data)
 
 
 def project_status(request, pk):
@@ -108,14 +111,10 @@ class RCSB(generic.FormView):
             pdb_code = form.cleaned_data['code']
             pdb_file = atom.PdbFile(pdb_code)
             identity = get_identity(self.request)
-            models.Project.objects.create(
+            models.create_project(
                 identity=identity,
-                pdb=File(
-                    name=pdb_code,
-                    file=pdb_file.opened_file
-                ),
-                config=identity.config,
-                filename=pdb_code
+                file=pdb_file.opened_file,
+                name=pdb_code
             )
 
             return JsonResponse({

@@ -326,7 +326,7 @@ class OptionsForm(forms.Form):
         widget=forms.TextInput(attrs={
             'data-requirements': json.dumps({'add_environment': ['membrane']})
         }),
-        label='&#8627; membrane position',
+        label='&#8627; membrane position'
     )
 
     hydrogen_bonds = forms.BooleanField(
