@@ -110,10 +110,13 @@ class Job(models.Model):
         # Apply mutations
         if config['apply_mutations']:
             mutations = collections.defaultdict(list)
-            for mutation, chain_id in map(
-                    lambda x: x.split(':'),
-                    config['apply_mutations'].replace(' ', '').split(',')
-            ): mutations[chain_id].append(mutation)
+            try:
+                for mutation, chain_id in map(
+                        lambda x: x.split(':'),
+                        config['apply_mutations'].replace(' ', '').split(',')
+                ): mutations[chain_id].append(mutation)
+            except:
+                logger.error(f'Mutation not applied. Invalid input for mutation')
 
             for chain in mutations:
                 try:
@@ -251,7 +254,7 @@ class Job(models.Model):
                 PDBFile.writeFile(fixer.topology, fixer.positions, f, keepIds=True)
                 self.environment = ContentFile(name=f'environment{self.model_index}.pdb', content=f.getvalue())
         else:
-            logger.info('no solvent or membrane added')
+            logger.info('No solvent or membrane added')
 
         # Save PDBFixer log in the DB
         self.logs['pdbfixer'] = log.getvalue()
