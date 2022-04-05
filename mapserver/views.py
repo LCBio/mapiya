@@ -26,7 +26,7 @@ class Home(SingleTableView):
 
     def get_table_kwargs(self):
         kwargs = super().get_table_kwargs()
-        kwargs['TZ'] = self.request.META['TZ']
+        # kwargs['TZ'] = self.request.META['TZ']
         return kwargs
 
     def get_queryset(self):
