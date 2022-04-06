@@ -1,7 +1,5 @@
 from . import models
 import django_tables2 as tables
-from django.utils.html import format_html
-from django.utils.timezone import zoneinfo
 import itertools
 
 
@@ -29,7 +27,8 @@ class ProjectTable(RowNumberTable):
 
     class Meta:
         model = models.Project
-        fields = ('row_number', 'filename', 'progress', 'date_init')
+        template_name = 'django_tables2/bootstrap-responsive.html'
+        fields = ('row_number', 'filename', 'progress')
         attrs = {
             'id': 'projectTable',
             'class': 'table table-sm table-borderless table-striped'
@@ -45,10 +44,6 @@ class ProjectTable(RowNumberTable):
 
     progress = tables.Column(
         orderable=False
-    )
-
-    date_init = tables.Column(
-        verbose_name='Created'
     )
 
     buttons = tables.Column(
@@ -68,10 +63,6 @@ class ProjectTable(RowNumberTable):
     @staticmethod
     def render_progress(record):
         return record.progress.get('msg', 'ERROR')
-
-    def render_date_init(self, value):
-        dt = value.astimezone(zoneinfo.ZoneInfo(self.TZ)) if self.TZ else value
-        return format_html(f'<small>{dt.strftime("%D %T")}</small>')
 
     @staticmethod
     def render_buttons(record):

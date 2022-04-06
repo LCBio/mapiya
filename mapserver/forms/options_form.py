@@ -3,157 +3,19 @@ import json
 from django import forms
 from django.urls import reverse
 from crispy_forms import layout, helper
-from users.forms import CrispyFormMixin
 from . import layouts
-
-
-class RCSBForm(CrispyFormMixin, forms.Form):
-
-    code = forms.CharField(
-        max_length=4,
-        min_length=4,
-        widget=forms.TextInput(
-            attrs={'placeholder': 'Enter 4-letter PDB code (i.e. 2gb1).'}
-        )
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.helper.form_action = reverse('rcsb')
-        self.helper.form_id = 'rcsbForm'
-        self.helper.layout = layout.Layout(
-            'code',
-            layout.HTML(f'''<button type="submit" class="btn btn-success btn-block mty-3">Submit</button>'''),
-        )
-
-
-def format_tooltip(tooltip):
-
-    html = f'''
-        <h5>
-            {tooltip.get('title', 'Example tooltip title')}
-            <i class="fas fa-{tooltip.get('icon')}"></i>
-        </h5>
-        <hr/>
-        <small>{tooltip.get('body', 'Tooltip body missing')}</small>
-    '''
-
-    return {
-        'data-toggle': 'tooltip',
-        'data-placement': tooltip.get('placement', 'left'),
-        'data-html': 'true',
-        'title': html
-    }
 
 
 class OptionsForm(forms.Form):
 
-    TOOLTIPS = {
-        'contact_cutoff': {
-            'title': 'Contact cutoff',
-            'body': 'User sets the value for contact cutoff (in angstrom [Å]). The distance between the two closest '
-                    'heavy atoms in two different residues is considered contact if it is below the contact cutoff '
-                    'value. In the project view for a particular file, the user can later change this value and display'
-                    ' contact maps for the changed contact cutoff.',
-            'placement': 'left'
-        },
-        'protonation_ph': {
-            'title': 'Protonation pH',
-            'body': 'The user sets the value for pH of the modeled environment. The value can range between 0 and 14.',
-            'icon': 'question-circle',
-            'placement': 'left'
-        },
-        'hydrogen_bonds': {
-            'title': 'Hydrogen bonds',
-            'body': 'If this option is checked, Mapiya calculates hydrogen bonds using EDHB.',
-            'icon': 'question-circle',
-            'placement': 'left'
-        },
-        'secondary_structure': {
-            'title': 'Secondary structure',
-            'body': 'If his option is checked, Mapiya calculates secondary structure using STRIDE.',
-            'icon': 'question-circle',
-            'placement': 'left'
-        },
-        'electrostatics': {
-            'title': 'Electrostatics',
-            'body': 'If this option is checked, Mapiya calculates electrostatics using Adaptive Poisson-Boltzmann Solve'
-                    'r (APBS) software.',
-            'icon': 'question-circle',
-            'placement': 'left'
-        },
-        'add_atoms': {
-            'title': 'Add atoms',
-            'body': 'This option enables users to add missing atoms to the structure. The available options are: all, h'
-                    'eavy, standard, terminal, hydrogen and none.',
-            'icon': 'question-circle',
-            'placement': 'left'
-        },
-        'add_residues': {
-            'title': 'Add residues',
-            'body': 'This option enables users to add missing residues to the structure. The available options are: all'
-                    ', internal, terminal, none.',
-            'icon': 'question-circle',
-            'placement': 'left'
-        },
-        'max_loop_length': {
-            'title': 'Max loop length',
-            'body': 'This option enables users to specify the maximal length of inserted loops.',
-            'icon': 'question-circle',
-            'placement': 'left'
-        },
-        'keep_heterogens': {
-            'title': 'Keep heterogens',
-            'body': 'This option enables users to keep heterogeneous atoms from being removed. The available options fo'
-                    'r heterogens to be kept are: all, water, none.',
-            'icon': 'question-circle',
-            'placement': 'left'
-        },
-        'replace_non_standard': {
-            'title': 'Replace non-standard amino acids',
-            'body': 'This option enables users to replace all non-standard amino acids in the structure for their stand'
-                    'ard equivalents.',
-            'icon': 'question-circle',
-            'placement': 'left'
-        },
-        'apply_mutations': {
-            'title': 'Apply mutations',
-            'body': 'This option enables users to apply mutations in the structure. The input is in form: three-letter '
-                    'amino acid code for an original residue - index of a residue that is being replaced - three-letter'
-                    ' amino acid code for a mutated residue, protein chain id. For example VAL-7-ILE, A will mutate val'
-                    'one 7 into isoleucine in chain A.',
-            'icon': 'question-circle',
-            'placement': 'left'
-        },
-        'add_environment': {
-            'title': 'Add environment',
-            'body': 'This option enables users to add an environment to a modeled project. The available options are: n'
-                    'one, solvent, membrane.',
-            'icon': 'question-circle',
-            'placement': 'left'
-        },
-        'membrane_position': {
-            'title': 'Membrane position',
-            'body': 'This option enables users to specify the membrane position. The first number is the position along'
-                    ' the Z axis of the center of the membrane and the second number is the the minimal padding distanc'
-                    'e to use.',
-            'icon': 'question-circle',
-            'placement': 'left'
-        },
-    }
-
-    HELP_TEXT = {
-    }
-
     DEFAULTS = {
         'contact_cutoff': 8.0,
         'protonation_ph': 7.0,
-        'add_atoms': 'none',
-        'add_residues': 'none',
+        'add_atoms': 'all',
+        'add_residues': 'internal',
         'max_loop_length': 5,
         'keep_heterogens': 'none',
-        'replace_non_standard': False,
+        'replace_non_standard': True,
         'apply_mutations': '',
         'add_environment': 'none',
         'positive_ion': 'Na+',
@@ -233,7 +95,7 @@ class OptionsForm(forms.Form):
     apply_mutations = forms.CharField(
         required=False,
         label='apply mutations',
-        widget=forms.TextInput(attrs={'placeholder': 'e.g., VAL-3-ILE:A, ILE-7-VAL:A'})
+        widget=forms.TextInput(attrs={'placeholder': 'e.g., VAL-3-ILE:A'})
     )
 
     add_environment = forms.ChoiceField(
@@ -329,19 +191,19 @@ class OptionsForm(forms.Form):
         label='&#8627; membrane position'
     )
 
-    hydrogen_bonds = forms.BooleanField(
-        required=False,
-        label='Calculate hydrogen bonds'
+    hydrogen_bonds = forms.ChoiceField(
+        choices=[(False, 'no'), (True, 'yes')],
+        label='Hydrogen bonds'
     )
 
-    secondary_structure = forms.BooleanField(
-        required=False,
-        label='Calculate secondary structure'
+    secondary_structure = forms.ChoiceField(
+        choices=[(False, 'no'), (True, 'yes')],
+        label='Secondary structure'
     )
 
-    electrostatics = forms.BooleanField(
-        required=False,
-        label='Calculate electrostatics'
+    electrostatics = forms.ChoiceField(
+        choices=[(False, 'no'), (True, 'yes')],
+        label='Electrostatics'
     )
 
     bio_assembly = forms.BooleanField(
@@ -352,14 +214,20 @@ class OptionsForm(forms.Form):
     def clean_replace_non_standard(self):
         return self.cleaned_data['replace_non_standard'] in ['True', 'true', True]
 
+    def clean_hydrogen_bonds(self):
+        return self.cleaned_data['hydrogen_bonds'] in ['True', 'true', True]
+
+    def clean_secondary_structure(self):
+        return self.cleaned_data['secondary_structure'] in ['True', 'true', True]
+
+    def clean_electrostatics(self):
+        return self.cleaned_data['electrostatics'] in ['True', 'true', True]
+
+    def clean_apply_mutations(self):
+        return self.cleaned_data['apply_mutations'].upper()
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        for field_name, help_text in self.HELP_TEXT.items():
-            self.fields[field_name].help_text = help_text
-
-        for field_name, tooltip in self.TOOLTIPS.items():
-            self.fields[field_name].widget.attrs.update(format_tooltip(tooltip))
 
         self.helper = helper.FormHelper()
         self.helper.form_show_errors = True
@@ -379,9 +247,9 @@ class OptionsForm(forms.Form):
 
         pane1_col2 = layout.Div(
             layout.HTML('<h6 class="form-column-heading">Advanced options</h6>'),
-            layouts.BoolField('hydrogen_bonds'),
-            layouts.BoolField('secondary_structure'),
-            layouts.BoolField('electrostatics'),
+            layouts.RowField('hydrogen_bonds'),
+            layouts.RowField('secondary_structure'),
+            layouts.RowField('electrostatics'),
             css_class='form-column-wrapper'
         )
 
@@ -455,14 +323,10 @@ class OptionsForm(forms.Form):
                 role='tabpanel'
             ),
             layout.Div(
-                layout.Div(
-                    layouts.BoolField('bio_assembly'),
-                    layout.HTML('''<small>
-                        Clicking the option above will invoke the reconstruction of the biological assembl(y/ies) using
-                        the information in the input file PDB ('REMARK 300 and 'REMARK 350').
-                        More information is provided in the About section.
-                    </small>'''),
-                    css_class='form-row-wrapper'
+                layout.Field(
+                    'bio_assembly',
+                    template='bioassembly.html',
+                    css_class='custom-control-input'
                 ),
                 css_class='tab-pane fade',
                 css_id='pane3',
