@@ -24,11 +24,6 @@ class Home(SingleTableView):
         data['options_form'] = forms.OptionsForm(data=identity.config)
         return data
 
-    def get_table_kwargs(self):
-        kwargs = super().get_table_kwargs()
-        kwargs['TZ'] = self.request.META['TZ']
-        return kwargs
-
     def get_queryset(self):
         return models.Project.objects.filter(identity=get_identity(self.request))
 

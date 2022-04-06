@@ -1,0 +1,10 @@
+<div class="alert alert-warning shadow">
+    Clicking the option below will invoke the reconstruction of the biological assembl(y/ies) using
+    the information in the input PDB file ('REMARK 300 and 'REMARK 350').<br>
+    More information is provided in the <a href="{% url 'about' %}#Assembly">About</a> section.
+</div>
+<br>
+<div class="custom-control custom-switch">
+    {{ field }}
+    <label class="custom-control-label" for="id_bio_assembly">{{ field.label }}</label>
+</div>

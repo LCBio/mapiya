@@ -1,9 +1,15 @@
 .form-container {
-    padding: 1rem 3rem;
+    padding: 1rem 2rem;
+}
+
+@media only screen and (max-width: 768px) {
+    .form-container {
+        padding: 0;
+    }
 }
 
 #optionsForm .tab-pane {
-    padding: 1rem 0;
+    padding: 2rem 0;
 }
 
 #myTab .nav-item {
@@ -11,6 +17,13 @@
     font-family: var(--fancy-font);
     font-weight: 700;
     font-size: 1.2rem;
+    flex-grow: 1;
+    text-align: center;
+}
+
+.nav-link.active {
+    background-color: var(--primary)!important;
+    color: #fff!important;
 }
 
 #optionsForm label {
@@ -32,6 +45,15 @@
 #optionsForm .form-control,
 #optionsForm .custom-select {
     min-width: 12rem;
+    border-radius: 0.2rem!important;
+}
+
+
+@media only screen and (max-width: 320px) {
+    #optionsForm .form-control,
+    #optionsForm .custom-select {
+        width: 100%;
+    }
 }
 
 #optionsForm .checkbox-label-wrapper {
@@ -48,10 +70,32 @@
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 1rem;
-    padding: 0 1rem;
 }
 
 #optionsForm .form-column-heading {
     font-family: var(--fancy-font);
     font-weight: 700;
+}
+
+.tooltip-inner {
+    padding: 1rem;
+    min-width: 25rem;
+    text-align: justify;
+    background-color: var(--danger);
+    color: var(--light);
+}
+
+.tooltip-title {
+    font-weight: bold;
+}
+
+.input-group {
+    flex-wrap: nowrap;
+}
+
+.input-group-text {
+    color: var(--secondary);
+    background-color: unset;
+    border: none;
+    margin-left: -0.25rem;
 }
