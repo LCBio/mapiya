@@ -1,22 +1,29 @@
-.content-wrapper {
+body {
     background-color: #fff;
 }
 
-.plotly-app {
-    max-width: 50%;
-    padding: 1rem 0.25rem 1rem 0.5rem;
+.content-wrapper {
+    background-color: #fff;
+    display: flex;
 }
 
-.plotly-app div {
-    height: calc(100vh - 7rem) !important;
+.app-container {
+    flex-grow: 1;
+    position: relative;
 }
 
-.msp-plugin {
-    max-width: 50%;
-    max-height: calc(100vh - 5rem);
-    position: absolute;
-    left: 50%;
-    top: 3rem;
+#plotlyViewport {
+    padding: 1rem;
+}
+
+@media only screen and (max-width: 1023px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+
+    .msp-plugin {
+        min-height: 100vh;
+    }
 }
 
 .msp-plugin-content {
@@ -24,8 +31,8 @@
 }
 
 #logs_btn {
-    position: absolute;
-    bottom: 4.5%;
-    left: 0.5%;
+    position: fixed;
+    bottom: 5%;
+    left: 1%;
     z-index: 100
 }

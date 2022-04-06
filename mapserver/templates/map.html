@@ -11,14 +11,16 @@
 
 {% block content %}
     {% include "logs-modal.html" %}
+
     <div class="content-wrapper">
-        <div class="plotly-app">
-            {% plotly_app name="ContactMap" initial_arguments=plotly %}
+        <div class="app-container" id="plotlyViewport">
+            {% plotly_app name="ContactMap" initial_arguments=plotly ratio=0.95 %}
         </div>
 
-        <div id="molStarViewport"></div>
+        <div class="app-container" id="molStarViewport"></div>
     </div>
-<button class="btn btn-danger" id="logs_btn" data-toggle="modal" data-target="#modal-logs">Show logs</button>
+
+    <button class="btn btn-danger" id="logs_btn" data-toggle="modal" data-target="#modal-logs">Show logs</button>
 {% endblock content %}
 
 {% block js %}
@@ -27,11 +29,8 @@
     <!-- Molstar -->
     <script src="{% static 'js/pdbe-molstar-plugin-1.2.0.js' %}"></script>
     <script src="{% static 'js/molstar.js' %}"></script>
-    {% comment %} <script>var exports = {};</script>
-    <script src="{% static 'vendors/mol-script/script.js' %}"></script> {% endcomment %}
     <script>
         let viewerInstance = initMolStarViewer('molStarViewport', '{{object.pk}}');
         process_events(viewerInstance, '{{object.pk}}');
-        
     </script>
 {% endblock js %}
