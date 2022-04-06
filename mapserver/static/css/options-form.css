@@ -79,7 +79,7 @@
 
 .tooltip-inner {
     padding: 1rem;
-    min-width: 25rem;
+    min-width: 30rem;
     text-align: justify;
     background-color: var(--danger);
     color: var(--light);
@@ -88,6 +88,11 @@
 .tooltip-title {
     font-weight: bold;
 }
+
+.tooltip ul {
+    padding-inline-start: 20px;
+}
+
 
 .input-group {
     flex-wrap: nowrap;

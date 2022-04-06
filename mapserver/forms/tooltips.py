@@ -4,70 +4,112 @@ TOOLTIPS = {
     'contact_cutoff': {
         'title': 'Contact cutoff',
         'body': '''
-            User sets the value for contact cutoff (in angstrom [Å]). The distance between the two closest heavy atoms 
-            in two different residues is considered contact if it is below the contact cutoff value. In the project 
-            view for a particular file, the user can later change this value and display contact maps for the changed 
+            Set the value for the contact cutoff (in angstrom [Å]). Two residues are considered in contact if the 
+            distance between the two closest heavy atoms in two different residues is below the contact cutoff value.
+            <br>In the project view, the user can later change this value and display contact maps for the changed 
             contact cutoff.
         ''',
     },
     'protonation_ph': {
         'title': 'Protonation pH',
-        'body': 'The user sets the value for pH of the modeled environment. The value can range between 0 and 14.',
+        'body': '''
+            Set the pH value for the modeled environment. The value can range between 0 and 14.
+        ''',
     },
     'hydrogen_bonds': {
         'title': 'Hydrogen bonds',
-        'body': 'If this option is checked, Mapiya calculates hydrogen bonds using EDHB.',
+        'body': '''
+            Calculate hydrogen bonds using EDHB.
+            <br><em>Verma N, Tao Y, Kraka E., J Phys Chem B. 2021;125(10):2551-2565</em><br>
+            <strong>Note: The structure has to have hydrogens to calculate hydrogen bonds</strong>
+        ''',
     },
     'secondary_structure': {
         'title': 'Secondary structure',
-        'body': 'If his option is checked, Mapiya calculates secondary structure using STRIDE.',
+        'body': '''
+            Calculate secondary structure using STRIDE.
+        ''',
     },
     'electrostatics': {
         'title': 'Electrostatics',
-        'body': 'If this option is checked, Mapiya calculates electrostatics using Adaptive Poisson-Boltzmann Solve'
-                'r (APBS) software.',
+        'body': '''
+            Calculate electrostatics using Adaptive Poisson-Boltzmann Solver (APBS) software.
+        ''',
     },
     'add_atoms': {
         'title': 'Add atoms',
-        'body': 'This option enables users to add missing atoms to the structure. The available options are: all, h'
-                'eavy, standard, terminal, hydrogen and none.',
+        'body': '''
+            Add missing atoms to the structure. Available options are:
+            <ul>
+                <li><strong>all</strong> - all missing atoms will be added to the structure</li>
+                <li><strong>heavy</strong> - only non-hydrogen atoms will be added</li>
+                <li><strong>standard</strong> - standard atoms will be added</li>
+                <li><strong>terminal</strong> - only terminal atoms will be added</li>
+                <li><strong>hydrogen</strong> - only hydrogen atoms will be added</li>
+                <li><strong>none</strong> - no atoms will be added</li>
+            </ul>   
+        ''',
     },
     'add_residues': {
         'title': 'Add residues',
-        'body': 'This option enables users to add missing residues to the structure. The available options are: all'
-                ', internal, terminal, none.',
+        'body': '''
+            Add missing residues to the structure. Available options are:
+            <ul>
+                <li><strong>all</strong> - all missing residues will be added to the structure</li> 
+                <li><strong>internal</strong> - missing residues will be added everywhere except for the terminal 
+                    regions</li>
+                <li><strong>terminal</strong> - only terminal missing residues will be added</li>
+                <li><strong>none</strong> - no residues will be added</li>
+            </ul>
+        ''',
     },
     'max_loop_length': {
         'title': 'Max loop length',
-        'body': 'This option enables users to specify the maximal length of inserted loops.',
+        'body': '''
+            Set the maximal length of inserted loops.
+        ''',
     },
     'keep_heterogens': {
         'title': 'Keep heterogens',
-        'body': 'This option enables users to keep heterogeneous atoms from being removed. The available options fo'
-                'r heterogens to be kept are: all, water, none.',
+        'body': '''
+            This option enables users to keep heterogeneous atoms from being removed. The available options for 
+            heterogens to be kept are: all, water, none.
+        ''',
     },
     'replace_non_standard': {
         'title': 'Replace non-standard amino acids',
-        'body': 'This option enables users to replace all non-standard amino acids in the structure for their stand'
-                'ard equivalents.',
+        'body': '''
+            Replace all non-standard amino acids in the structure for their standard equivalents.
+        ''',
     },
     'apply_mutations': {
         'title': 'Apply mutations',
-        'body': 'This option enables users to apply mutations in the structure. The input is in form: three-letter '
-                'amino acid code for an original residue - index of a residue that is being replaced - three-letter'
-                ' amino acid code for a mutated residue, protein chain id. For example VAL-7-ILE, A will mutate val'
-                'one 7 into isoleucine in chain A.',
+        'body': '''
+            This option enables users to apply mutations to the structure.<br>
+            Input must be in the following format: <strong>XXX-NUM-YYY:ID</strong> where:
+            <ul>
+                <li><strong>XXX</strong> - three-letter amino acid code for the original residue</li>
+                <li><strong>NUM</strong> - index of the residue that is being replaced</li>
+                <li><strong>YYY</strong> - three-letter amino acid code for the mutated residue</li>
+                <li><strong>ID</strong> - chain ID</li>
+            </ul>
+            For example: <strong>VAL-7-ILE:A</strong> will mutate Valine 7 in the chain A into Isoleucine.<br>
+            Multiple mutations may be entered, separated by the comma.
+        ''',
     },
     'add_environment': {
         'title': 'Add environment',
-        'body': 'This option enables users to add an environment to a modeled project. The available options are: n'
-                'one, solvent, membrane.',
+        'body': '''
+            This option enables users to add an environment to a modeled project. The available options are: none, 
+            solvent, membrane.
+        ''',
     },
     'membrane_position': {
         'title': 'Membrane position',
-        'body': 'This option enables users to specify the membrane position. The first number is the position along'
-                ' the Z axis of the center of the membrane and the second number is the the minimal padding distanc'
-                'e to use.',
+        'body': '''
+            This option enables users to specify the membrane position. The first number is the position along the Z 
+            axis of the center of the membrane and the second number is the the minimal padding distance to use.
+        ''',
     },
 }
 
