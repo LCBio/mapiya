@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.db.models import Q
 from . import models
 
 
@@ -14,5 +13,4 @@ class IdentityAdmin(admin.ModelAdmin):
 
     @admin.display(description='Projects')
     def projects(self, obj):
-        total = obj.project_set.count()
-        return total
+        return obj.project_set.count()
