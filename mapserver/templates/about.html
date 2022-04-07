@@ -12,40 +12,45 @@
 <div class="general">
     <section class=section-main id="ABOUT">
         <h1><b>ABOUT</b></h1>
-        <h3>Table of contents</h3>
+        <h3 class="table_contents">Table of contents</h3>
         <h4>
             <ul class=list-content-main>
-                <li><a href="#Input">1. Input and options</a>
+                <li class="element-list"><a href="#Input">1. Input and options</a>
                     <ul class=list-content>
-                        <li><a href="#Select">1.1. Select options</a></li>
-                        <li><a href="#Fix">1.2. Fix structure</a></li>
-                        <li><a href="#Assembly">1.3. Biological Assembly</a></li>
-                        <li><a href="#Download">1.4. Download structure files</a></li>
-                        <li><a href="#Project">1.5. Project list</a></li>
+                        <li class="element-list"><a href="#Select">1.1. Select options</a></li>
+                        <li class="element-list"><a href="#Fix">1.2. Fix structure</a></li>
+                        <li class="element-list"><a href="#Assembly">1.3. Biological Assembly</a></li>
+                        <li class="element-list"><a href="#Download">1.4. Download structure files</a></li>
+                        <li class="element-list"><a href="#Project">1.5. Project list</a></li>
                     </ul>
                 </li>
-                <li><a href="#Diagram">2. Diagram View</a>
+                <li class="element-list"><a href="#Diagram">2. Diagram View</a>
                 </li>
-                <li><a href="#Map">3. Map View</a>
+                <li class="element-list"><a href="#Map">3. Map View</a>
                     <ul class=list-content>
-                        <li><a href="#Basic">3.1. Basic options</a></li>
-                        <li><a href="#Filters">3.2. Contact filters</a></li>
-                        <li><a href="#1D_data">3.3. Displaying 1D data</a></li>
-                        <li><a href="#Generating">3.4. Generating map images</a></li>
-                        <li><a href="#Molstar">3.5. Interaction of Maps with Molstar molecular visualization</a></li>
-                        <li><a href="#Text">3.6. Downloading data in text format</a></li>
+                        <li class="element-list"><a href="#Basic">3.1. Basic options</a></li>
+                        <li class="element-list"><a href="#Filters">3.2. Contact filters</a></li>
+                        <li class="element-list"><a href="#1D_data">3.3. Displaying 1D data</a></li>
+                        <li class="element-list"><a href="#Generating">3.4. Generating map images</a></li>
+                        <li class="element-list"><a href="#Molstar">3.5. Interaction of Maps with Molstar molecular visualization</a></li>
+                        <li class="element-list"><a href="#Text">3.6. Downloading data in text format</a></li>
                     </ul>
                 </li>
-                <li><a href="#Case">4. Case studies</a>
+                <li class="element-list"><a href="#Case">4. Case studies</a>
                     <ul class=list-content>
-                        <li><a href="#Polymerase">4.1. Human DNA polymerase</a></li>
-                        <li><a href="#TRAP-RNA">4.2. TRAP-RNA complex</a></li>
-                        <li><a href="#RNA-dep">4.3. RNA-dependent polymerase (RdRp)</a></li>
+                        <li class="element-list"><a href="#Polymerase">4.1. Human DNA polymerase</a></li>
+                        <li class="element-list"><a href="#TRAP-RNA">4.2. TRAP-RNA complex</a></li>
+                        <li class="element-list"><a href="#RNA-dep">4.3. RNA-dependent polymerase (RdRp)</a></li>
+                    </ul>
+                </li>
+                <li class="element-list"><a href="#Hints">5. Mapiya analysis hints and protocols</a>
+                    <ul class=list-content>
+                        <li class="element-list"><a href="#Chains">5.1. Renaming or merging biomolecule chains</a></li>
                     </ul>
                 </li>
             </ul>
         </h4>
-        <h5><b>Proteins can interact multivalently with a myriad of various biomolecules,
+        <h5 class="intro"><b>Proteins can interact multivalently with a myriad of various biomolecules,
             including other proteins and nucleic acids. The strength and physicochemical character of intermolecular
             contacts between these complex systems is a driving force of signaling or regulatory processes, while the
             identification of these contacts in the available 3D structures is essential for biomedical and biotechnological
@@ -55,15 +60,16 @@
     </section>
     <section class=section-paper>
         <div class="text-paper">
-        <h2><b>Paper and methodology</b></h2>
-        <br><h4>The paper describing the Mapiya web service is:
+        <h2 class="paper-subtitle"><b>Paper and methodology</b></h2>
+        <h4>The paper describing the Mapiya web service is:
             <h5>Badaczewska-Dawid AE et al. MAPIYA contact map server for identification and visualization of molecular interactions
                 in proteins and biological complexes, submitted, 2022</h5>
         </h4>
         </div>
     </section>
+    <div class="main-content">
     <section class=section-main id="Input">
-        <h2><b>Mapiya analysis of biomolecular interactions</b></h2>
+        <h2 class="mapiya-subtitle"><b>Mapiya analysis of biomolecular interactions</b></h2>
         <h3><b>1. Input and options</b></h3>
         <h5>The main Mapiya page allows providing input structure along with several options.</h5>
         <ul class="list-unstyled">
@@ -75,7 +81,12 @@
                         two closest heavy atoms in two different residues is considered contact if it is below the contact cutoff
                         value. In the project view for a particular file, the user can later change this value and display contact
                         maps for the changed contact cutoff.</li>
-                        <li><i class="sc">Protonation pH</i> – The user sets the value for pH of the modeled environment. The value can range between 0 and 14.</li>
+                        <li><i class="sc">Protonation pH</i> – The user sets the value for pH of the modeled environment. The value can range between 0 and 14.
+                        The protonation pH is used to define the environmental conditions for structure repair with PDBfixer (e.g., selecting the protonation
+                        state of a residue when adding hydrogens or adding environment) and electrostatic analysis performed with
+                        APBS (e.g., calculating electrostatic potential). The value can range between 0 and 14, with the default set up to 7.
+                        The protonation pH can be adjusted only before submitting the job to a queue, i.e., before the computationally
+                        extensive step of Mapiya’s analyses. If a change of the pH value is needed, the user should create a new Mapiya project.</li>
                     </ul>
                     The Advanced options include:
                     <ul>
@@ -84,14 +95,36 @@
                         <li><i class="sc">Calculate secondary structure</i> – If his option is checked, Mapiya calculates secondary structure using
                         STRIDE (<a href="http://webclu.bio.wzw.tum.de/stride/">http://webclu.bio.wzw.tum.de/stride</a>).</li>
                         <li><i class="sc">Calculate electrostatics</i> – If this option is checked, Mapiya calculates electrostatics using
-                            Adaptive Poisson-Boltzmann Solver (APBS) software (<a href="https://github.com/Electrostatics/VR">https://github.com/Electrostatics/VR</a>).</li>
+                        Adaptive Poisson-Boltzmann Solver (APBS) software (<a href="https://github.com/Electrostatics/VR">https://github.com/Electrostatics/VR</a>).</li>
                     </ul>
                     <div><img class="img-fluid" src="{% static 'img/about-select.png' %}"/></div>
                 </h5>
             </section></li>
             <li><section class=section-sub id="Fix">
                 <h4><b>1.2. Fix structure</b></h4>
-                <h5>The second "Fix structure" panel contains input options for PDBFixer (<a href="https://github.com/openmm/pdbfixer">https://github.com/openmm/pdbfixer</a>), part of OpenMM software. The options available in this section are:
+                <h5>The second "Fix structure" panel contains input options for PDBFixer (<a href="https://github.com/openmm/pdbfixer">https://github.com/openmm/pdbfixer</a>).
+                    PDBfixer is an encapsulated application that makes it easy to use the functionality provided by OpenMM, a comprehensive molecular dynamics simulation toolkit.
+                    We chose this software because of its
+                    <ul class="list-unstyled">
+                        <li><i class="">(i) transferability,</i></li>
+                        <li><i class="">(ii) extensibility,</i></li>
+                        <li><i class="">(iii) ability to efficiently use computing power (CPU and GPU),</i></li>
+                        <li><i class="">(iv) flexible adaptation for various modeling tools (e.g., Amber, CHARMM, Gromacs, Desmond).</i></li>
+                    </ul>
+                    To fix the structure, the OpenMM Modeller class is used, which invokes various predefined functions for corresponding issues.
+                    The molecular topology loaded from the PDB file is used to create a complete mathematical description of the system, including
+                    creating residue templates based on the contents. Missing atoms are added based on templates for standard residues. In particular,
+                    the added hydrogens correspond to the protonation state of the residue for the selected pH. The missing residues are reconstructed
+                    geometrically along the arch connecting the ends of the break. To eliminate steric clashes, the topology is further optimized with the
+                    LocalEnergyMinimizer class, using the L-BFGS algorithm (harmonic restraining force) and Langevin integrator. It is also possible to add
+                    a solvent, either water or a lipid membrane. When the user decides on the type of solvent (Fix structure section, ‘add environment’ option),
+                    an additional set of options will appear. In both cases, the user needs to select the values of the following options: positive ion, negative
+                    ion, and ionic strength. Then, the water box is created based on the user-provided solvent box dimensions, ensuring that no water
+                    molecule comes closer to another atom than the sum of their van der Waals radii. With an alternative choice, the membrane is formed
+                    based on the selected lipid type and entered membrane position in the XY plane. In this method, in addition to the membrane, solvent
+                    and ions are added simultaneously so that the lipid head groups are properly solvated. In the water environment, the system is
+                    re-optimized using the 'amber14-all' and 'amber14/tip3p' force fields, otherwise, the 'soft' variant is used.
+                    <br>The options available in this section are:
                     <ul>
                         <li><i class="sc">Add atoms</i> &ndash; This option enables users to add missing atoms to the structure. The available options are: all, heavy, standard, terminal, hydrogen and none. The default option is none.</li>
                         <li><i class="sc">Add residues</i> &ndash; This option enables users to add missing residues to the structure. If the residues are to be added, the user has to specify the maximal length of inserted loops. The available options are: all, internal, terminal, none. The default option is none.</li>
@@ -348,7 +381,7 @@
                 <h4><b>3.3. Displaying 1D data</b></h4>
                 <h5>Using <i class="sc">Display 1D data</i> options, you can add various one-dimensional features along the objects' sequence.
                     The residue-resolution bar-chart will be displayed on the right side parallel to the Y-, or on the top side
-                    parallel to the X-axis. Note, that some contacts can be multivalent (e.g., have both charge and π-electrons)
+                    parallel to the X-axis. Note: Some contacts can be multivalent (e.g., have both charge and π-electrons)
                     thus such additional sequence- and structure-dependent data facilitate the comprehensive analysis of interactions contributions.
                     <br>The available options include:
                     <ul>
@@ -497,6 +530,41 @@
            </section></li>
         </ul>
     </section>
+    <section class=section-main id="Hints">
+        <h3><b>5. Mapiya analysis hints and protocols</b></h3>
+        <h5>Here we provide some additional information on how to better utilize Mapiya.</h5>
+        <ul class="list-unstyled">
+            <li><section class=section-sub id="Chains">
+                <h4><b>5.1. Renaming or merging biomolecule chains</b></h4>
+                <h5>The current version of Mapiya was designed to visualize and analyze the interactions between individual biomolecules,
+                    separate protein or nucleic acid chains. In some cases, instead of visualizing the interactions between every pair of chains,
+                    users may be interested in visualizing the interactions between a set of chains (e.g. double stranded DNA, or a set of protein chains)
+                    and another biomolecule. This may be possible by linking the appropriate chains first using external software (also changing the residue
+                    numbering may be necessary). Below we provide a python script that may be helpful for that purpose.
+                    <br><a href="https://bitbucket.org/lcbio/mapserver/downloads/rename_chains.py">https://bitbucket.org/lcbio/mapserver/downloads/rename_chains.py</a>
+                    <br>USAGE:
+                    <br>python rename_chains.py [-h] -f INPUT [-cho CHO] [-chn CHN] [-o OUT]
+                    <br>e.g., python rename_chains.py -f input.pdb -cho A,B -chn C,D -o output.pdb
+                    <br>Options:
+                    <ul>
+                      <li>-h, print help</li>
+                      <li>-f, input file in the PDB format (can be multi-model)</li>
+                      <li>-cho, list of selected chain ids, separated by a comma (e.g., A,B,C) that will be changed</li>
+                      <li>-chn, list of new chain ids, separated by a comma (e.g., D,D,D)</li>
+                      <li>-o, name of the output file</li>
+                    </ul>
+                    The other tools that might be helpful with this task include:
+                    <ul>
+                        <li><a href="https://www.canoz.com/sdh/renamepdbchain.pl">renamepdbchain.pl</a></li>
+                        <li><a href="https://github.com/haddocking/pdb-tools">pdb-tools</a></li>
+                        <li><a href="https://www.gromacs.org/">GROMACS</a> with command: gmx editconf -f file-in.pdb -o file-out.pdb -resnr [residue number from with to start renumbering] -label [chain id to renumber]</li>
+                    </ul>
+                </h5>
+            </section>
+            </li>
+        </ul>
+    </section>
+    </div>
 </div>
 {% endblock content %}
 
