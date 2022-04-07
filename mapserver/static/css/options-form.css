@@ -28,7 +28,7 @@
 
 #optionsForm label {
     font-size: 0.875rem;
-    min-width: 10rem;
+    width: 10rem;
 }
 
 #optionsForm .form-group {
@@ -44,7 +44,7 @@
 
 #optionsForm .form-control,
 #optionsForm .custom-select {
-    min-width: 12rem;
+    width: 10rem;
     border-radius: 0.2rem!important;
 }
 
