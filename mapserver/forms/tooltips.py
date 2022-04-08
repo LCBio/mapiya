@@ -111,6 +111,72 @@ TOOLTIPS = {
             axis of the center of the membrane and the second number is the the minimal padding distance to use.
         ''',
     },
+    'positive_ion': {
+        'title': 'Positive ion',
+        'body': '''
+            Type of positive ion to put in the water box: 
+            <ul>
+                <li><strong>Cs+</strong></li>
+                <li><strong>K+</strong></li>
+                <li><strong>Li+</strong></li>
+                <li><strong>Na+</strong></li>
+                <li><strong>Rb+</strong></li>
+            </ul>
+        ''',
+    },
+    'negative_ion': {
+        'title': 'Negative ion',
+        'body': '''
+            Type of negative ion to put in the water box: 
+            <ul>
+                <li><strong>Cl-</strong></li>
+                <li><strong>Br-</strong></li>
+                <li><strong>F-</strong></li>
+                <li><strong>I-</strong></li>
+            </ul>
+        ''',
+    },
+    'ionic_strength': {
+        'title': 'Ionic strength',
+        'body': '''
+            The molar concentration of ions (both positive and negative) to put in the water box.
+            Ions that are added to neutralize the system are not included. 
+        ''',
+    },
+    'lipid_type': {
+        'title': 'Lipid type',
+        'body': '''
+            Type of lipid to add: 
+            <ul>
+                <li><strong>POPC</strong></li>
+                <li><strong>POPE</strong></li>
+                <li><strong>DLPC</strong></li>
+                <li><strong>DLPE</strong></li>
+                <li><strong>DMPC</strong></li>
+                <li><strong>DOPC</strong></li>
+                <li><strong>DPPC</strong></li>
+            </ul>
+        ''',
+    },
+    'water_box': {
+        'title': 'Water box',
+        'body': '''
+            The type of the box to fill with water:
+            <ul>
+                <li><strong>Unit cell</strong></li>
+                <li><strong>Max size</strong></li>
+                <li><strong>Custom</strong> (must specify box dimensions)</li>
+            </ul>
+            
+        ''',
+    },
+    'box_dimensions': {
+        'title': 'Box dimensions',
+        'body': '''
+            The box dimensions in nm <strong>[X Y Z]</strong>.
+        ''',
+    },
+
 }
 
 

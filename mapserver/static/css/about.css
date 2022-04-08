@@ -9,9 +9,18 @@
     font-family: "IBM Plex Sans";
 }
 
+.main-content {
+    padding-bottom: 10rem;
+}
+
+.table_contents {
+    padding-bottom: 0rem;
+    padding-top: 1rem
+
+}
 .section-main {
     background-color: #fff;
-    padding: 1rem 3rem 0 3rem;
+    padding: 5rem 3rem 0 3rem;
     width: min(90%, 1500px);
     margin-inline: auto;
 }
@@ -23,6 +32,14 @@
 .section-paper {
     background-color: #fcf8ec;
     padding: 1rem 3rem 0 3rem;
+}
+
+.paper-subtitle {
+    padding-bottom: 2rem
+}
+
+.mapiya-subtitle {
+    padding-bottom: 1rem
 }
 
 img {
@@ -53,9 +70,16 @@ img {
 }
 
 h1 {
-    padding: 0.7rem 0;
     margin: 0;
     font-weight: 900;
+}
+
+h3 {
+    padding: 1rem 0rem;
+}
+
+h4 {
+    padding:1rem 0rem;
 }
 
 h5 {
@@ -66,6 +90,7 @@ h5 {
     width: min(90%, 1500px);
     margin-inline: auto;
 }
+
 ul{
     list-style-type: disc;
 }
@@ -73,10 +98,19 @@ ul{
 .list-content {
     list-style-type: none;
 }
+
+.element-list {
+    padding-top: 0.3rem;
+    padding-bottom: 0.2rem;
+}
 .list-content-main {
     line-height: 2rem;
     padding-left: 0;
     list-style-type: none;
+}
+
+.intro {
+    padding: 3rem 0rem;
 }
 
 .pdb {
