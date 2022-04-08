@@ -82,7 +82,7 @@
                         value. In the project view for a particular file, the user can later change this value and display contact
                         maps for the changed contact cutoff.</li>
                         <li><i class="sc">Protonation pH</i> – The user sets the value for pH of the modeled environment. The value can range between 0 and 14.
-                        The protonation pH is used to define the environmental conditions for structure repair with PDBfixer (e.g., selecting the protonation
+                        The protonation pH is used to define the environmental conditions for structure repair with PDBFixer (e.g., selecting the protonation
                         state of a residue when adding hydrogens or adding environment) and electrostatic analysis performed with
                         APBS (e.g., calculating electrostatic potential). The value can range between 0 and 14, with the default set up to 7.
                         The protonation pH can be adjusted only before submitting the job to a queue, i.e., before the computationally
@@ -91,7 +91,8 @@
                     The Advanced options include:
                     <ul>
                         <li><i class="sc">Calculate hydrogen bonds</i> – If this option is checked, Mapiya calculates hydrogen bonds using EDHB
-                        (<a href="https://github.com/ekraka/EDHB">https://github.com/ekraka/EDHB</a>).</li>
+                        (<a href="https://github.com/ekraka/EDHB">https://github.com/ekraka/EDHB</a>).
+                        <br>Note: The structure has to have hydrogens to calculate hydrogen bonds.</li>
                         <li><i class="sc">Calculate secondary structure</i> – If his option is checked, Mapiya calculates secondary structure using
                         STRIDE (<a href="http://webclu.bio.wzw.tum.de/stride/">http://webclu.bio.wzw.tum.de/stride</a>).</li>
                         <li><i class="sc">Calculate electrostatics</i> – If this option is checked, Mapiya calculates electrostatics using
@@ -103,7 +104,7 @@
             <li><section class=section-sub id="Fix">
                 <h4><b>1.2. Fix structure</b></h4>
                 <h5>The second "Fix structure" panel contains input options for PDBFixer (<a href="https://github.com/openmm/pdbfixer">https://github.com/openmm/pdbfixer</a>).
-                    PDBfixer is an encapsulated application that makes it easy to use the functionality provided by OpenMM, a comprehensive molecular dynamics simulation toolkit.
+                    PDBFixer is an encapsulated application that makes it easy to use the functionality provided by OpenMM, a comprehensive molecular dynamics simulation toolkit.
                     We chose this software because of its
                     <ul class="list-unstyled">
                         <li><i class="">(i) transferability,</i></li>
@@ -126,11 +127,11 @@
                     re-optimized using the 'amber14-all' and 'amber14/tip3p' force fields, otherwise, the 'soft' variant is used.
                     <br>The options available in this section are:
                     <ul>
-                        <li><i class="sc">Add atoms</i> &ndash; This option enables users to add missing atoms to the structure. The available options are: all, heavy, standard, terminal, hydrogen and none. The default option is none.</li>
-                        <li><i class="sc">Add residues</i> &ndash; This option enables users to add missing residues to the structure. If the residues are to be added, the user has to specify the maximal length of inserted loops. The available options are: all, internal, terminal, none. The default option is none.</li>
+                        <li><i class="sc">Add atoms</i> &ndash; This option enables users to add missing atoms to the structure. The available options are: all, heavy, standard, terminal, hydrogen and none. The default option is all.</li>
+                        <li><i class="sc">Add residues</i> &ndash; This option enables users to add missing residues to the structure. If the residues are to be added, the user has to specify the maximal length of inserted loops. The available options are: all, internal, terminal, none. The default option is all.</li>
                         <li><i class="sc">Keep heterogens</i> &ndash; This option enables users to keep heterogeneous atoms from being removed. The available options for heterogens to be kept are: all, water, none. The default option is none.</li>
-                        <li><i class="sc">Replace non-standard aa</i> &ndash; This option enables users to replace all non-standard amino acids in the structure for their standard equivalents. The default option is no.</li>
-                        <li><i class="sc">Apply mutations</i> &ndash; This option enables users to apply mutations in the structure. The input is in form: three-letter amino acid code for an original residue - index of a residue that is being replaced - three-letter amino acid code for a mutated residue, protein chain id. For example VAL-7-ILE, A will mutate valine 7 into isoleucine in chain A.</li>
+                        <li><i class="sc">Replace non-standard aa</i> &ndash; This option enables users to replace all non-standard amino acids in the structure for their standard equivalents. The default option is yes.</li>
+                        <li><i class="sc">Apply mutations</i> &ndash; This option enables users to apply mutations in the structure. The input is in form: three-letter amino acid code for an original residue - index of a residue that is being replaced - three-letter amino acid code for a mutated residue : protein chain id. For example VAL-7-ILE:A will mutate valine 7 into isoleucine in chain A. The multiple mutations may be entered, separted by comma.</li>
                         <li><i class="sc">Add environment</i> &ndash; This option enables users to add an environment to a modeled project. The available options are: none, solvent, membrane.
                         <br>To add solvent user has to specify:
                             <ul>
@@ -145,7 +146,7 @@
                             <li>type of negative ion,</li>
                             <li>ionic strength,</li>
                             <li>lipid type,</li>
-                            <li>membrane position.</li>
+                            <li>membrane position (the position along the Z axis at which the center of the membrane will be located) and minimum padding (the minimum acceptable distance between the protein and the edges of the periodic box).</li>
                             </ul>
                         The default option is none.
                         </li>
@@ -233,9 +234,9 @@
                     disk or enter PDB code to download the file from the <a href="https://www.rcsb.org/">RCSB database</a>. The PDB file cannot exceed 50 models.
                     There are two options to submit project:
                     <ul>
-                        <li><i class="sc">Drop files here to download</i> – In order to submit a file the user has to drag and drop a file
+                        <li><i class="sc">Drop files here</i> – In order to submit a file the user has to drag and drop a file
                             located locally on a disk.</li>
-                        <li><i class="sc">Download structures from the RCSB</i> – In order to submit a file the user has to enter PDB code.
+                        <li><i class="sc">Download structures from the <b>rcsb.org</b></i> – In order to submit a file the user has to enter PDB code.
                             Mapiya downloads the structure from the RCSB database and submits the project for a calculation.</li>
                     </ul>
                     <div><img class="img-fluid" src="{% static 'img/about-download.png' %}"/></div>
@@ -246,15 +247,17 @@
                 <h5>
                     The list consists of every project submitted or calculated. Every entry consists of this information:
                     <ul>
-                        <li><i class="sc">Filename</i> – This column displays either the name of the submitted file or PDB id. After the
-                            project has finished calculating, clicking on the filename takes the user to the project view for that particular file.</li>
-                        <li><i class="sc">Progress</i> – This column displays the state of a particular project. After the caption turns green,
+                        <li><i class="sc">Project name</i> – This column displays the name of the project. After
+                            calculation finishes, clicking on the name takes the user to the project view for that submitted file.
+                            It can be changed by clicking 'Rename project' button on the right side of table.</li>
+                        <li><i class="sc">Progress</i> – This column displays the state of a particular project. When the caption turns green,
                             it means the project has finished calculating.</li>
+                        <li><i class="sc">Rename project</i> – This button enables users to rename projects.</li>
                         <li><i class="sc">Resubmit</i> – This button appears after the project has finished calculating. It enables users
                             to recalculate projects i.e. after changing options.</li>
                         <li><i class="sc">Delete</i> – This button enables the user to delete the project from the database and Project list.</li>
                     </ul>
-                    <div><img class="img-fluid" src="{% static 'img/about-files.png' %}"/></div>
+                    <div><img class="img-fluid" src="{% static 'img/about-projects.png' %}"/></div>
                 </h5>
             </section></li>
         </ul>
@@ -286,7 +289,18 @@
             using the cartoon and the Gaussian surface representation. The user can add additional representations supported by
             Molstar viewer. A detailed tutorial on the use of Molstar viewer and the different options available to the users
             can be found at: <a href="https://molstar.org/viewer-docs/common-actions/">Common actions - Molstar Viewer Documentation</a>
-            and <a href="https://www.rcsb.org/docs/3d-viewers/mol*/getting-started">RCSB Molstar - getting started</a>.
+            and <a href="https://www.rcsb.org/docs/3d-viewers/mol*/getting-started">RCSB Molstar - getting started</a>.<br>
+            <br>There is a red 'Show logs' button in the lower left corner. Logs can provide inside to why some calculations have not returned expected results. The users can display logs from calculations done by external software by clicking on the button.
+            <div><img class="img-fluid" src="{% static 'img/about-show_logs.png' %}"/></div>
+            The logs are divided in five categories:
+            <ul>
+                <li>PDBFixer</li>
+                <li>EDHB</li>
+                <li>APBS</li>
+                <li>Stride</li>
+                <li>All</li>
+            </ul>
+            <div><img class="img-fluid" src="{% static 'img/about-logs.png' %}"/></div>
         </h5>
     </section>
     <section class=section-main id="Map">
