@@ -182,7 +182,6 @@ TOOLTIPS = {
 
 def format_tooltip(name):
     if tooltip := TOOLTIPS.get(name):
-        placement = tooltip.get('placement', 'right')
         title = tooltip.get('title', 'Title')
         body = tooltip.get('body', 'Example tooltip')
 
@@ -191,5 +190,5 @@ def format_tooltip(name):
             <div class='tooltip-body'>{body}</div>
         ''')
 
-        return f'data-toggle="tooltip" data-html="true" data-placement="{placement}" title="{content}"'
+        return f'data-toggle="tooltip" data-html="true" title="{content}"'
     return ''

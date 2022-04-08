@@ -254,7 +254,7 @@ class Job(models.Model):
                 PDBFile.writeFile(fixer.topology, fixer.positions, f, keepIds=True)
                 self.environment = ContentFile(name=f'environment{self.model_index}.pdb', content=f.getvalue())
         else:
-            logger.info('no solvent or membrane added')
+            logger.info('No solvent or membrane added')
 
         # Save PDBFixer log in the DB
         self.logs['pdbfixer'] = log.getvalue()

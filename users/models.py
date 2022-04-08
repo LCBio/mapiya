@@ -73,4 +73,4 @@ class Identity(models.Model):
     # TODO: limit number of running jobs per user
 
     def __str__(self):
-        return self.id
+        return f'{self.user if self.user else self.id}'
