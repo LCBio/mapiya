@@ -13,7 +13,11 @@ TOOLTIPS = {
     'protonation_ph': {
         'title': 'Protonation pH',
         'body': '''
-            Set the pH value for the modeled environment. The value can range between 0 and 14.
+            Set the pH value for the modeled environment. The value can range between 0 and 14. The protonation pH is 
+            used to define the environmental conditions for structure repair (e.g., selecting the protonation
+            state of a residue when adding hydrogens or adding environment) and electrostatic analysis performed (e.g., 
+            calculating electrostatic potential). The protonation pH can be adjusted only before submitting the job to a queue.
+            If a change of the pH value is needed, the user should resubmit or create a new Mapiya project.
         ''',
     },
     'hydrogen_bonds': {

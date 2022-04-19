@@ -277,10 +277,17 @@ class OptionsForm(forms.Form):
             css_class='form-column-wrapper'
         )
 
-        submit_button = layouts.ButtonLink(
+        submit_button = layout.Div(
+            layouts.ButtonLink(
             href=reverse('reset-options'),
             text='Reset to defaults',
             css_class='btn btn-danger btn-sm'
+            ),
+            layout.Div(
+                layout.HTML('<label>For more info see <a href="{% url "about" %}">About page</a></label>'),
+                css_class='text-nowrap',
+                style="margin-right: 3rem; margin-left: 0rem; white-space: nowrap"),
+            css_class='d-flex justify-content-between align-items-center flex-wrap'
         )
 
         tab1_header = '1. Select options'

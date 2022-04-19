@@ -1,6 +1,6 @@
 .about-container {
 /*    height: calc(100vh - 5rem);*/
-    margin: 0 10vw;
+    margin-inline: auto;
     background-color: white;
 }
 
