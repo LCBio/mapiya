@@ -13,6 +13,12 @@
     padding-bottom: 10rem;
 }
 
+.video-container {
+    position: relative;
+    padding: 3rem 30rem 3rem 0rem;
+    overflow: hidden; }
+
+
 .table_contents {
     padding-bottom: 0rem;
     padding-top: 1rem
