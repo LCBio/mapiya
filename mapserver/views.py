@@ -4,7 +4,7 @@ from django.urls import reverse_lazy
 from django.views import generic
 from django_tables2 import SingleTableView
 
-from . import models, forms, tables
+from . import models, forms, tables, utils
 from users.views import get_identity
 from mollib import atom
 
@@ -29,18 +29,28 @@ class Home(SingleTableView):
 
     def post(self, request, *args, **kwargs):
         identity = get_identity(self.request)
+        status = []
         for file_id in request.FILES:
-            models.create_project(
-                identity=identity,
-                file=request.FILES[file_id].file,
-                name=request.FILES[file_id].name
-            )
+            error = utils.validate(request.FILES[file_id])
+            if not error:
+                models.create_project(
+                    identity=identity,
+                    file=request.FILES[file_id].file,
+                    name=request.FILES[file_id].name
+                )
+        status.append((request.FILES[file_id].name, error))
 
-        table = self.get_table()
-        return JsonResponse({
-            'success': True,
-            'table': table.as_html(request)
-        })
+        if any(map(lambda x: x[1] is None, status)):
+            table = self.get_table()
+            response_data = {
+                'status': status,
+                'table': table.as_html(request)
+            }
+        else:
+            response_data = {
+                'status': status,
+            }
+        return JsonResponse(response_data)
 
 
 class Detail(generic.DetailView):
