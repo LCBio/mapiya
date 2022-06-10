@@ -38,10 +38,11 @@ class Home(SingleTableView):
                     file=request.FILES[file_id].file,
                     name=request.FILES[file_id].name
                 )
-        status.append((request.FILES[file_id].name, error))
+            status.append((request.FILES[file_id].name, error))
 
         if any(map(lambda x: x[1] is None, status)):
             table = self.get_table()
+            print(status)
             response_data = {
                 'status': status,
                 'table': table.as_html(request)

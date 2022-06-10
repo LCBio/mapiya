@@ -152,7 +152,7 @@ Dropzone.options.dropzone = {
                 let $alert = $('.help-wrapper');
                 $alert.replaceWith(data.table);
             }
-            $table.html(data.table);
+            $table.replaceWith(data.table);
             initMapTable();
         }
 
