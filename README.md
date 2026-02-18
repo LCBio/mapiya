@@ -10,9 +10,9 @@ Mapiya is a web server that integrates generation of contact maps (intramolecula
 
 If you use Mapiya in your research, please cite:
 
-**Aleksandra E Badaczewska-Dawid, Chandran Nithin, Wróblewski Karol, Kurciński Mateusz, Kmiecik Sebastian** (2022).  
+**Aleksandra E Badaczewska-Dawid, Chandran Nithin, Wróblewski Karol, Kurciński Mateusz, Kmiecik Sebastian**.
 *MAPIYA contact map server for identification and visualization of molecular interactions in proteins and biological complexes*.  
-Nucleic Acids Research, 50(W1), W474–W482.  
+Nucleic Acids Research, 2022, 50(W1), W474–W482.  
 DOI: [https://doi.org/10.1093/nar/gkac307](https://doi.org/10.1093/nar/gkac307)
 
 ## Acknowledgements
